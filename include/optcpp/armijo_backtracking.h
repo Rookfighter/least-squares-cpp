@@ -16,11 +16,11 @@ namespace opt
     {
     private:
         /** Reduction factor during step calculation. Interval (0,1).
-          * Should be not too small, e.g. 0.8. */
+          * Choose not too small, e.g. 0.8. */
         double beta_;
 
         /** Relaxation of the gradient during step calculation. Interval
-          * (0, 0.5). Should be not too big, e.g. 0.1. */
+          * (0, 0.5). Choose not too big, e.g. 0.1. */
         double gamma_;
 
         /** Maximum allowed step length. Typically 1.0. */
@@ -29,6 +29,10 @@ namespace opt
     public:
         ArmijoBacktracking();
         ~ArmijoBacktracking();
+
+        void setBeta(const double beta);
+        void setGamma(const double gamma);
+        void setMaxStepLen(const double stepLen);
 
         double calcStepLength(
             const Eigen::VectorXd &state,

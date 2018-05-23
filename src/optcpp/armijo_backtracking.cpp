@@ -20,6 +20,21 @@ namespace opt
 
     }
 
+    void ArmijoBacktracking::setBeta(const double beta)
+    {
+        beta_ = beta;
+    }
+
+    void ArmijoBacktracking::setGamma(const double gamma)
+    {
+        gamma_ = gamma;
+    }
+
+    void ArmijoBacktracking::setMaxStepLen(const double stepLen)
+    {
+        maxStepLen_ = stepLen;
+    }
+
     double ArmijoBacktracking::calcStepLength(
         const Eigen::VectorXd &state,
         const Eigen::VectorXd &step,
