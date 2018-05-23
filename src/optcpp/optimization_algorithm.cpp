@@ -9,28 +9,24 @@
 
 namespace opt
 {
-    static unsigned int equations(const std::vector<Constraint *> &constraints)
-    {
-        unsigned int sum = 0;
-        for(const Constraint *c : constraints)
-            sum += c->outputSize();
-        return sum;
-    }
-
-    static unsigned int unknowns(const Eigen::VectorXd &state)
-    {
-        return state.size();
-    }
 
     OptimizationAlgorithm::OptimizationAlgorithm()
-        : constraints_()
+        : constraints_(), lineSearch_(nullptr)
     {
 
     }
 
     OptimizationAlgorithm::~OptimizationAlgorithm()
     {
+        if(lineSearch_ != nullptr)
+            delete lineSearch_;
+    }
 
+    void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm *lineSearch)
+    {
+        if(lineSearch_ != nullptr)
+            delete lineSearch_;
+        lineSearch_ = lineSearch;
     }
 
     void OptimizationAlgorithm::setConstraints(const std::vector<Constraint *>
@@ -44,44 +40,22 @@ namespace opt
         constraints_.clear();
     }
 
-    EquationSystem OptimizationAlgorithm::constructLEQ(const Eigen::VectorXd &state)
-    const
+    double OptimizationAlgorithm::calcStepLength(const Eigen::VectorXd &state, const Eigen::VectorXd &step) const
     {
-        EquationSystem result;
-        result.b.setZero(equations(constraints_));
-        result.A.setZero(equations(constraints_), unknowns(state));
+        if(lineSearch_ == nullptr)
+            return 1.0;
 
-        // keep track of the constraint index since constraints can
-        // return arbitrary amount of values
-        unsigned int cidx = 0;
-        for(unsigned int i = 0; i < constraints_.size(); ++i)
-        {
-            Constraint *constr = constraints_[i];
-
-            // calculate error function of the current constraint
-            Constraint::Result funcResult = constr->errorFunc(state);
-            for(unsigned int j = 0; j < funcResult.val.size(); ++j)
-                result.b(cidx + j) = funcResult.val(j);
-
-            // copy whole jacobian into one row of jacobi matrix
-            for(unsigned int row = 0; row < funcResult.jac.rows(); ++row)
-            {
-                for(unsigned int col = 0; col < funcResult.jac.cols(); ++col)
-                    result.A(cidx + row, col) = funcResult.jac(row, col);
-            }
-
-            cidx += constr->outputSize();
-        }
-
-        return result;
+        return lineSearch_->calcStepLength(state, step, constraints_);
     }
-
 
     Eigen::VectorXd OptimizationAlgorithm::update(const Eigen::VectorXd &state)
     {
         Eigen::VectorXd nState(state);
 
-        nState -= calcStepUpdate(state);
+        Eigen::VectorXd step = calcStepUpdate(state);
+        double stepLen = calcStepLength(state, step);
+
+        nState -= stepLen * step;
 
         return nState;
     }

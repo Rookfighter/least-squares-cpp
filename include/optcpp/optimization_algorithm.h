@@ -9,8 +9,7 @@
 #define OPT_OPTIMIZATION_ALGORITHM_H_
 
 #include <vector>
-#include "optcpp/constraint.h"
-#include "optcpp/equation_system.h"
+#include "optcpp/line_search_algorithm.h"
 
 namespace opt
 {
@@ -18,6 +17,7 @@ namespace opt
     {
     protected:
         std::vector<Constraint *> constraints_;
+        LineSearchAlgorithm *lineSearch_;
     public:
         struct Result
         {
@@ -29,15 +29,11 @@ namespace opt
         OptimizationAlgorithm();
         virtual ~OptimizationAlgorithm();
 
+        void setLineSearchAlgorithm(LineSearchAlgorithm *lineSearch);
         void setConstraints(const std::vector<Constraint *> &constraints);
         void clearConstraints();
 
-        /**
-         * Constructs a linear equation system from the constraints given the
-         * current state.
-         * @return linear equation system
-         */
-        EquationSystem constructLEQ(const Eigen::VectorXd &state) const;
+        double calcStepLength(const Eigen::VectorXd &state, const Eigen::VectorXd &step) const;
 
         /**
          * Calculates the state update vector of the algorithm. The vector will be subtracted

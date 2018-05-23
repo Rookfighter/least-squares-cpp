@@ -26,7 +26,7 @@ namespace opt
         double width = 1e-4;
         double fac = 2.0;
 
-        Eigen::VectorXd b = constructLEQ(state).b;
+        Eigen::VectorXd b = constructEqSys(state, constraints_).b;
         double currLen = b.norm();
         double lastLen = currLen;
 
@@ -36,7 +36,7 @@ namespace opt
             width *= fac;
 
             lastLen = currLen;
-            currLen = constructLEQ(state - width * jac.transpose() * b).b.norm();
+            currLen = constructEqSys(state - width * jac.transpose() * b, constraints_).b.norm();
         }
         while(currLen < lastLen);
 
@@ -46,7 +46,7 @@ namespace opt
 
     Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        EquationSystem eqRes = constructLEQ(state);
+        EquationSystem eqRes = constructEqSys(state, constraints_);
         // calculate step width
         double width = stepWidth(state, eqRes.A);
         // TODO limit step width

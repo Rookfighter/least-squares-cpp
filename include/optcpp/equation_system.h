@@ -9,6 +9,7 @@
 #define OPT_EQUATION_SYSTEM_H_
 
 #include <Eigen/Dense>
+#include "optcpp/constraint.h"
 
 namespace opt
 {
@@ -23,6 +24,13 @@ namespace opt
         unsigned int unknowns() const;
         bool undertermined() const;
     };
+
+    /**
+     * Constructs a linear equation system from the constraints given the
+     * current state.
+     * @return linear equation system
+     */
+    EquationSystem constructEqSys(const Eigen::VectorXd &state, const std::vector<Constraint*> &constraints);
 
     Eigen::VectorXd solveSVD(const EquationSystem &eqSys);
 }

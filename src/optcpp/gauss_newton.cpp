@@ -27,7 +27,7 @@ namespace opt
 
     Eigen::VectorXd GaussNewton::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        EquationSystem eqSys = constructLEQ(state);
+        EquationSystem eqSys = constructEqSys(state, constraints_);
         // damping factor
         eqSys.A *= damping_;
         return solveSVD(eqSys);
