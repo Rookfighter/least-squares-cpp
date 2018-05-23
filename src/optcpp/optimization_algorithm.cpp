@@ -9,10 +9,10 @@
 
 namespace opt
 {
-    static unsigned int equations(const std::vector<Constraint*> &constraints)
+    static unsigned int equations(const std::vector<Constraint *> &constraints)
     {
         unsigned int sum = 0;
-        for(const Constraint *c :constraints)
+        for(const Constraint *c : constraints)
             sum += c->outputSize();
         return sum;
     }
@@ -23,7 +23,7 @@ namespace opt
     }
 
     OptimizationAlgorithm::OptimizationAlgorithm()
-    : constraints_()
+        : constraints_()
     {
 
     }
@@ -33,7 +33,8 @@ namespace opt
 
     }
 
-    void OptimizationAlgorithm::setConstraints(const std::vector<Constraint*> &constraints)
+    void OptimizationAlgorithm::setConstraints(const std::vector<Constraint *>
+            &constraints)
     {
         constraints_ = constraints;
     }
@@ -43,7 +44,8 @@ namespace opt
         constraints_.clear();
     }
 
-    EquationSystem OptimizationAlgorithm::constructLEQ(const Eigen::VectorXd &state) const
+    EquationSystem OptimizationAlgorithm::constructLEQ(const Eigen::VectorXd &state)
+    const
     {
         EquationSystem result;
         result.b.setZero(equations(constraints_));
@@ -84,7 +86,8 @@ namespace opt
         return nState;
     }
 
-    OptimizationAlgorithm::Result OptimizationAlgorithm::run(const Eigen::VectorXd &state,
+    OptimizationAlgorithm::Result OptimizationAlgorithm::run(
+        const Eigen::VectorXd &state,
         const double eps,
         const unsigned int maxSteps)
     {

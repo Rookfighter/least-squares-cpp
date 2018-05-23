@@ -9,49 +9,50 @@
 
 namespace opt
 {
-        GradientDescent::GradientDescent()
+    GradientDescent::GradientDescent()
         : OptimizationAlgorithm()
+    {
+
+    }
+
+    GradientDescent::~GradientDescent()
+    {
+
+    }
+
+    double GradientDescent::stepWidth(const Eigen::VectorXd &state,
+                                      const Eigen::MatrixXd &jac) const
+    {
+        double width = 1e-4;
+        double fac = 2.0;
+
+        Eigen::VectorXd b = constructLEQ(state).b;
+        double currLen = b.norm();
+        double lastLen = currLen;
+
+        // Increase jump distances
+        do
         {
+            width *= fac;
 
+            lastLen = currLen;
+            currLen = constructLEQ(state - width * jac.transpose() * b).b.norm();
         }
+        while(currLen < lastLen);
 
-        GradientDescent::~GradientDescent()
-        {
+        // Return last epsilon which minimized
+        return width / fac;
+    }
 
-        }
+    Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
+    {
+        EquationSystem eqRes = constructLEQ(state);
+        // calculate step width
+        double width = stepWidth(state, eqRes.A);
+        // TODO limit step width
+        width = std::min(width, 2.0);
 
-        double GradientDescent::stepWidth(const Eigen::VectorXd& state, const Eigen::MatrixXd& jac) const
-        {
-            double width = 1e-4;
-            double fac = 2.0;
-
-            Eigen::VectorXd b = constructLEQ(state).b;
-            double currLen = b.norm();
-            double lastLen = currLen;
-
-        	// Increase jump distances
-        	do
-        	{
-        		width *= fac;
-
-        		lastLen = currLen;
-        		currLen = constructLEQ(state - width * jac.transpose() * b).b.norm();
-        	}
-        	while (currLen < lastLen);
-
-        	// Return last epsilon which minimized
-        	return width / fac;
-        }
-
-        Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
-        {
-            EquationSystem eqRes = constructLEQ(state);
-            // calculate step width
-            double width = stepWidth(state, eqRes.A);
-            // TODO limit step width
-    		width = std::min(width, 2.0);
-
-    		// Gradient method
-    		return width * eqRes.A.transpose() * eqRes.b;
-        }
+        // Gradient method
+        return width * eqRes.A.transpose() * eqRes.b;
+    }
 }

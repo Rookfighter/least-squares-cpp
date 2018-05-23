@@ -17,7 +17,7 @@ namespace opt
     class OptimizationAlgorithm
     {
     protected:
-        std::vector<Constraint*> constraints_;
+        std::vector<Constraint *> constraints_;
     public:
         struct Result
         {
@@ -29,7 +29,7 @@ namespace opt
         OptimizationAlgorithm();
         virtual ~OptimizationAlgorithm();
 
-        void setConstraints(const std::vector<Constraint*> &constraints);
+        void setConstraints(const std::vector<Constraint *> &constraints);
         void clearConstraints();
 
         /**
@@ -63,7 +63,8 @@ namespace opt
          * @param maxSteps maximum number of iterations (0 = infinite)
          * @return resulting state vector
          */
-        Result run(const Eigen::VectorXd &state, const double eps, const unsigned int maxSteps = 0);
+        Result run(const Eigen::VectorXd &state, const double eps,
+                   const unsigned int maxSteps = 0);
     };
 }
 

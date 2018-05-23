@@ -10,7 +10,7 @@
 namespace opt
 {
     GaussNewton::GaussNewton()
-    : OptimizationAlgorithm()
+        : OptimizationAlgorithm(), damping_(1.0)
     {
 
     }
@@ -20,12 +20,16 @@ namespace opt
 
     }
 
+    void GaussNewton::setDamping(const double damping)
+    {
+        damping_ = damping;
+    }
+
     Eigen::VectorXd GaussNewton::calcStepUpdate(const Eigen::VectorXd &state)
     {
         EquationSystem eqSys = constructLEQ(state);
-        assert(!eqSys.undertermined());
         // damping factor
-        eqSys.A *= 4.0;
+        eqSys.A *= damping_;
         return solveSVD(eqSys);
     }
 }

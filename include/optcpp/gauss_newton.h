@@ -15,9 +15,13 @@ namespace opt
 
     class GaussNewton : public OptimizationAlgorithm
     {
+    private:
+        double damping_;
     public:
         GaussNewton();
         ~GaussNewton();
+
+        void setDamping(const double damping);
 
         Eigen::VectorXd calcStepUpdate(const Eigen::VectorXd &state);
     };

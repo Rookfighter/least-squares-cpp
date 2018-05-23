@@ -17,11 +17,13 @@ namespace opt
     {
     private:
         double damping_;
+        double gradientFac_;
     public:
         LevenbergMarquardt();
         ~LevenbergMarquardt();
 
         void setDamping(const double damping);
+        void setGradientFactor(const double fac);
 
         Eigen::VectorXd calcStepUpdate(const Eigen::VectorXd &state);
     };

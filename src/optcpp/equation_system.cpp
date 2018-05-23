@@ -28,9 +28,9 @@ namespace opt
     Eigen::VectorXd solveSVD(const EquationSystem &eqSys)
     {
         Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::FullPivHouseholderQRPreconditioner>
-            decomp(eqSys.A.transpose() * eqSys.A,
-                   Eigen::ComputeFullU | Eigen::ComputeFullV);
+        decomp(eqSys.A.transpose() * eqSys.A,
+               Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-		return decomp.solve(eqSys.A.transpose() * eqSys.b);
+        return decomp.solve(eqSys.A.transpose() * eqSys.b);
     }
 }

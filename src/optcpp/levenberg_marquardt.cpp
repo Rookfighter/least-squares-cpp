@@ -11,7 +11,7 @@ namespace opt
 {
 
     LevenbergMarquardt::LevenbergMarquardt()
-    : damping_(1.0)
+    : OptimizationAlgorithm(), damping_(1.0), gradientFac_(1.0)
     {
 
     }
@@ -26,6 +26,11 @@ namespace opt
         damping_ = damping;
     }
 
+    void LevenbergMarquardt::setGradientFactor(const double fac)
+    {
+        gradientFac_ = fac;
+    }
+
     Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(const Eigen::VectorXd &state)
     {
         EquationSystem eqSys = constructLEQ(state);
@@ -35,7 +40,8 @@ namespace opt
         {
             // damping factor
             Eigen::MatrixXd oldA = eqSys.A;
-            eqSys.A += damping_ * Eigen::MatrixXd::Identity(eqSys.A.rows(), eqSys.A.cols());
+            eqSys.A += gradientFac_ * Eigen::MatrixXd::Identity(eqSys.A.rows(), eqSys.A.cols());
+            eqSys.A *= damping_;
             delta =  solveSVD(eqSys);
             EquationSystem eqSys2 = constructLEQ(state + delta);
 
@@ -43,14 +49,14 @@ namespace opt
             {
                 // new error is greater so don't change state
                 // but increase damping factor
-                damping_ *= 2;
+                gradientFac_ *= 2;
                 eqSys.A = oldA;
             }
             else
             {
                 // new error has shown improvement
                 // decrease damping factor
-                damping_ /= 2;
+                gradientFac_ /= 2;
                 break;
             }
         }
