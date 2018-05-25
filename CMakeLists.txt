@@ -16,9 +16,9 @@ set(OPTCPP_LIBRARY "optcpp" CACHE INTERNAL "")
 add_subdirectory(dep)
 
 include_directories(
-	${EIGEN3_INCLUDE_DIR}
+    ${EIGEN3_INCLUDE_DIR}
     ${CATCH2_INCLUDE_DIR}
-	"include"
+    "include"
 )
 
 file(GLOB SRC src/optcpp/*.cpp)
