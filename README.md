@@ -13,7 +13,14 @@ The library also includes various line search algorithms:
 
 ## Install
 
-The library can be built using the CMake build system by running
+First download the dependencies locally as git submodules.
+
+```bash
+cd <path-to-repo>
+git submodule update --init --recursive
+```
+
+Then the library can be built using the CMake build system by running
 
 ```bash
 cd <path-to-repo>
