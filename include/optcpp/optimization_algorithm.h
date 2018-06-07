@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "optcpp/line_search_algorithm.h"
+#include "optcpp/constraint.h"
 
 namespace opt
 {
