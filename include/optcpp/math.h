@@ -6,7 +6,10 @@
 
 namespace opt
 {
-    constexpr double pi() { return std::atan(1.0)*4.0; }
+    constexpr double pi()
+    {
+        return std::atan(1.0) * 4.0;
+    }
 
     inline bool equals(double a, double b, double eps)
     {
@@ -21,9 +24,9 @@ namespace opt
     inline double normalizeAngle(double angle)
     {
         while(angle <= -pi())
-            angle += 2*pi();
+            angle += 2 * pi();
         while(angle > pi())
-            angle -= 2*pi();
+            angle -= 2 * pi();
         return angle;
     }
 }

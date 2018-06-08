@@ -22,7 +22,8 @@ namespace opt
             delete lineSearch_;
     }
 
-    void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm *lineSearch)
+    void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm
+            *lineSearch)
     {
         if(lineSearch_ != nullptr)
             delete lineSearch_;
@@ -40,7 +41,8 @@ namespace opt
         constraints_.clear();
     }
 
-    double OptimizationAlgorithm::calcStepLength(const Eigen::VectorXd &state, const Eigen::VectorXd &step) const
+    double OptimizationAlgorithm::calcStepLength(const Eigen::VectorXd &state,
+            const Eigen::VectorXd &step) const
     {
         if(lineSearch_ == nullptr)
             return 1.0;

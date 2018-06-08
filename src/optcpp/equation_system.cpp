@@ -38,7 +38,8 @@ namespace opt
         return state.size();
     }
 
-    EquationSystem constructEqSys(const Eigen::VectorXd &state, const std::vector<Constraint*> &constraints)
+    EquationSystem constructEqSys(const Eigen::VectorXd &state,
+                                  const std::vector<Constraint *> &constraints)
     {
         EquationSystem result;
         result.b.setZero(equations(constraints));

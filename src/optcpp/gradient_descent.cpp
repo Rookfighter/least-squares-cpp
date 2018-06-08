@@ -36,7 +36,8 @@ namespace opt
             width *= fac;
 
             lastLen = currLen;
-            currLen = constructEqSys(state - width * jac.transpose() * b, constraints_).b.norm();
+            currLen = constructEqSys(state - width * jac.transpose() * b,
+                                     constraints_).b.norm();
         }
         while(currLen < lastLen);
 

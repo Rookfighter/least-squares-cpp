@@ -37,7 +37,7 @@ namespace opt
         double calcStepLength(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const std::vector<Constraint*> &constraints) const override;
+            const std::vector<Constraint *> &constraints) const override;
     };
 }
 

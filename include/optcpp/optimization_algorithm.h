@@ -34,7 +34,8 @@ namespace opt
         void setConstraints(const std::vector<Constraint *> &constraints);
         void clearConstraints();
 
-        double calcStepLength(const Eigen::VectorXd &state, const Eigen::VectorXd &step) const;
+        double calcStepLength(const Eigen::VectorXd &state,
+                              const Eigen::VectorXd &step) const;
 
         /**
          * Calculates the state update vector of the algorithm. The vector will be subtracted

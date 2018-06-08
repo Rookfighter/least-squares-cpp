@@ -10,7 +10,7 @@
 namespace opt
 {
     ArmijoBacktracking::ArmijoBacktracking()
-    : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1), maxStepLen_(1.0)
+        : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1), maxStepLen_(1.0)
     {
 
     }
@@ -38,7 +38,7 @@ namespace opt
     double ArmijoBacktracking::calcStepLength(
         const Eigen::VectorXd &state,
         const Eigen::VectorXd &step,
-        const std::vector<Constraint*> &constraints) const
+        const std::vector<Constraint *> &constraints) const
     {
         double result = maxStepLen_;
         EquationSystem currEqSys = constructEqSys(state + result * step, constraints);
@@ -46,7 +46,7 @@ namespace opt
 
         // check for armijo condition
         while(currEqSys.b.norm() >=
-             (eqSys.b + gamma_ * result * eqSys.A.transpose() * step).norm())
+                (eqSys.b + gamma_ * result * eqSys.A.transpose() * step).norm())
         {
             // decrease step length
             result *= beta_;

@@ -11,7 +11,7 @@ namespace opt
 {
 
     LevenbergMarquardt::LevenbergMarquardt()
-    : OptimizationAlgorithm(), damping_(1.0), gradientFac_(1.0)
+        : OptimizationAlgorithm(), damping_(1.0), gradientFac_(1.0)
     {
 
     }
@@ -39,7 +39,8 @@ namespace opt
         while(true)
         {
             Eigen::MatrixXd oldA = eqSys.A;
-            eqSys.A += gradientFac_ * Eigen::MatrixXd::Identity(eqSys.A.rows(), eqSys.A.cols());
+            eqSys.A += gradientFac_ * Eigen::MatrixXd::Identity(eqSys.A.rows(),
+                       eqSys.A.cols());
             eqSys.A *= damping_;
             delta =  solveSVD(eqSys);
             EquationSystem eqSys2 = constructEqSys(state + delta, constraints_);
