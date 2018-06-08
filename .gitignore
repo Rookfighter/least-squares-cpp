@@ -11,3 +11,5 @@ Debug/
 Release/
 lib/
 logs/
+doc/html
+doc/latex
