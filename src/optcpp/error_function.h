@@ -30,7 +30,7 @@ namespace opt
         /** Returns the length of the output vector of the error function.
           * This is used for prediction the length of the final function vetcor
           * @return length of the result vector */
-        virtual unsigned int dimension() const = 0;
+        virtual size_t dimension() const = 0;
 
         /**
          * Evaluates the error function and its jacobian.
