@@ -49,7 +49,7 @@ namespace opt
          *  @param step current optimization step
          *  @return step length */
         double stepLength(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step) const;
+                          const Eigen::VectorXd &step) const;
 
         /** Calculates the state update vector of the algorithm. The vector
          *  will be added to the state.
@@ -72,8 +72,8 @@ namespace opt
          *  @return struct with resulting state vector and convergence
          *          information */
         Result run(const Eigen::VectorXd &state,
-            const double eps,
-            const size_t maxIt = 0);
+                   const double eps,
+                   const size_t maxIt = 0);
     };
 }
 

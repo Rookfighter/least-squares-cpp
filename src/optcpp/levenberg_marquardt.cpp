@@ -53,7 +53,7 @@ namespace opt
             prevA = eqSysA.A;
             // add gradient descent matrix
             eqSysA.A += lambda_ * Eigen::MatrixXd::Identity(eqSysA.A.rows(),
-                eqSysA.A.cols());
+                        eqSysA.A.cols());
             eqSysA.A *= damping_;
 
             step = -eqSysA.solveSVD();

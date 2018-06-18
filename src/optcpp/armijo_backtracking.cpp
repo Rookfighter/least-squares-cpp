@@ -10,15 +10,15 @@
 
 namespace opt
 {
-    static bool armijoCondition(const LinearEquationSystem& currLES,
-        const LinearEquationSystem& refLES,
-        const Eigen::VectorXd  &step,
-        const double stepLen,
-        const double gamma)
+    static bool armijoCondition(const LinearEquationSystem &currLES,
+                                const LinearEquationSystem &refLES,
+                                const Eigen::VectorXd  &step,
+                                const double stepLen,
+                                const double gamma)
     {
         double currErr = currLES.b.norm();
         double linErr = (refLES.b + gamma * stepLen * refLES.A.transpose() *
-            step).norm();
+                         step).norm();
 
         return currErr < linErr;
     }
@@ -67,8 +67,8 @@ namespace opt
 
         size_t iterations = 0;
         // check for armijo condition
-        while(!armijoCondition(currLES,refLES,step,result,gamma_) &&
-            (maxIt_ == 0 || iterations < maxIt_))
+        while(!armijoCondition(currLES, refLES, step, result, gamma_) &&
+                (maxIt_ == 0 || iterations < maxIt_))
         {
             // decrease step length
             result *= beta_;

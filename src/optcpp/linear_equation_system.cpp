@@ -28,7 +28,7 @@ namespace opt
     }
 
     LinearEquationSystem::LinearEquationSystem(const Eigen::VectorXd &state,
-        const std::vector<ErrorFunction *> &errFuncs)
+            const std::vector<ErrorFunction *> &errFuncs)
     {
         construct(state, errFuncs);
     }
@@ -39,7 +39,7 @@ namespace opt
     }
 
     void LinearEquationSystem::construct(const Eigen::VectorXd &state,
-        const std::vector<ErrorFunction *> &errFuncs)
+                                         const std::vector<ErrorFunction *> &errFuncs)
     {
         b.setZero(opt::equations(errFuncs));
         A.setZero(opt::equations(errFuncs), opt::unknowns(state));
@@ -86,9 +86,9 @@ namespace opt
     Eigen::VectorXd LinearEquationSystem::solveSVD() const
     {
         Eigen::JacobiSVD<Eigen::MatrixXd,
-            Eigen::FullPivHouseholderQRPreconditioner>
-            decomp(A.transpose() * A,
-               Eigen::ComputeFullU | Eigen::ComputeFullV);
+              Eigen::FullPivHouseholderQRPreconditioner>
+              decomp(A.transpose() * A,
+                     Eigen::ComputeFullU | Eigen::ComputeFullV);
 
         return decomp.solve(A.transpose() * b);
     }

@@ -24,7 +24,7 @@ namespace opt
 
         LinearEquationSystem();
         LinearEquationSystem(const Eigen::VectorXd &state,
-            const std::vector<ErrorFunction *> &errFuncs);
+                             const std::vector<ErrorFunction *> &errFuncs);
         ~LinearEquationSystem();
 
         /** Constructs a linear equation system from given error functions
@@ -32,7 +32,7 @@ namespace opt
          *  @param state current state vector
          *  @param errFuncs vector of error functions */
         void construct(const Eigen::VectorXd &state,
-            const std::vector<ErrorFunction *> &errFuncs);
+                       const std::vector<ErrorFunction *> &errFuncs);
 
         /** Solves the linear equation system using SVD decomposition.
          *  @return */

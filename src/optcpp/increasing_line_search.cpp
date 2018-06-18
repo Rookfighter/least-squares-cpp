@@ -11,7 +11,7 @@
 namespace opt
 {
     IncreasingLineSearch::IncreasingLineSearch()
-    : beta_(2.0), maxStepLen_(2.0), minStepLen_(1e-4), maxIt_(0)
+        : beta_(2.0), maxStepLen_(2.0), minStepLen_(1e-4), maxIt_(0)
     {
 
     }
