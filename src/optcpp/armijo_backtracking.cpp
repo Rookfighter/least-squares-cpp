@@ -17,7 +17,7 @@ namespace opt
                                 const double gamma)
     {
         double currErr = currLES.b.norm();
-        double linErr = (refLES.b + gamma * stepLen * refLES.A.transpose() *
+        double linErr = (refLES.b + gamma * stepLen * refLES.A *
                          step).norm();
 
         return currErr < linErr;
