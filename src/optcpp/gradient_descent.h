@@ -12,11 +12,9 @@
 
 namespace opt
 {
+    /** Implementation of the gradient descent optimization algorithm. */
     class GradientDescent : public OptimizationAlgorithm
     {
-    private:
-        double stepWidth(const Eigen::VectorXd &state,
-                         const Eigen::MatrixXd &jac) const;
     public:
         GradientDescent();
         ~GradientDescent();

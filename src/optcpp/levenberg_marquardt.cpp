@@ -6,12 +6,13 @@
  */
 
 #include "optcpp/levenberg_marquardt.h"
+#include "optcpp/linear_equation_system.h"
 
 namespace opt
 {
 
     LevenbergMarquardt::LevenbergMarquardt()
-        : OptimizationAlgorithm(), damping_(1.0), gradientFac_(1.0)
+        : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxIt_(0)
     {
 
     }
@@ -26,40 +27,56 @@ namespace opt
         damping_ = damping;
     }
 
-    void LevenbergMarquardt::setGradientFactor(const double fac)
+    void LevenbergMarquardt::setLambda(const double lambda)
     {
-        gradientFac_ = fac;
+        lambda_ = lambda;
+    }
+
+    void LevenbergMarquardt::setMaxIterations(const size_t maxIt)
+    {
+        maxIt_ = maxIt;
     }
 
     Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        EquationSystem eqSys = constructEqSys(state, constraints_);
-        Eigen::VectorXd delta;
+        LinearEquationSystem eqSysA(state, errFuncs_);
+        LinearEquationSystem eqSysB;
 
-        while(true)
+        Eigen::VectorXd step;
+        Eigen::MatrixXd prevA;
+
+        size_t iterations = 0;
+        bool found = false;
+        while(!found && (maxIt_ == 0 || iterations < maxIt_))
         {
-            Eigen::MatrixXd oldA = eqSys.A;
-            eqSys.A += gradientFac_ * Eigen::MatrixXd::Identity(eqSys.A.rows(),
-                       eqSys.A.cols());
-            eqSys.A *= damping_;
-            delta =  solveSVD(eqSys);
-            EquationSystem eqSys2 = constructEqSys(state + delta, constraints_);
+            prevA = eqSysA.A;
+            // add gradient descent matrix
+            eqSysA.A += lambda_ * Eigen::MatrixXd::Identity(eqSysA.A.rows(),
+                eqSysA.A.cols());
+            eqSysA.A *= damping_;
 
-            if(eqSys.b.norm() < eqSys2.b.norm())
+            step = eqSysA.solveSVD();
+
+            eqSysB.construct(state + step, errFuncs_);
+
+            if(eqSysA.b.norm() < eqSysB.b.norm())
             {
                 // new error is greater so don't change state
-                // but increase gradient factor
-                gradientFac_ *= 2;
-                eqSys.A = oldA;
+                // increase lambda
+                lambda_ *= 2.0;
+                eqSysA.A = std::move(prevA);
             }
             else
             {
                 // new error has shown improvement
-                // decrease gradient factor
-                gradientFac_ /= 2;
-                break;
+                // decrease lambda
+                lambda_ /= 2.0;
+                found = true;
             }
+
+            ++iterations;
         }
-        return delta;
+
+        return step;
     }
 }

@@ -11,7 +11,7 @@ namespace opt
 {
 
     OptimizationAlgorithm::OptimizationAlgorithm()
-        : constraints_(), lineSearch_(nullptr)
+        : errFuncs_(), lineSearch_(nullptr)
     {
 
     }
@@ -20,6 +20,7 @@ namespace opt
     {
         if(lineSearch_ != nullptr)
             delete lineSearch_;
+        clearErrorFunctions();
     }
 
     void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm
@@ -30,24 +31,28 @@ namespace opt
         lineSearch_ = lineSearch;
     }
 
-    void OptimizationAlgorithm::setConstraints(const std::vector<Constraint *>
-            &constraints)
+    void OptimizationAlgorithm::setErrorFunctions(
+        const std::vector<ErrorFunction *> &errFuncs)
     {
-        constraints_ = constraints;
+        clearErrorFunctions();
+        errFuncs_ = errFuncs;
     }
 
-    void OptimizationAlgorithm::clearConstraints()
+    void OptimizationAlgorithm::clearErrorFunctions()
     {
-        constraints_.clear();
+        for(ErrorFunction *err : errFuncs_)
+            delete err;
+        errFuncs_.clear();
     }
 
-    double OptimizationAlgorithm::calcStepLength(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step) const
+    double OptimizationAlgorithm::stepLength(
+        const Eigen::VectorXd &state,
+        const Eigen::VectorXd &step) const
     {
         if(lineSearch_ == nullptr)
             return 1.0;
 
-        return lineSearch_->calcStepLength(state, step, constraints_);
+        return lineSearch_->stepLength(state, step, errFuncs_);
     }
 
     Eigen::VectorXd OptimizationAlgorithm::update(const Eigen::VectorXd &state)
@@ -55,9 +60,9 @@ namespace opt
         Eigen::VectorXd nState(state);
 
         Eigen::VectorXd step = calcStepUpdate(state);
-        double stepLen = calcStepLength(state, step);
+        double stepLen = stepLength(state, step);
 
-        nState -= stepLen * step;
+        nState += stepLen * step;
 
         return nState;
     }
@@ -65,23 +70,28 @@ namespace opt
     OptimizationAlgorithm::Result OptimizationAlgorithm::run(
         const Eigen::VectorXd &state,
         const double eps,
-        const unsigned int maxSteps)
+        const size_t maxIt)
     {
         Result result;
         result.state = state;
-        Eigen::VectorXd stepUpdate = calcStepUpdate(state);
+        // calculate initial step
+        Eigen::VectorXd step = calcStepUpdate(state);
+        double stepLen = 1.0;
 
-        unsigned int step = 0;
+        size_t iterations = 0;
 
-        while(stepUpdate.norm() > eps && (maxSteps == 0 || step < maxSteps))
+        while(step.norm() > eps && (maxIt == 0 || iterations < maxIt))
         {
-            result.state -= stepUpdate;
-            stepUpdate = calcStepUpdate(result.state);
-            ++step;
+            stepLen = stepLength(state, step);
+            result.state += stepLen * step;
+
+            // increment
+            step = calcStepUpdate(result.state);
+            ++iterations;
         }
 
-        result.steps = step;
-        result.converged = stepUpdate.norm() > eps;
+        result.iterations = iterations;
+        result.converged = step.norm() <= eps;
 
         return result;
     }

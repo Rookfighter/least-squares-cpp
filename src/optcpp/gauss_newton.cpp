@@ -6,6 +6,7 @@
  */
 
 #include "optcpp/gauss_newton.h"
+#include "optcpp/linear_equation_system.h"
 
 namespace opt
 {
@@ -27,9 +28,9 @@ namespace opt
 
     Eigen::VectorXd GaussNewton::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        EquationSystem eqSys = constructEqSys(state, constraints_);
+        LinearEquationSystem eqSys(state, errFuncs_);
         // damping factor
         eqSys.A *= damping_;
-        return solveSVD(eqSys);
+        return eqSys.solveSVD();
     }
 }

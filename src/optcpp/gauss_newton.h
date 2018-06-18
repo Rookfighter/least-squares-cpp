@@ -13,6 +13,7 @@
 namespace opt
 {
 
+    /** Implementation of the gauss newton optimization algorithm. */
     class GaussNewton : public OptimizationAlgorithm
     {
     private:
