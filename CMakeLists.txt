@@ -8,7 +8,7 @@ project(optcpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
 set(OPTCPP_LIBRARY "optcpp")
 
