@@ -31,6 +31,6 @@ namespace opt
         LinearEquationSystem eqSys(state, errFuncs_);
         // damping factor
         eqSys.A *= damping_;
-        return eqSys.solveSVD();
+        return -eqSys.solveSVD();
     }
 }

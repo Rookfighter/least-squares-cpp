@@ -40,6 +40,7 @@ namespace opt
     Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(const Eigen::VectorXd &state)
     {
         LinearEquationSystem eqSysA(state, errFuncs_);
+        double errA = eqSysA.b.norm();
         LinearEquationSystem eqSysB;
 
         Eigen::VectorXd step;
@@ -55,11 +56,12 @@ namespace opt
                 eqSysA.A.cols());
             eqSysA.A *= damping_;
 
-            step = eqSysA.solveSVD();
+            step = -eqSysA.solveSVD();
 
             eqSysB.construct(state + step, errFuncs_);
+            double errB = eqSysB.b.norm();
 
-            if(eqSysA.b.norm() < eqSysB.b.norm())
+            if(errA < errB)
             {
                 // new error is greater so don't change state
                 // increase lambda
