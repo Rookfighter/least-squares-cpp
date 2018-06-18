@@ -36,17 +36,24 @@ namespace opt
 
     void ArmijoBacktracking::setBeta(const double beta)
     {
+        assert(beta_ > 0.0 && beta_ < 1.0);
         beta_ = beta;
     }
 
     void ArmijoBacktracking::setGamma(const double gamma)
     {
+        assert(gamma > 0.0 && gamma < 0.5);
         gamma_ = gamma;
     }
 
     void ArmijoBacktracking::setMaxStepLen(const double stepLen)
     {
         maxStepLen_ = stepLen;
+    }
+
+    void ArmijoBacktracking::setMaxIterations(const size_t maxIt)
+    {
+        maxIt_ = maxIt;
     }
 
     double ArmijoBacktracking::stepLength(
@@ -58,12 +65,15 @@ namespace opt
         LinearEquationSystem currLES(state + result * step, errFuncs);
         LinearEquationSystem refLES(state, errFuncs);
 
+        size_t iterations = 0;
         // check for armijo condition
-        while(!armijoCondition(currLES,refLES,step,result,gamma_))
+        while(!armijoCondition(currLES,refLES,step,result,gamma_) &&
+            (maxIt_ == 0 || iterations < maxIt_))
         {
             // decrease step length
             result *= beta_;
             currLES.construct(state + result * step, errFuncs);
+            ++iterations;
         }
 
         return result;

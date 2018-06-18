@@ -16,24 +16,35 @@ namespace opt
     class ArmijoBacktracking : public LineSearchAlgorithm
     {
     private:
-        /** Reduction factor during step calculation. Interval (0,1).
-          * Choose not too small, e.g. 0.8. */
         double beta_;
-
-        /** Relaxation of the gradient during step calculation. Interval
-          * (0, 0.5). Choose not too big, e.g. 0.1. */
         double gamma_;
-
-        /** Maximum allowed step length. Typically 1.0. */
         double maxStepLen_;
+        size_t maxIt_;
 
     public:
         ArmijoBacktracking();
         ~ArmijoBacktracking();
 
+        /** Sets the reduction factor during step calculation.
+         *  The value must be in the interval (0, 1). Choose not too small,
+         *  e.g. 0.8.
+         *  @param beta reduction factor */
         void setBeta(const double beta);
+
+        /** Sets the relaxation factor of the linearization on the armijo
+         *  condition. The value must be in the interval (0, 0.5). Choose not
+         *  too big, e.g. 0.1.
+         *  @param gamma relaxation factor */
         void setGamma(const double gamma);
+
+        /** Sets the maximum step length. Typically 1.0.
+         *  @param stepLen maximum step length */
         void setMaxStepLen(const double stepLen);
+
+        /** Sets maximum iterations for the line search.
+         *  Set to 0 for infinite iterations.
+         *  @param maxIt maximum iterations */
+        void setMaxIterations(const size_t maxIt);
 
         double stepLength(
             const Eigen::VectorXd &state,
