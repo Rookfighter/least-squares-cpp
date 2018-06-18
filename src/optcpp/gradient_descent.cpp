@@ -11,7 +11,7 @@
 namespace opt
 {
     GradientDescent::GradientDescent()
-        : OptimizationAlgorithm()
+        : OptimizationAlgorithm(), damping_(1.0)
     {
 
     }
@@ -21,10 +21,15 @@ namespace opt
 
     }
 
+    void GradientDescent::setDamping(const double damping)
+    {
+        damping_ = damping;
+    }
+
     Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
     {
         LinearEquationSystem eqSys(state, errFuncs_);
         // Gradient method
-        return - (eqSys.A.transpose() * eqSys.b);
+        return - (1.0 / damping_) * eqSys.A.transpose() * eqSys.b;
     }
 }

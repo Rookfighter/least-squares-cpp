@@ -15,9 +15,13 @@ namespace opt
     /** Implementation of the gradient descent optimization algorithm. */
     class GradientDescent : public OptimizationAlgorithm
     {
+    private:
+        double damping_;
     public:
         GradientDescent();
         ~GradientDescent();
+
+        void setDamping(const double damping);
 
         Eigen::VectorXd calcStepUpdate(const Eigen::VectorXd &state) override;
     };
