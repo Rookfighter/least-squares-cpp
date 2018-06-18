@@ -1,2 +1,3 @@
--Iinclude
+-Isrc
 -Idep/eigen
+-Idep/Catch2/single_include

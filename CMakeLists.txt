@@ -15,7 +15,7 @@ set(OPTCPP_LIBRARY "optcpp")
 add_subdirectory(dep)
 
 include_directories(
-    include
+    src
     ${EIGEN3_INCLUDE_DIR}
     ${CATCH2_INCLUDE_DIR}
 )
@@ -27,4 +27,6 @@ add_library(${OPTCPP_LIBRARY} ${SRC})
 install(TARGETS ${OPTCPP_LIBRARY}
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(DIRECTORY include/optcpp DESTINATION include)
+install(DIRECTORY src/optcpp
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h")
