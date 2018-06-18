@@ -27,6 +27,12 @@ namespace opt
 
     }
 
+    LinearEquationSystem::LinearEquationSystem(const Eigen::VectorXd &state,
+        const std::vector<ErrorFunction *> &errFuncs)
+    {
+        construct(state, errFuncs);
+    }
+
     LinearEquationSystem::~LinearEquationSystem()
     {
 

@@ -12,6 +12,7 @@
 
 namespace opt
 {
+    /** Implementation of the ArmijoBacktracking line search algorithm. */
     class ArmijoBacktracking : public LineSearchAlgorithm
     {
     private:
@@ -34,10 +35,10 @@ namespace opt
         void setGamma(const double gamma);
         void setMaxStepLen(const double stepLen);
 
-        double calcStepLength(
+        double stepLength(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const std::vector<Constraint *> &constraints) const override;
+            const std::vector<ErrorFunction *> &errFuncs) const override;
     };
 }
 

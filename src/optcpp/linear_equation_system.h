@@ -23,6 +23,8 @@ namespace opt
         Eigen::MatrixXd A;
 
         LinearEquationSystem();
+        LinearEquationSystem(const Eigen::VectorXd &state,
+            const std::vector<ErrorFunction *> &errFuncs);
         ~LinearEquationSystem();
 
         /** Constructs a linear equation system from given error functions
