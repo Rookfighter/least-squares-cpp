@@ -77,7 +77,7 @@ namespace opt
         return A.cols();
     }
 
-    bool LinearEquationSystem::undertermined() const
+    bool LinearEquationSystem::underdetermined() const
     {
         return unknowns() - equations() > 0;
     }

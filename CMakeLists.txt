@@ -30,3 +30,8 @@ install(TARGETS ${OPTCPP_LIBRARY}
 install(DIRECTORY src/optcpp
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
+
+# Compile tests
+file(GLOB TEST_SRC test/*.cpp)
+add_executable(run_tests ${TEST_SRC})
+target_link_libraries(run_tests ${OPTCPP_LIBRARY})

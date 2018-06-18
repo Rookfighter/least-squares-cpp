@@ -48,10 +48,10 @@ namespace opt
          *  @return number of unknowns */
         size_t unknowns() const;
 
-        /** Checks if the system is undertermined, i.e. equations < unknowns.
+        /** Checks if the system is underdetermined, i.e. equations < unknowns.
          *  Only valid after A and b have been set appropriately.
          *  @return true if the system is undertermined, else false */
-        bool undertermined() const;
+        bool underdetermined() const;
     };
 }
 
