@@ -11,7 +11,7 @@
 namespace opt
 {
     IncreasingLineSearch::IncreasingLineSearch()
-        : beta_(2.0), maxStepLen_(2.0), minStepLen_(1e-4), maxIt_(0)
+        : LineSearchAlgorithm(), beta_(2.0), maxStepLen_(2.0), minStepLen_(1e-4), maxIt_(0)
     {
 
     }
@@ -55,7 +55,9 @@ namespace opt
         double currErr = eqSys.b.norm();
 
         size_t iterations = 0;
-        while(currErr < lastErr && (maxIt_ == 0 || iterations < maxIt_))
+        while(currErr < lastErr
+            && (maxIt_ == 0 || iterations < maxIt_)
+            && lastLen < maxStepLen_)
         {
             lastLen = currLen;
             currLen *= beta_;

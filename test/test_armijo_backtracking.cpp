@@ -1,5 +1,5 @@
 /*
- * test_gradient_descent.cpp
+ * test_armijo_backtracking.cpp
  *
  *  Created on: 18 Jun 2018
  *      Author: Fabian Meyer
@@ -11,7 +11,7 @@
 #include "error_functions.h"
 #include "eigen_assert.h"
 
-TEST_CASE("Gradient Descent")
+TEST_CASE("Armijo Backtracking")
 {
     SECTION("with linear error functions")
     {
@@ -31,11 +31,10 @@ TEST_CASE("Gradient Descent")
         std::vector<opt::ErrorFunction*> errFuncs = {eq1, eq2, eq3};
         opt::GradientDescent gd;
         gd.setDamping(1.0);
-        gd.setLineSearchAlgorithm(new opt::ArmijoBacktracking());
         gd.setErrorFunctions(errFuncs);
 
 
-        SECTION("optimize")
+        SECTION("enables gradient descent to improve")
         {
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
@@ -50,7 +49,19 @@ TEST_CASE("Gradient Descent")
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
-            // gradient method shows decrease in error
+            // gradient method shows no decrease in error
+            REQUIRE(lesB.b.norm() >= lesA.b.norm());
+
+            gd.setLineSearchAlgorithm(new opt::ArmijoBacktracking());
+            result = gd.run(state, 1e-6, 10);
+
+            lesA.construct(state, errFuncs);
+            lesB.construct(result.state, errFuncs);
+
+            // gradient descent does not converge
+            REQUIRE(!result.converged);
+            REQUIRE(result.iterations == 10);
+            // gradient method shows no decrease in error
             REQUIRE(lesB.b.norm() < lesA.b.norm());
         }
     }

@@ -10,21 +10,21 @@
 
 namespace opt
 {
-    static bool armijoCondition(const LinearEquationSystem &currLES,
-                                const LinearEquationSystem &refLES,
+    static bool armijoCondition(const double currVal,
+                                const double refVal,
+                                const Eigen::VectorXd  &refGrad,
                                 const Eigen::VectorXd  &step,
                                 const double stepLen,
                                 const double gamma)
     {
-        double currErr = currLES.b.norm();
-        double linErr = (refLES.b + gamma * stepLen * refLES.A *
-                         step).norm();
-
-        return currErr < linErr;
+        assert(refGrad.size() == step.size());
+        return currVal <= refVal + gamma * stepLen * (refGrad.transpose() *
+                         step)(0);
     }
 
     ArmijoBacktracking::ArmijoBacktracking()
-        : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1), maxStepLen_(1.0)
+        : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1), minStepLen_(1e-4),
+        maxStepLen_(1.0), maxIt_(0)
     {
 
     }
@@ -46,9 +46,11 @@ namespace opt
         gamma_ = gamma;
     }
 
-    void ArmijoBacktracking::setMaxStepLen(const double stepLen)
+    void ArmijoBacktracking::setBounds(const double minLen, const double maxLen)
     {
-        maxStepLen_ = stepLen;
+        assert(minLen < maxLen);
+        maxStepLen_ = maxLen;
+        minStepLen_ = minLen;
     }
 
     void ArmijoBacktracking::setMaxIterations(const size_t maxIt)
@@ -64,17 +66,29 @@ namespace opt
         double result = maxStepLen_;
         LinearEquationSystem currLES(state + result * step, errFuncs);
         LinearEquationSystem refLES(state, errFuncs);
+        double refVal = refLES.b.norm();
+        double currVal = currLES.b.norm();
+        Eigen::VectorXd refGrad = refLES.A.transpose() * refLES.b;
+
+        // ensure step is descent direction
+        assert(refGrad.size() == step.size());
+        assert((refGrad.transpose() * step)(0) < 0);
 
         size_t iterations = 0;
         // check for armijo condition
-        while(!armijoCondition(currLES, refLES, step, result, gamma_) &&
-                (maxIt_ == 0 || iterations < maxIt_))
+        while(!armijoCondition(currVal, refVal, refGrad, step, result, gamma_)
+            && (maxIt_ == 0 || iterations < maxIt_)
+            && result > minStepLen_)
         {
             // decrease step length
             result *= beta_;
             currLES.construct(state + result * step, errFuncs);
+            currVal = currLES.b.norm();
             ++iterations;
         }
+
+        // limit step length by minimum step length
+        result = std::max(result, minStepLen_);
 
         return result;
     }

@@ -19,7 +19,6 @@ namespace opt
         double beta_;
         double maxStepLen_;
         double minStepLen_;
-
         size_t maxIt_;
 
     public:

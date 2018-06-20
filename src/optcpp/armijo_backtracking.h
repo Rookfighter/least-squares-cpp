@@ -18,6 +18,7 @@ namespace opt
     private:
         double beta_;
         double gamma_;
+        double minStepLen_;
         double maxStepLen_;
         size_t maxIt_;
 
@@ -37,9 +38,11 @@ namespace opt
          *  @param gamma relaxation factor */
         void setGamma(const double gamma);
 
-        /** Sets the maximum step length. Typically 1.0.
-         *  @param stepLen maximum step length */
-        void setMaxStepLen(const double stepLen);
+        /** Sets the bounds for the step length. The step length is then
+         *  assured to be in the interval [minLen, maxLen].
+         *  @param minLen minimum step length
+         *  @param maxLen maximum step length */
+        void setBounds(const double minLen, const double maxLen);
 
         /** Sets maximum iterations for the line search.
          *  Set to 0 for infinite iterations.

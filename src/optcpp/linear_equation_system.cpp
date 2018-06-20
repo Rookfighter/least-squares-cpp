@@ -23,6 +23,7 @@ namespace opt
     }
 
     LinearEquationSystem::LinearEquationSystem()
+        : b(), A()
     {
 
     }
