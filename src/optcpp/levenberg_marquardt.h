@@ -22,6 +22,7 @@ namespace opt
         size_t maxIt_;
     public:
         LevenbergMarquardt();
+        LevenbergMarquardt(const LevenbergMarquardt &lm) = delete;
         ~LevenbergMarquardt();
 
         void setDamping(const double damping);

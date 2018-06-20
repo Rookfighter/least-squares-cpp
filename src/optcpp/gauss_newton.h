@@ -20,6 +20,7 @@ namespace opt
         double damping_;
     public:
         GaussNewton();
+        GaussNewton(const GaussNewton &gn) = delete;
         ~GaussNewton();
 
         void setDamping(const double damping);

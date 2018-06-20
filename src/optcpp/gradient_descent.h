@@ -19,6 +19,7 @@ namespace opt
         double damping_;
     public:
         GradientDescent();
+        GradientDescent(const GradientDescent &gd) = delete;
         ~GradientDescent();
 
         void setDamping(const double damping);

@@ -28,6 +28,7 @@ namespace opt
         };
 
         OptimizationAlgorithm();
+        OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm();
 
         /** Sets the line search algorithm to determine the step length.
