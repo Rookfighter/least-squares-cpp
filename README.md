@@ -1,6 +1,6 @@
 # Optimization Cpp
 
-Optimization Cpp is a basic C++ library for Nonlinear Optimization. It provides Newton type optimization algorithms such as:
+Optimization Cpp is a basic C++ library for unconstrained nonlinear least squares optimization. It provides Newton type optimization algorithms such as:
 
 * Gauss Newton
 * Gradient Descent
