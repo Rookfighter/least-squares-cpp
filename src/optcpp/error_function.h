@@ -37,6 +37,20 @@ namespace opt
          * @return struct containing function value and jacobian */
         virtual Result eval(const Eigen::VectorXd &state) const = 0;
     };
+
+    /** Calculates the squared error of a least squares problem given the error
+     *  vector. Calculates as:  0.5 * err^T * err
+     *  @param errVec vector of error values
+     *  @return squared error */
+    double squaredError(const Eigen::VectorXd &errVec);
+
+
+    /** Calculates the value and jacobians of a vector of error functions.
+     *  @param state current state vector
+     *  @param errFuncs vector of error functions
+     *  @return error vector and jacobian */
+    ErrorFunction::Result evalErrorFuncs(const Eigen::VectorXd &state,
+        const std::vector<ErrorFunction*> &errFuncs);
 }
 
 #endif

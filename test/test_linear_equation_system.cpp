@@ -9,6 +9,8 @@
 #include "error_functions.h"
 #include "eigen_assert.h"
 
+using namespace opt;
+
 TEST_CASE("Linear equation system")
 {
     SECTION("with linear error functions")
@@ -28,54 +30,7 @@ TEST_CASE("Linear equation system")
         eq3.factors.resize(3);
         eq3.factors << 4, -2, 0;
 
-        std::vector<opt::ErrorFunction*> errFuncs = {&eq1, &eq2, &eq3};
-
-        SECTION("construct function")
-        {
-            Eigen::VectorXd state(3);
-            state << 3, 2, 1;
-
-            Eigen::VectorXd bexp(3);
-            bexp << 8, -4, 8;
-
-            Eigen::MatrixXd Aexp(3,3);
-            Aexp << 3, 0, -1,
-                    0, -3, 2,
-                    4, -2, 0;
-
-            opt::LinearEquationSystem eqSys;
-            eqSys.construct(state, errFuncs);
-
-            REQUIRE(3 == eqSys.unknowns());
-            REQUIRE(3 == eqSys.equations());
-            REQUIRE(!eqSys.underdetermined());
-
-            REQUIRE_MAT(bexp, eqSys.b, eps);
-            REQUIRE_MAT(Aexp, eqSys.A, eps);
-        }
-
-        SECTION("construct constructor")
-        {
-            Eigen::VectorXd state(3);
-            state << 3, 2, 1;
-
-            Eigen::VectorXd bexp(3);
-            bexp << 8, -4, 8;
-
-            Eigen::MatrixXd Aexp(3,3);
-            Aexp << 3, 0, -1,
-                    0, -3, 2,
-                    4, -2, 0;
-
-            opt::LinearEquationSystem eqSys(state, errFuncs);
-
-            REQUIRE(3 == eqSys.unknowns());
-            REQUIRE(3 == eqSys.equations());
-            REQUIRE(!eqSys.underdetermined());
-
-            REQUIRE_MAT(bexp, eqSys.b, eps);
-            REQUIRE_MAT(Aexp, eqSys.A, eps);
-        }
+        std::vector<ErrorFunction*> errFuncs = {&eq1, &eq2, &eq3};
 
         SECTION("solve non underdetermined")
         {
@@ -84,15 +39,19 @@ TEST_CASE("Linear equation system")
 
             Eigen::VectorXd errExp = Eigen::VectorXd::Zero(3);
 
-            opt::LinearEquationSystem eqSys(state, errFuncs);
+            auto errRes = evalErrorFuncs(state, errFuncs);
+            LinearEquationSystem eqSys;
+            eqSys.b = errRes.jac.transpose() * errRes.val;
+            eqSys.A = errRes.jac.transpose() * errRes.jac;
+
             REQUIRE(!eqSys.underdetermined());
 
             Eigen::VectorXd step = eqSys.solveSVD();
             state -= step;
 
-            eqSys.construct(state, errFuncs);
+            errRes = evalErrorFuncs(state, errFuncs);
 
-            REQUIRE_MAT(errExp, eqSys.b, eps);
+            REQUIRE_MAT(errExp, errRes.val, eps);
         }
     }
 }

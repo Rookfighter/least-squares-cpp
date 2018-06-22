@@ -23,16 +23,8 @@ namespace opt
         Eigen::MatrixXd A;
 
         LinearEquationSystem();
-        LinearEquationSystem(const Eigen::VectorXd &state,
-                             const std::vector<ErrorFunction *> &errFuncs);
+        LinearEquationSystem(const Eigen::VectorXd &b, const Eigen::MatrixXd &A);
         ~LinearEquationSystem();
-
-        /** Constructs a linear equation system from given error functions
-         *  and state. After this A and b will be set appropriately.
-         *  @param state current state vector
-         *  @param errFuncs vector of error functions */
-        void construct(const Eigen::VectorXd &state,
-                       const std::vector<ErrorFunction *> &errFuncs);
 
         /** Solves the linear equation system using SVD decomposition.
          *  @return */

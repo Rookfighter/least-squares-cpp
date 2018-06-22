@@ -6,8 +6,6 @@
  */
 
 #include "optcpp/armijo_backtracking.h"
-#include "optcpp/linear_equation_system.h"
-#include "optcpp/math.h"
 
 namespace opt
 {
@@ -64,16 +62,23 @@ namespace opt
         const Eigen::VectorXd &step,
         const std::vector<ErrorFunction *> &errFuncs) const
     {
+        // start with maximum step length and decrease
         double result = maxStepLen_;
-        LinearEquationSystem currLES(state + result * step, errFuncs);
-        LinearEquationSystem refLES(state, errFuncs);
-        double refVal = squaredError(refLES.b);
-        double currVal = squaredError(currLES.b);
-        Eigen::VectorXd refGrad = refLES.A.transpose() * refLES.b;
+
+        // calculate error of state without step as reference
+        auto refErrRes = evalErrorFuncs(state, errFuncs);
+        double refVal = squaredError(refErrRes.val);
+
+        //
+        auto currErrRes = evalErrorFuncs(state + result * step, errFuncs);
+        double currVal = squaredError(currErrRes.val);
+
+        // reference gradient of target function
+        Eigen::VectorXd refGrad = refErrRes.jac.transpose() * refErrRes.val;
 
         // ensure step is descent direction
         assert(refGrad.size() == step.size());
-        assert((refGrad.transpose() * step)(0) < 0);
+        // assert((refGrad.transpose() * step)(0) < 0);
 
         size_t iterations = 0;
         // check for armijo condition
@@ -83,8 +88,11 @@ namespace opt
         {
             // decrease step length
             result *= beta_;
-            currLES.construct(state + result * step, errFuncs);
-            currVal = squaredError(currLES.b);
+
+            // calculate error of new state
+            currErrRes = evalErrorFuncs(state + result * step, errFuncs);
+            currVal = squaredError(currErrRes.val);
+
             ++iterations;
         }
 

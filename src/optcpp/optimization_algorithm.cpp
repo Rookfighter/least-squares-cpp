@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include "optcpp/optimization_algorithm.h"
-#include "optcpp/linear_equation_system.h"
-#include "optcpp/math.h"
 
 namespace opt
 {
@@ -80,8 +78,8 @@ namespace opt
         const Eigen::VectorXd &step,
         const double stepLen)
     {
-        LinearEquationSystem eqSys(state, errFuncs_);
-        double err = squaredError(eqSys.b);
+        auto errEval = evalErrorFuncs(state, errFuncs_);
+        double err = squaredError(errEval.val);
         std::cout
             << "iter=" << iterations
             << "\terr=" << err

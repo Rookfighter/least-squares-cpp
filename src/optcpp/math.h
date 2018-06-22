@@ -30,11 +30,6 @@ namespace opt
             angle -= 2 * pi();
         return angle;
     }
-
-    inline double squaredError(const Eigen::VectorXd &errVec)
-    {
-        return 0.5 * (errVec.transpose() * errVec)(0);
-    }
 }
 
 #endif

@@ -6,7 +6,6 @@
  */
 
 #include "optcpp/gradient_descent.h"
-#include "optcpp/linear_equation_system.h"
 
 namespace opt
 {
@@ -28,8 +27,8 @@ namespace opt
 
     Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        LinearEquationSystem eqSys(state, errFuncs_);
+        auto errRes = evalErrorFuncs(state, errFuncs_);
         // Gradient method
-        return - (1.0 / damping_) * eqSys.A.transpose() * eqSys.b;
+        return -damping_ * errRes.jac.transpose() * errRes.val;
     }
 }

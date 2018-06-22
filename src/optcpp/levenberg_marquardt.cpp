@@ -39,34 +39,38 @@ namespace opt
 
     Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        LinearEquationSystem eqSysA(state, errFuncs_);
-        double errA = eqSysA.b.norm();
-        LinearEquationSystem eqSysB;
+        ErrorFunction::Result errResB;
+        auto errResA = evalErrorFuncs(state, errFuncs_);
+        double errA = squaredError(errResA.val);
+
+        LinearEquationSystem eqSys;
+        // set value vector (stays constant)
+        eqSys.b = errResA.jac.transpose() * errResA.val;
 
         Eigen::VectorXd step;
-        Eigen::MatrixXd prevA;
+        Eigen::MatrixXd jacSq = errResA.jac.transpose() * errResA.jac;
 
         size_t iterations = 0;
         bool found = false;
         while(!found && (maxIt_ == 0 || iterations < maxIt_))
         {
-            prevA = eqSysA.A;
-            // add gradient descent matrix
-            eqSysA.A += lambda_ * Eigen::MatrixXd::Identity(eqSysA.A.rows(),
-                        eqSysA.A.cols());
-            eqSysA.A *= damping_;
 
-            step = -eqSysA.solveSVD();
+            // computer coefficient matrix
+            eqSys.A = jacSq;
+            eqSys.A += lambda_ * Eigen::MatrixXd::Identity(eqSys.A.rows(),
+                        eqSys.A.cols());
 
-            eqSysB.construct(state + step, errFuncs_);
-            double errB = eqSysB.b.norm();
+            // solve equation system
+            step = - damping_ * eqSys.solveSVD();
+
+            errResB = evalErrorFuncs(state + step, errFuncs_);
+            double errB = squaredError(errResB.val);
 
             if(errA < errB)
             {
                 // new error is greater so don't change state
                 // increase lambda
                 lambda_ *= 2.0;
-                eqSysA.A = std::move(prevA);
             }
             else
             {

@@ -28,9 +28,12 @@ namespace opt
 
     Eigen::VectorXd GaussNewton::calcStepUpdate(const Eigen::VectorXd &state)
     {
-        LinearEquationSystem eqSys(state, errFuncs_);
-        // damping factor
-        eqSys.A *= damping_;
-        return -eqSys.solveSVD();
+        auto errRes = evalErrorFuncs(state, errFuncs_);
+
+        LinearEquationSystem eqSys;
+        eqSys.b = errRes.jac.transpose() * errRes.val;
+        eqSys.A = errRes.jac.transpose() * errRes.jac;
+
+        return -damping_ * eqSys.solveSVD();
     }
 }

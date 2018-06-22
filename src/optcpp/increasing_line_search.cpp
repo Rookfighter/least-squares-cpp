@@ -6,8 +6,6 @@
  */
 
 #include "optcpp/increasing_line_search.h"
-#include "optcpp/linear_equation_system.h"
-#include "optcpp/math.h"
 
 namespace opt
 {
@@ -46,16 +44,18 @@ namespace opt
         const Eigen::VectorXd &step,
         const std::vector<ErrorFunction *> &errFuncs) const
     {
+        // start with minimum step length and then increase
         double currLen = minStepLen_;
         double lastLen = currLen;
 
-        LinearEquationSystem eqSys(state, errFuncs);
-        double lastErr = squaredError(eqSys.b);
+        auto errRes = evalErrorFuncs(state, errFuncs);
+        double lastErr = squaredError(errRes.val);
 
-        eqSys.construct(state + currLen * step, errFuncs);
-        double currErr = squaredError(eqSys.b);
+        errRes = evalErrorFuncs(state + currLen * step, errFuncs);
+        double currErr = squaredError(errRes.val);
 
         size_t iterations = 0;
+        // keep increasing step length while error shows improvement
         while(currErr < lastErr
             && (maxIt_ == 0 || iterations < maxIt_)
             && lastLen < maxStepLen_)
@@ -63,9 +63,9 @@ namespace opt
             lastLen = currLen;
             currLen *= beta_;
 
-            eqSys.construct(state + currLen * step, errFuncs);
+            errRes = evalErrorFuncs(state + currLen * step, errFuncs);
             lastErr = currErr;
-            currErr = squaredError(eqSys.b);
+            currErr = squaredError(errRes.val);
         }
 
         // use las step length as result

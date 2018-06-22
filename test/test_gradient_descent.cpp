@@ -6,10 +6,12 @@
  */
 
 #include <optcpp/gradient_descent.h>
-#include <optcpp/armijo_backtracking.h>
+#include <optcpp/increasing_line_search.h>
 #include <optcpp/linear_equation_system.h>
 #include "error_functions.h"
 #include "eigen_assert.h"
+
+using namespace opt;
 
 TEST_CASE("Gradient Descent")
 {
@@ -28,10 +30,10 @@ TEST_CASE("Gradient Descent")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<opt::ErrorFunction*> errFuncs = {eq1, eq2, eq3};
-        opt::GradientDescent gd;
+        std::vector<ErrorFunction*> errFuncs = {eq1, eq2, eq3};
+        GradientDescent gd;
         gd.setDamping(1.0);
-        gd.setLineSearchAlgorithm(new opt::ArmijoBacktracking());
+        gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
 
 
@@ -44,14 +46,14 @@ TEST_CASE("Gradient Descent")
 
             auto result = gd.run(state, 1e-6, 10);
 
-            opt::LinearEquationSystem lesA(state, errFuncs);
-            opt::LinearEquationSystem lesB(result.state, errFuncs);
+            auto errResA = evalErrorFuncs(state, errFuncs);
+            auto errResB = evalErrorFuncs(result.state, errFuncs);
 
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows decrease in error
-            REQUIRE(lesB.b.norm() < lesA.b.norm());
+            REQUIRE(squaredError(errResB.val) < squaredError(errResA.val));
         }
     }
 }
