@@ -21,8 +21,6 @@ namespace opt
         LineSearchAlgorithm *lineSearch_;
         bool verbose_;
 
-        double error(const Eigen::VectorXd &state) const;
-
         virtual void logStep(const size_t iterations,
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,

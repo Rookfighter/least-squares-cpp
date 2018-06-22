@@ -8,6 +8,7 @@
 #include <iostream>
 #include "optcpp/optimization_algorithm.h"
 #include "optcpp/linear_equation_system.h"
+#include "optcpp/math.h"
 
 namespace opt
 {
@@ -74,19 +75,13 @@ namespace opt
         return nState;
     }
 
-    double OptimizationAlgorithm::error(const Eigen::VectorXd &state) const
-    {
-        LinearEquationSystem eqSys(state, errFuncs_);
-
-        return 0.5 * eqSys.b.transpose() * eqSys.b;
-    }
-
     void OptimizationAlgorithm::logStep(const size_t iterations,
         const Eigen::VectorXd &state,
         const Eigen::VectorXd &step,
         const double stepLen)
     {
-        double err = error(state);
+        LinearEquationSystem eqSys(state, errFuncs_);
+        double err = squaredError(eqSys.b);
         std::cout
             << "iter=" << iterations
             << "\terr=" << err

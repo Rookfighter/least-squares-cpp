@@ -7,6 +7,7 @@
 
 #include "optcpp/armijo_backtracking.h"
 #include "optcpp/linear_equation_system.h"
+#include "optcpp/math.h"
 
 namespace opt
 {
@@ -66,8 +67,8 @@ namespace opt
         double result = maxStepLen_;
         LinearEquationSystem currLES(state + result * step, errFuncs);
         LinearEquationSystem refLES(state, errFuncs);
-        double refVal = refLES.b.norm();
-        double currVal = currLES.b.norm();
+        double refVal = squaredError(refLES.b);
+        double currVal = squaredError(currLES.b);
         Eigen::VectorXd refGrad = refLES.A.transpose() * refLES.b;
 
         // ensure step is descent direction
@@ -83,7 +84,7 @@ namespace opt
             // decrease step length
             result *= beta_;
             currLES.construct(state + result * step, errFuncs);
-            currVal = currLES.b.norm();
+            currVal = squaredError(currLES.b);
             ++iterations;
         }
 

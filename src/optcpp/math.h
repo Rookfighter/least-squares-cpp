@@ -3,6 +3,7 @@
 #define OPT_MATH_H_
 
 #include <cmath>
+#include <Eigen/Dense>
 
 namespace opt
 {
@@ -28,6 +29,11 @@ namespace opt
         while(angle > pi())
             angle -= 2 * pi();
         return angle;
+    }
+
+    inline double squaredError(const Eigen::VectorXd &errVec)
+    {
+        return 0.5 * (errVec.transpose() * errVec)(0);
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include "optcpp/increasing_line_search.h"
 #include "optcpp/linear_equation_system.h"
+#include "optcpp/math.h"
 
 namespace opt
 {
@@ -49,10 +50,10 @@ namespace opt
         double lastLen = currLen;
 
         LinearEquationSystem eqSys(state, errFuncs);
-        double lastErr = eqSys.b.norm();
+        double lastErr = squaredError(eqSys.b);
 
         eqSys.construct(state + currLen * step, errFuncs);
-        double currErr = eqSys.b.norm();
+        double currErr = squaredError(eqSys.b);
 
         size_t iterations = 0;
         while(currErr < lastErr
@@ -64,7 +65,7 @@ namespace opt
 
             eqSys.construct(state + currLen * step, errFuncs);
             lastErr = currErr;
-            currErr = eqSys.b.norm();
+            currErr = squaredError(eqSys.b);
         }
 
         // use las step length as result
