@@ -86,8 +86,8 @@ namespace opt
             << "iter=" << iterations
             << "\terr=" << err
             << "\tstepLen=" << stepLen
+            << "\tstep=" << step.norm()
             << "\tstate=[" << state.transpose() << "]"
-            << "\tstep=[" <<step.transpose() << "]"
             << std::endl;
 
     }
@@ -99,15 +99,15 @@ namespace opt
     {
         Result result;
         result.state = state;
+
         // calculate initial step
-        Eigen::VectorXd step = calcStepUpdate(state);
-        double stepLen = 1.0;
+        Eigen::VectorXd step = calcStepUpdate(result.state);
+        double stepLen = stepLength(result.state, step);
 
         size_t iterations = 0;
 
         while(step.norm() > eps && (maxIt == 0 || iterations < maxIt))
         {
-            stepLen = stepLength(state, step);
             result.state += stepLen * step;
 
             if(verbose_)
@@ -115,6 +115,7 @@ namespace opt
 
             // increment
             step = calcStepUpdate(result.state);
+            stepLen = stepLength(result.state, step);
             ++iterations;
         }
 
