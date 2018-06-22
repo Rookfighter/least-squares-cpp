@@ -19,6 +19,14 @@ namespace opt
     protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
+        bool verbose_;
+
+        double error(const Eigen::VectorXd &state) const;
+
+        virtual void logStep(const size_t iterations,
+            const Eigen::VectorXd &state,
+            const Eigen::VectorXd &step,
+            const double stepLen);
     public:
         struct Result
         {
@@ -30,6 +38,8 @@ namespace opt
         OptimizationAlgorithm();
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm();
+
+        void setVerbose(const bool verbose);
 
         /** Sets the line search algorithm to determine the step length.
          *  Set nullptr for no line search. The step length is then 1.0.

@@ -5,13 +5,15 @@
  *      Author: Fabian Meyer
  */
 
+#include <iostream>
 #include "optcpp/optimization_algorithm.h"
+#include "optcpp/linear_equation_system.h"
 
 namespace opt
 {
 
     OptimizationAlgorithm::OptimizationAlgorithm()
-        : errFuncs_(), lineSearch_(nullptr)
+        : errFuncs_(), lineSearch_(nullptr), verbose_(false)
     {
 
     }
@@ -21,6 +23,11 @@ namespace opt
         if(lineSearch_ != nullptr)
             delete lineSearch_;
         clearErrorFunctions();
+    }
+
+    void OptimizationAlgorithm::setVerbose(const bool verbose)
+    {
+        verbose_ = verbose;
     }
 
     void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm
@@ -67,6 +74,29 @@ namespace opt
         return nState;
     }
 
+    double OptimizationAlgorithm::error(const Eigen::VectorXd &state) const
+    {
+        LinearEquationSystem eqSys(state, errFuncs_);
+
+        return 0.5 * eqSys.b.transpose() * eqSys.b;
+    }
+
+    void OptimizationAlgorithm::logStep(const size_t iterations,
+        const Eigen::VectorXd &state,
+        const Eigen::VectorXd &step,
+        const double stepLen)
+    {
+        double err = error(state);
+        std::cout
+            << "iter=" << iterations
+            << "\terr=" << err
+            << "\tstepLen=" << stepLen
+            << "\tstate=[" << state.transpose() << "]"
+            << "\tstep=[" <<step.transpose() << "]"
+            << std::endl;
+
+    }
+
     OptimizationAlgorithm::Result OptimizationAlgorithm::run(
         const Eigen::VectorXd &state,
         const double eps,
@@ -84,6 +114,9 @@ namespace opt
         {
             stepLen = stepLength(state, step);
             result.state += stepLen * step;
+
+            if(verbose_)
+                logStep(iterations, state, step, stepLen);
 
             // increment
             step = calcStepUpdate(result.state);
