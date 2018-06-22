@@ -13,7 +13,7 @@ TEST_CASE("Levenberg Marquardt")
 {
     SECTION("with linear error functions")
     {
-        // const double eps = 1e-6;
+        const double eps = 1e-6;
 
         LinearErrFunc *eq1 = new LinearErrFunc();
         LinearErrFunc *eq2 = new LinearErrFunc();
@@ -33,7 +33,6 @@ TEST_CASE("Levenberg Marquardt")
         lm.setDamping(1.0);
         lm.setErrorFunctions(errFuncs);
 
-
         SECTION("optimize")
         {
             Eigen::VectorXd state(3);
@@ -46,9 +45,9 @@ TEST_CASE("Levenberg Marquardt")
                      result.state(1) / result.state(0),
                      result.state(2) / result.state(0);
 
-            // REQUIRE(result.converged);
-            // REQUIRE(result.iterations == 1);
-            // REQUIRE_MAT(stateExp, state, eps);
+            REQUIRE(result.converged);
+            REQUIRE(result.iterations == 7);
+            REQUIRE_MAT(stateExp, state, eps);
         }
     }
 }
