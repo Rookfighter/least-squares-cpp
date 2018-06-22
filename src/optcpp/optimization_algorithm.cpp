@@ -116,7 +116,7 @@ namespace opt
             result.state += stepLen * step;
 
             if(verbose_)
-                logStep(iterations, state, step, stepLen);
+                logStep(iterations, result.state, step, stepLen);
 
             // increment
             step = calcStepUpdate(result.state);
