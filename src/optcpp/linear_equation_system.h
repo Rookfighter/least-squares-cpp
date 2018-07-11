@@ -16,14 +16,15 @@ namespace opt
      *  construct the system from error functions and solve it. */
     class LinearEquationSystem
     {
-    public:
+      public:
         /** Constant vector. */
         Eigen::VectorXd b;
         /** Coefficient matrix. */
         Eigen::MatrixXd A;
 
         LinearEquationSystem();
-        LinearEquationSystem(const Eigen::VectorXd &b, const Eigen::MatrixXd &A);
+        LinearEquationSystem(
+            const Eigen::VectorXd &b, const Eigen::MatrixXd &A);
         ~LinearEquationSystem();
 
         /** Solves the linear equation system using SVD decomposition.

@@ -5,9 +5,9 @@
  *      Author: Fabian Meyer
  */
 
-#include <optcpp/levenberg_marquardt.h>
-#include "error_functions.h"
 #include "eigen_assert.h"
+#include "error_functions.h"
+#include <optcpp/levenberg_marquardt.h>
 
 TEST_CASE("Levenberg Marquardt")
 {
@@ -28,7 +28,7 @@ TEST_CASE("Levenberg Marquardt")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<opt::ErrorFunction*> errFuncs = {eq1, eq2, eq3};
+        std::vector<opt::ErrorFunction *> errFuncs = {eq1, eq2, eq3};
         opt::LevenbergMarquardt lm;
         lm.setDamping(1.0);
         lm.setErrorFunctions(errFuncs);
@@ -42,8 +42,8 @@ TEST_CASE("Levenberg Marquardt")
 
             auto result = lm.run(state, 1e-12, 10);
             state << result.state(0) / result.state(0),
-                     result.state(1) / result.state(0),
-                     result.state(2) / result.state(0);
+                result.state(1) / result.state(0),
+                result.state(2) / result.state(0);
 
             REQUIRE(result.converged);
             REQUIRE(result.iterations == 7);

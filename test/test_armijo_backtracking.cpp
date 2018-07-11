@@ -5,11 +5,11 @@
  *      Author: Fabian Meyer
  */
 
-#include <optcpp/gradient_descent.h>
-#include <optcpp/armijo_backtracking.h>
-#include <optcpp/linear_equation_system.h>
-#include "error_functions.h"
 #include "eigen_assert.h"
+#include "error_functions.h"
+#include <optcpp/armijo_backtracking.h>
+#include <optcpp/gradient_descent.h>
+#include <optcpp/linear_equation_system.h>
 
 using namespace opt;
 
@@ -30,11 +30,10 @@ TEST_CASE("Armijo Backtracking")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<ErrorFunction*> errFuncs = {eq1, eq2, eq3};
+        std::vector<ErrorFunction *> errFuncs = {eq1, eq2, eq3};
         GradientDescent gd;
         gd.setDamping(1.0);
         gd.setErrorFunctions(errFuncs);
-
 
         SECTION("enables gradient descent to improve")
         {

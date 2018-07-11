@@ -15,9 +15,11 @@ namespace opt
     /** Interface to define error functions for optimization problems. */
     class ErrorFunction
     {
-    public:
-        ErrorFunction() { }
-        virtual ~ErrorFunction() { }
+      public:
+        ErrorFunction()
+        {}
+        virtual ~ErrorFunction()
+        {}
 
         struct Result
         {
@@ -28,8 +30,8 @@ namespace opt
         };
 
         /** Returns the length of the output vector of the error function.
-          * This is used for prediction the length of the final function vetcor
-          * @return length of the result vector */
+         * This is used for prediction the length of the final function vetcor
+         * @return length of the result vector */
         virtual size_t dimension() const = 0;
 
         /**
@@ -44,13 +46,12 @@ namespace opt
      *  @return squared error */
     double squaredError(const Eigen::VectorXd &errVec);
 
-
     /** Calculates the value and jacobians of a vector of error functions.
      *  @param state current state vector
      *  @param errFuncs vector of error functions
      *  @return error vector and jacobian */
     ErrorFunction::Result evalErrorFuncs(const Eigen::VectorXd &state,
-        const std::vector<ErrorFunction*> &errFuncs);
+        const std::vector<ErrorFunction *> &errFuncs);
 }
 
 #endif

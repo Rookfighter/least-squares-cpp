@@ -10,28 +10,24 @@
 namespace opt
 {
     static bool armijoCondition(const double currVal,
-                                const double refVal,
-                                const Eigen::VectorXd  &refGrad,
-                                const Eigen::VectorXd  &step,
-                                const double stepLen,
-                                const double gamma)
+        const double refVal,
+        const Eigen::VectorXd &refGrad,
+        const Eigen::VectorXd &step,
+        const double stepLen,
+        const double gamma)
     {
         assert(refGrad.size() == step.size());
-        return currVal <= refVal + gamma * stepLen * (refGrad.transpose() *
-                         step)(0);
+        return currVal <=
+               refVal + gamma * stepLen * (refGrad.transpose() * step)(0);
     }
 
     ArmijoBacktracking::ArmijoBacktracking()
         : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1), minStepLen_(1e-4),
-        maxStepLen_(1.0), maxIt_(0)
-    {
-
-    }
+          maxStepLen_(1.0), maxIt_(0)
+    {}
 
     ArmijoBacktracking::~ArmijoBacktracking()
-    {
-
-    }
+    {}
 
     void ArmijoBacktracking::setBeta(const double beta)
     {
@@ -57,8 +53,7 @@ namespace opt
         maxIt_ = maxIt;
     }
 
-    double ArmijoBacktracking::stepLength(
-        const Eigen::VectorXd &state,
+    double ArmijoBacktracking::stepLength(const Eigen::VectorXd &state,
         const Eigen::VectorXd &step,
         const std::vector<ErrorFunction *> &errFuncs) const
     {
@@ -82,9 +77,9 @@ namespace opt
 
         size_t iterations = 0;
         // check for armijo condition
-        while(!armijoCondition(currVal, refVal, refGrad, step, result, gamma_)
-            && (maxIt_ == 0 || iterations < maxIt_)
-            && result > minStepLen_)
+        while(
+            !armijoCondition(currVal, refVal, refGrad, step, result, gamma_) &&
+            (maxIt_ == 0 || iterations < maxIt_) && result > minStepLen_)
         {
             // decrease step length
             result *= beta_;

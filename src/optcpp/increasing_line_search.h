@@ -15,13 +15,13 @@ namespace opt
     /** Implementation of a increasing line search algorithm. */
     class IncreasingLineSearch : public LineSearchAlgorithm
     {
-    private:
+      private:
         double beta_;
         double maxStepLen_;
         double minStepLen_;
         size_t maxIt_;
 
-    public:
+      public:
         IncreasingLineSearch();
         ~IncreasingLineSearch();
 
@@ -41,8 +41,7 @@ namespace opt
          *  @param maxIt maximum iterations */
         void setMaxIterations(const size_t maxIt);
 
-        double stepLength(
-            const Eigen::VectorXd &state,
+        double stepLength(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
             const std::vector<ErrorFunction *> &errFuncs) const override;
     };

@@ -10,17 +10,12 @@
 
 namespace opt
 {
-
     LevenbergMarquardt::LevenbergMarquardt()
         : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxIt_(0)
-    {
-
-    }
+    {}
 
     LevenbergMarquardt::~LevenbergMarquardt()
-    {
-
-    }
+    {}
 
     void LevenbergMarquardt::setDamping(const double damping)
     {
@@ -37,7 +32,8 @@ namespace opt
         maxIt_ = maxIt;
     }
 
-    Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(const Eigen::VectorXd &state)
+    Eigen::VectorXd LevenbergMarquardt::calcStepUpdate(
+        const Eigen::VectorXd &state)
     {
         ErrorFunction::Result errResB;
         auto errResA = evalErrorFuncs(state, errFuncs_);
@@ -54,14 +50,13 @@ namespace opt
         bool found = false;
         while(!found && (maxIt_ == 0 || iterations < maxIt_))
         {
-
             // computer coefficient matrix
             eqSys.A = jacSq;
-            eqSys.A += lambda_ * Eigen::MatrixXd::Identity(eqSys.A.rows(),
-                        eqSys.A.cols());
+            eqSys.A += lambda_ * Eigen::MatrixXd::Identity(
+                                     eqSys.A.rows(), eqSys.A.cols());
 
             // solve equation system
-            step = - damping_ * eqSys.solveSVD();
+            step = -damping_ * eqSys.solveSVD();
 
             errResB = evalErrorFuncs(state + step, errFuncs_);
             double errB = squaredError(errResB.val);

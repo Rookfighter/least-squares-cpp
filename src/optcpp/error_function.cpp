@@ -5,7 +5,6 @@
  *      Author: Fabian Meyer
  */
 
-
 #include "optcpp/error_function.h"
 
 namespace opt
@@ -24,7 +23,7 @@ namespace opt
     }
 
     ErrorFunction::Result evalErrorFuncs(const Eigen::VectorXd &state,
-        const std::vector<ErrorFunction*> &errFuncs)
+        const std::vector<ErrorFunction *> &errFuncs)
     {
         ErrorFunction::Result result;
         result.val.setZero(opt::dimension(errFuncs));

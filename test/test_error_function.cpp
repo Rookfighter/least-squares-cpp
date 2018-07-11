@@ -5,8 +5,8 @@
  *      Author: Fabian Meyer
  */
 
-#include "error_functions.h"
 #include "eigen_assert.h"
+#include "error_functions.h"
 
 using namespace opt;
 
@@ -29,7 +29,7 @@ TEST_CASE("Error functions")
         eq3.factors.resize(3);
         eq3.factors << 4, -2, 0;
 
-        std::vector<ErrorFunction*> errFuncs = {&eq1, &eq2, &eq3};
+        std::vector<ErrorFunction *> errFuncs = {&eq1, &eq2, &eq3};
 
         SECTION("evaluate functions")
         {
@@ -39,10 +39,8 @@ TEST_CASE("Error functions")
             Eigen::VectorXd valExp(3);
             valExp << 8, -4, 8;
 
-            Eigen::MatrixXd jacExp(3,3);
-            jacExp << 3, 0, -1,
-                    0, -3, 2,
-                    4, -2, 0;
+            Eigen::MatrixXd jacExp(3, 3);
+            jacExp << 3, 0, -1, 0, -3, 2, 4, -2, 0;
 
             auto errRes = evalErrorFuncs(state, errFuncs);
 
@@ -55,7 +53,6 @@ TEST_CASE("Error functions")
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
             double errExp = 72.0;
-
 
             auto errRes = evalErrorFuncs(state, errFuncs);
             double err = squaredError(errRes.val);

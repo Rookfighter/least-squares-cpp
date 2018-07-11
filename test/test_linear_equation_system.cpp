@@ -5,9 +5,9 @@
  *      Author: Fabian Meyer
  */
 
-#include <optcpp/linear_equation_system.h>
-#include "error_functions.h"
 #include "eigen_assert.h"
+#include "error_functions.h"
+#include <optcpp/linear_equation_system.h>
 
 using namespace opt;
 
@@ -30,7 +30,7 @@ TEST_CASE("Linear equation system")
         eq3.factors.resize(3);
         eq3.factors << 4, -2, 0;
 
-        std::vector<ErrorFunction*> errFuncs = {&eq1, &eq2, &eq3};
+        std::vector<ErrorFunction *> errFuncs = {&eq1, &eq2, &eq3};
 
         SECTION("solve non underdetermined")
         {

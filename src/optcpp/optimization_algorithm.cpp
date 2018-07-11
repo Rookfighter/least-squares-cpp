@@ -5,17 +5,14 @@
  *      Author: Fabian Meyer
  */
 
-#include <iostream>
 #include "optcpp/optimization_algorithm.h"
+#include <iostream>
 
 namespace opt
 {
-
     OptimizationAlgorithm::OptimizationAlgorithm()
         : errFuncs_(), lineSearch_(nullptr), verbose_(false)
-    {
-
-    }
+    {}
 
     OptimizationAlgorithm::~OptimizationAlgorithm()
     {
@@ -29,8 +26,8 @@ namespace opt
         verbose_ = verbose;
     }
 
-    void OptimizationAlgorithm::setLineSearchAlgorithm(LineSearchAlgorithm
-            *lineSearch)
+    void OptimizationAlgorithm::setLineSearchAlgorithm(
+        LineSearchAlgorithm *lineSearch)
     {
         if(lineSearch_ != nullptr)
             delete lineSearch_;
@@ -52,8 +49,7 @@ namespace opt
     }
 
     double OptimizationAlgorithm::stepLength(
-        const Eigen::VectorXd &state,
-        const Eigen::VectorXd &step) const
+        const Eigen::VectorXd &state, const Eigen::VectorXd &step) const
     {
         if(lineSearch_ == nullptr)
             return 1.0;
@@ -80,20 +76,13 @@ namespace opt
     {
         auto errEval = evalErrorFuncs(state, errFuncs_);
         double err = squaredError(errEval.val);
-        std::cout
-            << "iter=" << iterations
-            << "\terr=" << err
-            << "\tstepLen=" << stepLen
-            << "\tstep=" << step.norm()
-            << "\tstate=[" << state.transpose() << "]"
-            << std::endl;
-
+        std::cout << "iter=" << iterations << "\terr=" << err
+                  << "\tstepLen=" << stepLen << "\tstep=" << step.norm()
+                  << "\tstate=[" << state.transpose() << "]" << std::endl;
     }
 
     OptimizationAlgorithm::Result OptimizationAlgorithm::run(
-        const Eigen::VectorXd &state,
-        const double eps,
-        const size_t maxIt)
+        const Eigen::VectorXd &state, const double eps, const size_t maxIt)
     {
         Result result;
         result.state = state;

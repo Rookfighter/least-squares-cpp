@@ -9,25 +9,16 @@
 
 namespace opt
 {
-    LinearEquationSystem::LinearEquationSystem()
-        : b(), A()
-    {
+    LinearEquationSystem::LinearEquationSystem() : b(), A()
+    {}
 
-    }
-
-    LinearEquationSystem::LinearEquationSystem(const Eigen::VectorXd &b,
-        const Eigen::MatrixXd &A)
+    LinearEquationSystem::LinearEquationSystem(
+        const Eigen::VectorXd &b, const Eigen::MatrixXd &A)
         : b(b), A(A)
-    {
-
-    }
+    {}
 
     LinearEquationSystem::~LinearEquationSystem()
-    {
-
-    }
-
-
+    {}
 
     size_t LinearEquationSystem::equations() const
     {
@@ -44,13 +35,11 @@ namespace opt
         return unknowns() - equations() > 0;
     }
 
-
     Eigen::VectorXd LinearEquationSystem::solveSVD() const
     {
         Eigen::JacobiSVD<Eigen::MatrixXd,
-              Eigen::FullPivHouseholderQRPreconditioner>
-              decomp(A,
-                     Eigen::ComputeFullU | Eigen::ComputeFullV);
+            Eigen::FullPivHouseholderQRPreconditioner>
+            decomp(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
         return decomp.solve(b);
     }

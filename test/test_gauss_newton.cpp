@@ -5,9 +5,9 @@
  *      Author: Fabian Meyer
  */
 
-#include <optcpp/gauss_newton.h>
-#include "error_functions.h"
 #include "eigen_assert.h"
+#include "error_functions.h"
+#include <optcpp/gauss_newton.h>
 
 TEST_CASE("Gauss Newton")
 {
@@ -28,11 +28,10 @@ TEST_CASE("Gauss Newton")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<opt::ErrorFunction*> errFuncs = {eq1, eq2, eq3};
+        std::vector<opt::ErrorFunction *> errFuncs = {eq1, eq2, eq3};
         opt::GaussNewton gn;
         gn.setDamping(1.0);
         gn.setErrorFunctions(errFuncs);
-
 
         SECTION("optimize")
         {
@@ -43,8 +42,8 @@ TEST_CASE("Gauss Newton")
 
             auto result = gn.run(state, 1e-12, 10);
             state << result.state(0) / result.state(0),
-                     result.state(1) / result.state(0),
-                     result.state(2) / result.state(0);
+                result.state(1) / result.state(0),
+                result.state(2) / result.state(0);
 
             REQUIRE(result.converged);
             REQUIRE(result.iterations == 1);

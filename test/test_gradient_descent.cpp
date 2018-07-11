@@ -5,11 +5,11 @@
  *      Author: Fabian Meyer
  */
 
+#include "eigen_assert.h"
+#include "error_functions.h"
 #include <optcpp/gradient_descent.h>
 #include <optcpp/increasing_line_search.h>
 #include <optcpp/linear_equation_system.h>
-#include "error_functions.h"
-#include "eigen_assert.h"
 
 using namespace opt;
 
@@ -30,12 +30,11 @@ TEST_CASE("Gradient Descent")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<ErrorFunction*> errFuncs = {eq1, eq2, eq3};
+        std::vector<ErrorFunction *> errFuncs = {eq1, eq2, eq3};
         GradientDescent gd;
         gd.setDamping(1.0);
         gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
-
 
         SECTION("optimize")
         {

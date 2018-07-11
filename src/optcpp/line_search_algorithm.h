@@ -15,17 +15,18 @@ namespace opt
     /** Interface for defining line search algorithms. */
     class LineSearchAlgorithm
     {
-    public:
-        LineSearchAlgorithm() { }
-        virtual ~LineSearchAlgorithm() { }
+      public:
+        LineSearchAlgorithm()
+        {}
+        virtual ~LineSearchAlgorithm()
+        {}
 
         /** Calculates the step length for the next optimization step.
          *  @param state current state vector
          *  @param step the current optimization step
          *  @param errFuncs vector of error functions
          *  @return length of the step */
-        virtual double stepLength(
-            const Eigen::VectorXd &state,
+        virtual double stepLength(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
             const std::vector<ErrorFunction *> &errFuncs) const = 0;
     };

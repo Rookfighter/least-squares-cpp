@@ -2,8 +2,8 @@
 #ifndef OPT_MATH_H_
 #define OPT_MATH_H_
 
-#include <cmath>
 #include <Eigen/Dense>
+#include <cmath>
 
 namespace opt
 {

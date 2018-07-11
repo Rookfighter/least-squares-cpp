@@ -8,15 +8,15 @@
 #ifndef OPT_OPTIMIZATION_ALGORITHM_H_
 #define OPT_OPTIMIZATION_ALGORITHM_H_
 
-#include <vector>
 #include "optcpp/line_search_algorithm.h"
+#include <vector>
 
 namespace opt
 {
     /** Inteface for optimization algorithms. */
     class OptimizationAlgorithm
     {
-    protected:
+      protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
         bool verbose_;
@@ -25,7 +25,8 @@ namespace opt
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
             const double stepLen);
-    public:
+
+      public:
         struct Result
         {
             Eigen::VectorXd state;
@@ -57,14 +58,15 @@ namespace opt
          *  @param state current state vector
          *  @param step current optimization step
          *  @return step length */
-        double stepLength(const Eigen::VectorXd &state,
-                          const Eigen::VectorXd &step) const;
+        double stepLength(
+            const Eigen::VectorXd &state, const Eigen::VectorXd &step) const;
 
         /** Calculates the state update vector of the algorithm. The vector
          *  will be added to the state.
          *  @param state current state vector
          *  @return state update vector */
-        virtual Eigen::VectorXd calcStepUpdate(const Eigen::VectorXd &state) = 0;
+        virtual Eigen::VectorXd calcStepUpdate(
+            const Eigen::VectorXd &state) = 0;
 
         /** Updates the given state by one step of the algorithm and returns
          *  the new state.
@@ -81,8 +83,8 @@ namespace opt
          *  @return struct with resulting state vector and convergence
          *          information */
         Result run(const Eigen::VectorXd &state,
-                   const double eps,
-                   const size_t maxIt = 0);
+            const double eps,
+            const size_t maxIt = 0);
     };
 }
 

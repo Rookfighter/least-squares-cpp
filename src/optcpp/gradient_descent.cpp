@@ -9,23 +9,19 @@
 
 namespace opt
 {
-    GradientDescent::GradientDescent()
-        : OptimizationAlgorithm(), damping_(1.0)
-    {
-
-    }
+    GradientDescent::GradientDescent() : OptimizationAlgorithm(), damping_(1.0)
+    {}
 
     GradientDescent::~GradientDescent()
-    {
-
-    }
+    {}
 
     void GradientDescent::setDamping(const double damping)
     {
         damping_ = damping;
     }
 
-    Eigen::VectorXd GradientDescent::calcStepUpdate(const Eigen::VectorXd &state)
+    Eigen::VectorXd GradientDescent::calcStepUpdate(
+        const Eigen::VectorXd &state)
     {
         auto errRes = evalErrorFuncs(state, errFuncs_);
         // Gradient method

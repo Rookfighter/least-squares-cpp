@@ -10,16 +10,11 @@
 
 namespace opt
 {
-    GaussNewton::GaussNewton()
-        : OptimizationAlgorithm(), damping_(1.0)
-    {
-
-    }
+    GaussNewton::GaussNewton() : OptimizationAlgorithm(), damping_(1.0)
+    {}
 
     GaussNewton::~GaussNewton()
-    {
-
-    }
+    {}
 
     void GaussNewton::setDamping(const double damping)
     {

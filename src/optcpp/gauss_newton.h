@@ -12,13 +12,13 @@
 
 namespace opt
 {
-
     /** Implementation of the gauss newton optimization algorithm. */
     class GaussNewton : public OptimizationAlgorithm
     {
-    private:
+      private:
         double damping_;
-    public:
+
+      public:
         GaussNewton();
         GaussNewton(const GaussNewton &gn) = delete;
         ~GaussNewton();
