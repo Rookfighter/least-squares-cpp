@@ -15,14 +15,14 @@ namespace opt
     /** Implementation of the ArmijoBacktracking line search algorithm. */
     class ArmijoBacktracking : public LineSearchAlgorithm
     {
-      private:
+    private:
         double beta_;
         double gamma_;
         double minStepLen_;
         double maxStepLen_;
         size_t maxIt_;
 
-      public:
+    public:
         ArmijoBacktracking();
         ~ArmijoBacktracking();
 

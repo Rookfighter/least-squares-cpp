@@ -16,7 +16,7 @@ namespace opt
      *  construct the system from error functions and solve it. */
     class LinearEquationSystem
     {
-      public:
+    public:
         /** Constant vector. */
         Eigen::VectorXd b;
         /** Coefficient matrix. */

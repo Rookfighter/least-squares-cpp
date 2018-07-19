@@ -15,10 +15,10 @@ namespace opt
     /** Implementation of the gradient descent optimization algorithm. */
     class GradientDescent : public OptimizationAlgorithm
     {
-      private:
+    private:
         double damping_;
 
-      public:
+    public:
         GradientDescent();
         GradientDescent(const GradientDescent &gd) = delete;
         ~GradientDescent();

@@ -16,7 +16,7 @@ namespace opt
     /** Inteface for optimization algorithms. */
     class OptimizationAlgorithm
     {
-      protected:
+    protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
         bool verbose_;
@@ -26,7 +26,7 @@ namespace opt
             const Eigen::VectorXd &step,
             const double stepLen);
 
-      public:
+    public:
         struct Result
         {
             Eigen::VectorXd state;

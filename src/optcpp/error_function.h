@@ -15,7 +15,7 @@ namespace opt
     /** Interface to define error functions for optimization problems. */
     class ErrorFunction
     {
-      public:
+    public:
         ErrorFunction()
         {}
         virtual ~ErrorFunction()

@@ -15,13 +15,13 @@ namespace opt
     /** Implementation of a increasing line search algorithm. */
     class IncreasingLineSearch : public LineSearchAlgorithm
     {
-      private:
+    private:
         double beta_;
         double maxStepLen_;
         double minStepLen_;
         size_t maxIt_;
 
-      public:
+    public:
         IncreasingLineSearch();
         ~IncreasingLineSearch();
 

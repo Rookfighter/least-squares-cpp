@@ -15,12 +15,12 @@ namespace opt
     /** Implementation of the levelberg marquardt optimization algorithm. */
     class LevenbergMarquardt : public OptimizationAlgorithm
     {
-      private:
+    private:
         double damping_;
         double lambda_;
         size_t maxIt_;
 
-      public:
+    public:
         LevenbergMarquardt();
         LevenbergMarquardt(const LevenbergMarquardt &lm) = delete;
         ~LevenbergMarquardt();

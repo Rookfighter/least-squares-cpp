@@ -15,7 +15,7 @@ namespace opt
     /** Interface for defining line search algorithms. */
     class LineSearchAlgorithm
     {
-      public:
+    public:
         LineSearchAlgorithm()
         {}
         virtual ~LineSearchAlgorithm()
