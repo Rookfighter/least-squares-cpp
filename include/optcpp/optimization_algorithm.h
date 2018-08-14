@@ -106,9 +106,10 @@ namespace opt
          *  @param state current state vector
          *  @param step state update vector
          *  @return squared error */
-        virtual double calcStepUpdate(
+        virtual Eigen::VectorXd calcStepUpdate(
             const Eigen::VectorXd &state,
-            Eigen::VectorXd &step) = 0;
+            const Eigen::VectorXd &errValue,
+            const Eigen::MatrixXd &errJacobian) = 0;
 
         /** Updates the given state by one step of the algorithm and returns
          *  the new state.
@@ -120,11 +121,17 @@ namespace opt
             result.iterations = 1;
             result.converged = true;
 
-            Eigen::VectorXd step;
-            result.error = calcStepUpdate(state, step);
+            Eigen::VectorXd errValue;
+            Eigen::MatrixXd errJacobian;
+            evalErrorFuncs(state, errFuncs_, errValue, errJacobian);
+
+            Eigen::VectorXd step = calcStepUpdate(state, errValue, errJacobian);
             double stepLen = stepLength(state, step);
 
             result.state = state + stepLen * step;
+
+            evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
+            result.error = squaredError(errValue);
 
             return result;
         }
@@ -145,22 +152,35 @@ namespace opt
             result.state = state;
 
             // calculate initial step
-            Eigen::VectorXd step;
-            result.error = calcStepUpdate(result.state, step);
+            Eigen::VectorXd errValue;
+            Eigen::MatrixXd errJacobian;
+
+            // evaluate error functions
+            evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
+            result.error = squaredError(errValue);
+
+            // calculate first state increment
+            Eigen::VectorXd step = calcStepUpdate(result.state, errValue, errJacobian);
             double stepLen = stepLength(result.state, step);
 
             size_t iterations = 0;
 
             while(step.norm() > eps && (maxIt == 0 || iterations < maxIt))
             {
+                // move state
                 result.state += stepLen * step;
+
+                // evaluate error functions
+                evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
+                result.error = squaredError(errValue);
+
+                // calculate next state increment
+                step = calcStepUpdate(result.state, errValue, errJacobian);
+                stepLen = stepLength(result.state, step);
 
                 if(verbose_)
                     logStep(iterations, result.error, result.state, step, stepLen);
 
-                // increment
-                result.error = calcStepUpdate(result.state, step);
-                stepLen = stepLength(result.state, step);
                 ++iterations;
             }
 

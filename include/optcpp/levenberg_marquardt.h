@@ -49,30 +49,30 @@ namespace opt
             maxIt_ = maxIt;
         }
 
-        double calcStepUpdate(const Eigen::VectorXd &state,
-            Eigen::VectorXd &step) override
+        Eigen::VectorXd calcStepUpdate(
+            const Eigen::VectorXd &state,
+            const Eigen::VectorXd &errValue,
+            const Eigen::MatrixXd &errJacobian) override
         {
-            Eigen::VectorXd errValA;
-            Eigen::MatrixXd errJacA;
+            Eigen::VectorXd step;
             Eigen::VectorXd errValB;
             Eigen::MatrixXd errJacB;
             double errB;
-
-            evalErrorFuncs(state, errFuncs_, errValA, errJacA);
-            double errA = squaredError(errValA);
+            double errA = squaredError(errValue);
 
             LinearEquationSystem eqSys;
             // set value vector (stays constant)
-            eqSys.b = errJacA.transpose() * errValA;
+            eqSys.b = errJacobian.transpose() * errValue;
 
-            Eigen::MatrixXd jacSq = errJacA.transpose() * errJacA;
+            Eigen::MatrixXd errJacobianSq = errJacobian.transpose() * errJacobian;
 
             size_t iterations = 0;
             bool found = false;
+            step.setZero(state.size());
             while(!found && (maxIt_ == 0 || iterations < maxIt_))
             {
-                // computer coefficient matrix
-                eqSys.A = jacSq;
+                // compute coefficient matrix
+                eqSys.A = errJacobianSq;
                 eqSys.A += lambda_ * Eigen::MatrixXd::Identity(
                                          eqSys.A.rows(), eqSys.A.cols());
 
@@ -99,7 +99,7 @@ namespace opt
                 ++iterations;
             }
 
-            return errB;
+            return step;
         }
     };
 }
