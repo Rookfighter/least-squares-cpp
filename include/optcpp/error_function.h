@@ -32,7 +32,7 @@ namespace opt
          *  @param outJacobian jacobian of the error function */
         virtual void eval(const Eigen::VectorXd &state,
             Eigen::VectorXd &outValue,
-            Eigen::VectorXd &outJacobian) const = 0;
+            Eigen::MatrixXd &outJacobian) const = 0;
     };
 
     /** Calculates the squared error of a least squares problem given the error
@@ -60,11 +60,11 @@ namespace opt
     inline void evalErrorFuncs(const Eigen::VectorXd &state,
         const std::vector<ErrorFunction *> &errFuncs,
         Eigen::VectorXd &outValue,
-        Eigen::VectorXd &outJacobian)
+        Eigen::MatrixXd &outJacobian)
     {
         size_t dim = totalDimension(errFuncs);
         outValue.resize(dim);
-        outJacobian.setZero(dim, state.size());
+        outJacobian.resize(dim, state.size());
 
         Eigen::VectorXd errVal;
         Eigen::VectorXd errJac;

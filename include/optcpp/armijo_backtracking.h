@@ -88,16 +88,23 @@ namespace opt
             // start with maximum step length and decrease
             double result = maxStepLen_;
 
-            // calculate error of state without step as reference
-            auto refErrRes = evalErrorFuncs(state, errFuncs);
-            double refVal = squaredError(refErrRes.val);
+            // value and jacobian for reference (eval armijo condition)
+            Eigen::VectorXd refErrVal;
+            Eigen::MatrixXd refErrJac;
+            // value and jacobian for each calculated step length
+            Eigen::VectorXd currErrVal;
+            Eigen::MatrixXd currErrJac;
 
-            //
-            auto currErrRes = evalErrorFuncs(state + result * step, errFuncs);
-            double currVal = squaredError(currErrRes.val);
+            // calculate error of state without step as reference
+            evalErrorFuncs(state, errFuncs, refErrVal, refErrJac);
+            double refVal = squaredError(refErrVal);
+
+            // calculate error of current step with full step length
+            evalErrorFuncs(state + result * step, errFuncs, currErrVal, currErrJac);
+            double currVal = squaredError(currErrVal);
 
             // reference gradient of target function
-            Eigen::VectorXd refGrad = refErrRes.jac.transpose() * refErrRes.val;
+            Eigen::VectorXd refGrad = refErrJac.transpose() * refErrVal;
 
             // ensure step is descent direction
             assert(refGrad.size() == step.size());
@@ -113,8 +120,8 @@ namespace opt
                 result *= beta_;
 
                 // calculate error of new state
-                currErrRes = evalErrorFuncs(state + result * step, errFuncs);
-                currVal = squaredError(currErrRes.val);
+                evalErrorFuncs(state + result * step, errFuncs, currErrVal, currErrJac);
+                currVal = squaredError(currErrVal);
 
                 ++iterations;
             }

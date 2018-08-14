@@ -66,11 +66,15 @@ namespace opt
             double currLen = minStepLen_;
             double lastLen = currLen;
 
-            auto errRes = evalErrorFuncs(state, errFuncs);
-            double lastErr = squaredError(errRes.val);
+            // results of error functions
+            Eigen::VectorXd errVal;
+            Eigen::MatrixXd errJac;
 
-            errRes = evalErrorFuncs(state + currLen * step, errFuncs);
-            double currErr = squaredError(errRes.val);
+            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            double lastErr = squaredError(errVal);
+
+            evalErrorFuncs(state + currLen * step, errFuncs, errVal, errJac);
+            double currErr = squaredError(errVal);
 
             size_t iterations = 0;
             // keep increasing step length while error shows improvement
@@ -80,9 +84,9 @@ namespace opt
                 lastLen = currLen;
                 currLen *= beta_;
 
-                errRes = evalErrorFuncs(state + currLen * step, errFuncs);
+                evalErrorFuncs(state + currLen * step, errFuncs, errVal, errJac);
                 lastErr = currErr;
-                currErr = squaredError(errRes.val);
+                currErr = squaredError(errVal);
             }
 
             // use last step length as result
