@@ -34,24 +34,26 @@ TEST_CASE("Linear equation system")
 
         SECTION("solve non underdetermined")
         {
+            Eigen::VectorXd errVal;
+            Eigen::MatrixXd errJac;
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
 
             Eigen::VectorXd errExp = Eigen::VectorXd::Zero(3);
 
-            auto errRes = evalErrorFuncs(state, errFuncs);
+            evalErrorFuncs(state, errFuncs, errVal, errJac);
             LinearEquationSystem eqSys;
-            eqSys.b = errRes.jac.transpose() * errRes.val;
-            eqSys.A = errRes.jac.transpose() * errRes.jac;
+            eqSys.b = errJac.transpose() * errVal;
+            eqSys.A = errJac.transpose() * errJac;
 
             REQUIRE(!eqSys.underdetermined());
 
             Eigen::VectorXd step = eqSys.solveSVD();
             state -= step;
 
-            errRes = evalErrorFuncs(state, errFuncs);
+            evalErrorFuncs(state, errFuncs, errVal, errJac);
 
-            REQUIRE_MAT(errExp, errRes.val, eps);
+            REQUIRE_MAT(errExp, errVal, eps);
         }
     }
 }

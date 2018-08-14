@@ -33,6 +33,9 @@ TEST_CASE("Error functions")
 
         SECTION("evaluate functions")
         {
+            Eigen::VectorXd errVal;
+            Eigen::MatrixXd errJac;
+
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
 
@@ -42,20 +45,22 @@ TEST_CASE("Error functions")
             Eigen::MatrixXd jacExp(3, 3);
             jacExp << 3, 0, -1, 0, -3, 2, 4, -2, 0;
 
-            auto errRes = evalErrorFuncs(state, errFuncs);
+            evalErrorFuncs(state, errFuncs, errVal, errJac);
 
-            REQUIRE_MAT(valExp, errRes.val, eps);
-            REQUIRE_MAT(jacExp, errRes.jac, eps);
+            REQUIRE_MAT(valExp, errVal, eps);
+            REQUIRE_MAT(jacExp, errJac, eps);
         }
 
         SECTION("calculate squared error")
         {
+            Eigen::VectorXd errVal;
+            Eigen::MatrixXd errJac;
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
             double errExp = 72.0;
 
-            auto errRes = evalErrorFuncs(state, errFuncs);
-            double err = squaredError(errRes.val);
+            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            double err = squaredError(errVal);
 
             REQUIRE(Approx(errExp).margin(eps) == err);
         }

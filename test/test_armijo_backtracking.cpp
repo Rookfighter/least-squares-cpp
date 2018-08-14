@@ -37,6 +37,8 @@ TEST_CASE("Armijo Backtracking")
 
         SECTION("enables gradient descent to improve")
         {
+            Eigen::VectorXd errValA, errValB;
+            Eigen::MatrixXd errJacA, errJacB;
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
             Eigen::VectorXd stateExp(3);
@@ -44,26 +46,26 @@ TEST_CASE("Armijo Backtracking")
 
             auto result = gd.run(state, 1e-6, 10);
 
-            auto errResA = evalErrorFuncs(state, errFuncs);
-            auto errResB = evalErrorFuncs(result.state, errFuncs);
+            evalErrorFuncs(state, errFuncs, errValA, errJacA);
+            evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
 
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows no decrease in error
-            REQUIRE(squaredError(errResB.val) >= squaredError(errResA.val));
+            REQUIRE(squaredError(errValB) >= squaredError(errValA));
 
             gd.setLineSearchAlgorithm(new ArmijoBacktracking());
             result = gd.run(state, 1e-6, 10);
 
-            errResA = evalErrorFuncs(state, errFuncs);
-            errResB = evalErrorFuncs(result.state, errFuncs);
+            evalErrorFuncs(state, errFuncs, errValA, errJacA);
+            evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
 
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows no decrease in error
-            REQUIRE(squaredError(errResB.val) < squaredError(errResA.val));
+            REQUIRE(squaredError(errValB) < squaredError(errValA));
         }
     }
 }

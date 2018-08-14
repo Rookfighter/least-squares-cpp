@@ -20,15 +20,13 @@ public:
         return 1;
     }
 
-    Result eval(const Eigen::VectorXd &state) const override
+    void eval(const Eigen::VectorXd &state,
+        Eigen::VectorXd &outValue,
+        Eigen::MatrixXd &outJacobian) const override
     {
         // assert(factors.size == state.size())
-
-        Result result;
-        result.val = factors.transpose() * state;
-        result.jac = factors.transpose();
-
-        return result;
+        outValue = factors.transpose() * state;
+        outJacobian = factors.transpose();
     }
 };
 

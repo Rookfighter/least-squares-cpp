@@ -15,23 +15,15 @@ set(OPTCPP_LIBRARY "optcpp")
 add_subdirectory(dep)
 
 include_directories(
-    src
+    include
     ${EIGEN3_INCLUDE_DIR}
     ${CATCH2_INCLUDE_DIR}
 )
 
-file(GLOB SRC src/optcpp/*.cpp)
-
-add_library(${OPTCPP_LIBRARY} ${SRC})
-
-install(TARGETS ${OPTCPP_LIBRARY}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-install(DIRECTORY src/optcpp
+install(DIRECTORY include/optcpp
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
 
 # Compile tests
 file(GLOB TEST_SRC test/*.cpp)
 add_executable(run_tests ${TEST_SRC})
-target_link_libraries(run_tests ${OPTCPP_LIBRARY})
