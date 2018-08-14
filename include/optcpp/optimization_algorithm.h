@@ -26,7 +26,7 @@ namespace opt
             const double error,
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const double stepLen)
+            const double stepLen) const
         {
             std::cout << "iter=" << iterations
                       << "\terr=" << error
@@ -108,7 +108,7 @@ namespace opt
          *  @return squared error */
         virtual double calcStepUpdate(
             const Eigen::VectorXd &state,
-            Eigen::VectorXd step) = 0;
+            Eigen::VectorXd &step) = 0;
 
         /** Updates the given state by one step of the algorithm and returns
          *  the new state.
