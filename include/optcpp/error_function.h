@@ -67,7 +67,7 @@ namespace opt
         outJacobian.resize(dim, state.size());
 
         Eigen::VectorXd errVal;
-        Eigen::VectorXd errJac;
+        Eigen::MatrixXd errJac;
 
         // keep track of the error index since error functions can
         // return arbitrary amount of values
@@ -79,7 +79,7 @@ namespace opt
             // calculate error function of the current state
             err->eval(state, errVal, errJac);
             for(unsigned int j = 0; j < errVal.size(); ++j)
-                outValue(eidx + j) = outValue(j);
+                outValue(eidx + j) = errVal(j);
 
             // copy whole jacobian into one row of coefficient matrix
             for(unsigned int row = 0; row < errJac.rows(); ++row)
