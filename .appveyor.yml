@@ -1,0 +1,15 @@
+version: '1.0.{build}'
+
+image: Visual Studio 2017
+
+install:
+    - git submodule update --init --recursive
+
+before_build:
+    - cmake .
+
+build:
+    project: $(APPVEYOR_BUILD_FOLDER)\optcpp.sln
+
+test_script:
+    - '%APPVEYOR_BUILD_FOLDER%\Debug\run_tests.exe'
