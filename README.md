@@ -1,5 +1,9 @@
 # optimization-cpp
 
+![Travis Status](https://travis-ci.org/Rookfighter/optimization-cpp.svg?branch=master)
+![Appveyer Status](https://ci.appveyor.com/api/projects/status/okg2dl7a9020sy8x?svg=true)
+![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
+
 optimization-cpp is a header-only C++ library for unconstrained nonlinear least squares optimization. It provides Newton type optimization algorithms such as:
 
 * Gauss Newton
