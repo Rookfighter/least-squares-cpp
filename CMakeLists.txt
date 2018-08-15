@@ -8,9 +8,10 @@ project(optcpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-set(OPTCPP_LIBRARY "optcpp")
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 add_subdirectory(dep)
 
@@ -20,9 +21,7 @@ include_directories(
     ${CATCH2_INCLUDE_DIR}
 )
 
-install(DIRECTORY include/optcpp
-        DESTINATION include
-        FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include/optcpp DESTINATION include)
 
 # Compile tests
 file(GLOB TEST_SRC test/*.cpp)
