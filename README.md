@@ -4,7 +4,7 @@
 ![Appveyer Status](https://ci.appveyor.com/api/projects/status/okg2dl7a9020sy8x?svg=true)
 ![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
 
-optimization-cpp is a header-only C++ library for unconstrained nonlinear least squares optimization. It provides Newton type optimization algorithms such as:
+Optimization-cpp is a header-only C++ library for unconstrained nonlinear least squares optimization. It provides newton type optimization algorithms such as:
 
 * Gauss Newton
 * Gradient Descent
@@ -43,4 +43,4 @@ There are three major steps to use optimization-cpp:
 
 * Implement your error function(s)
 * Pick the optimization algorithm of your choice
-* pick the line search algorithm of your choice
+* Pick the line search algorithm of your choice
