@@ -1,6 +1,6 @@
-# Optimization Cpp
+# optimization-cpp
 
-Optimization Cpp is a basic C++ library for unconstrained nonlinear least squares optimization. It provides Newton type optimization algorithms such as:
+optimization-cpp is a header-only C++ library for unconstrained nonlinear least squares optimization. It provides Newton type optimization algorithms such as:
 
 * Gauss Newton
 * Gradient Descent
@@ -13,23 +13,30 @@ The library also includes various line search algorithms:
 
 ## Install
 
-First download the dependencies locally as git submodules.
+Simply copy the header files into your project or install them using
+the CMake build system by typing
 
 ```bash
-cd <path-to-repo>
-git submodule update --init --recursive
-```
-
-Then build the library with CMake by running
-
-```bash
-cd <path-to-repo>
+cd path/to/repo
 mkdir build
 cd build
 cmake ..
-make
+make install
 ```
 
-Or you can simply copy the source into your project and build it with the build system of your choice.
+The library requires Eigen3 to be installed on your system.
+In Debian based systems you can simply type
+
+```bash
+apt-get install libeigen3-dev
+```
+
+Make sure Eigen3 can be found by your build system.
 
 ## Usage
+
+There are three major steps to use optimization-cpp:
+
+* Implement your error function(s)
+* Pick the optimization algorithm of your choice
+* pick the line search algorithm of your choice
