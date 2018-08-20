@@ -44,7 +44,7 @@ TEST_CASE("Armijo Backtracking")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.run(state, 1e-6, 10);
+            auto result = gd.optimize(state, 1e-6, 10);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
@@ -56,7 +56,7 @@ TEST_CASE("Armijo Backtracking")
             REQUIRE(squaredError(errValB) >= squaredError(errValA));
 
             gd.setLineSearchAlgorithm(new ArmijoBacktracking());
-            result = gd.run(state, 1e-6, 10);
+            result = gd.optimize(state, 1e-6, 10);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);

@@ -159,7 +159,7 @@ namespace opt
          *  @param maxIt maximum number of iterations (0 = infinite)
          *  @return struct with resulting state vector and convergence
          *          information */
-        Result run(const Eigen::VectorXd &state,
+        Result optimize(const Eigen::VectorXd &state,
             const double eps,
             const size_t maxIt = 0)
         {

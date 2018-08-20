@@ -40,7 +40,7 @@ TEST_CASE("Levenberg Marquardt")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = lm.run(state, 1e-12, 10);
+            auto result = lm.optimize(state, 1e-12, 10);
             state << result.state(0) / result.state(0),
                 result.state(1) / result.state(0),
                 result.state(2) / result.state(0);

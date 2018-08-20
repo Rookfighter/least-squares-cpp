@@ -45,7 +45,7 @@ TEST_CASE("Gradient Descent")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.run(state, 1e-6, 10);
+            auto result = gd.optimize(state, 1e-6, 10);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
@@ -88,7 +88,7 @@ TEST_CASE("Gradient Descent")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.run(state, 1e-6, 10);
+            auto result = gd.optimize(state, 1e-6, 10);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
