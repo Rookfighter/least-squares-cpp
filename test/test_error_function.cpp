@@ -73,17 +73,17 @@ TEST_CASE("Error functions")
             Eigen::VectorXd state(3);
             state << 3, 2, 1;
 
-            eq1.eval(state, errVal, expJac);
+            eq1._evaluate(state, errVal, expJac);
             eq1.finiteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);
 
-            eq2.eval(state, errVal, expJac);
+            eq2._evaluate(state, errVal, expJac);
             eq2.finiteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);
 
-            eq3.eval(state, errVal, expJac);
+            eq3._evaluate(state, errVal, expJac);
             eq3.finiteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);

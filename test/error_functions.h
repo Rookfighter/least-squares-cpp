@@ -20,7 +20,7 @@ public:
         return 1;
     }
 
-    void eval(const Eigen::VectorXd &state,
+    void _evaluate(const Eigen::VectorXd &state,
         Eigen::VectorXd &outValue,
         Eigen::MatrixXd &outJacobian) const override
     {
@@ -40,7 +40,7 @@ public:
         return 1;
     }
 
-    void eval(const Eigen::VectorXd &state,
+    void _evaluate(const Eigen::VectorXd &state,
         Eigen::VectorXd &outValue,
         Eigen::MatrixXd &) const override
     {

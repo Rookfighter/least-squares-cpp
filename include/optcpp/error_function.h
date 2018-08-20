@@ -37,7 +37,7 @@ namespace opt
                 stateTmp = state;
                 stateTmp(i) += diff;
 
-                eval(stateTmp, errValueTmp, errJacobianTmp);
+                _evaluate(stateTmp, errValueTmp, errJacobianTmp);
                 assert(errValueTmp.size() == errValue.size());
 
                 outJacobian.col(i) = (errValueTmp - errValue) / diff;
@@ -49,13 +49,38 @@ namespace opt
          *  @return length of the result vector */
         virtual size_t dimension() const = 0;
 
+        /** Internal evaluation of the error function and its jacobian.
+         *  If the function calculates no jacobian then finite differences
+         *  is used to approximate it.
+         *  @param state current state estimate
+         *  @param outValue function value of the error function
+         *  @param outJacobian jacobian of the error function */
+        virtual void _evaluate(const Eigen::VectorXd &state,
+            Eigen::VectorXd &outValue,
+            Eigen::MatrixXd &outJacobian) const = 0;
+
         /** Evaluates the error function and its jacobian.
          *  @param state current state estimate
          *  @param outValue function value of the error function
          *  @param outJacobian jacobian of the error function */
-        virtual void eval(const Eigen::VectorXd &state,
+        void evaluate(const Eigen::VectorXd &state,
             Eigen::VectorXd &outValue,
-            Eigen::MatrixXd &outJacobian) const = 0;
+            Eigen::MatrixXd &outJacobian) const
+        {
+            static const double diff = std::sqrt(
+                std::numeric_limits<double>::epsilon());
+
+            outJacobian.resize(0, 0);
+            _evaluate(state, outValue, outJacobian);
+
+            // if no jacobian was computed use finite differences
+            if(outJacobian.size() == 0)
+                finiteDifferences(state, outValue, outJacobian, diff);
+
+            assert(static_cast<size_t>(outValue.size()) == dimension());
+            assert(outJacobian.rows() == outValue.size());
+            assert(outJacobian.cols() == state.size());
+        }
     };
 
     /** Calculates the squared error of a least squares problem given the error
@@ -85,9 +110,6 @@ namespace opt
         Eigen::VectorXd &outValue,
         Eigen::MatrixXd &outJacobian)
     {
-        //static const double diff = 1e-8;
-        static const double diff = std::sqrt(
-            std::numeric_limits<double>::epsilon());
         size_t dim = totalDimension(errFuncs);
         outValue.resize(dim);
         outJacobian.resize(dim, state.size());
@@ -103,16 +125,7 @@ namespace opt
             const ErrorFunction *err = errFuncs[i];
 
             // calculate error function of the current state
-            errJac.resize(0,0);
-            err->eval(state, errVal, errJac);
-
-            // if no jacobian was computed use finite differences
-            if(errJac.size() == 0)
-                err->finiteDifferences(state, errVal, errJac, diff);
-
-            assert(static_cast<size_t>(errVal.size()) == err->dimension());
-            assert(errJac.rows() == errVal.size());
-            assert(errJac.cols() == state.size());
+            err->evaluate(state, errVal, errJac);
 
             for(unsigned int j = 0; j < errVal.size(); ++j)
                 outValue(eidx + j) = errVal(j);
