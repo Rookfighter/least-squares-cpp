@@ -30,4 +30,23 @@ public:
     }
 };
 
+class LinearErrFuncNoJac : public opt::ErrorFunction
+{
+public:
+    Eigen::VectorXd factors;
+
+    size_t dimension() const override
+    {
+        return 1;
+    }
+
+    void eval(const Eigen::VectorXd &state,
+        Eigen::VectorXd &outValue,
+        Eigen::MatrixXd &) const override
+    {
+        // assert(factors.size == state.size())
+        outValue = factors.transpose() * state;
+    }
+};
+
 #endif

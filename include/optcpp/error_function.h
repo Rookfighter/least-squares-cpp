@@ -21,6 +21,29 @@ namespace opt
         virtual ~ErrorFunction()
         {}
 
+        void finiteDifferences(const Eigen::VectorXd &state,
+            const Eigen::VectorXd &errValue,
+            Eigen::MatrixXd &outJacobian,
+            const double diff) const
+        {
+            Eigen::VectorXd stateTmp;
+            Eigen::VectorXd errValueTmp;
+            Eigen::MatrixXd errJacobianTmp;
+
+            outJacobian.resize(errValue.size(), state.size());
+
+            for(unsigned int i = 0; i < state.size(); ++i)
+            {
+                stateTmp = state;
+                stateTmp(i) += diff;
+
+                eval(stateTmp, errValueTmp, errJacobianTmp);
+                assert(errValueTmp.size() == errValue.size());
+
+                outJacobian.col(i) = (errValueTmp - errValue) / diff;
+            }
+        }
+
         /** Returns the length of the output vector of the error function.
          *  This is used for prediction the length of the final function vetcor
          *  @return length of the result vector */
@@ -62,6 +85,9 @@ namespace opt
         Eigen::VectorXd &outValue,
         Eigen::MatrixXd &outJacobian)
     {
+        //static const double diff = 1e-8;
+        static const double diff = std::sqrt(
+            std::numeric_limits<double>::epsilon());
         size_t dim = totalDimension(errFuncs);
         outValue.resize(dim);
         outJacobian.resize(dim, state.size());
@@ -77,7 +103,17 @@ namespace opt
             const ErrorFunction *err = errFuncs[i];
 
             // calculate error function of the current state
+            errJac.resize(0,0);
             err->eval(state, errVal, errJac);
+
+            // if no jacobian was computed use finite differences
+            if(errJac.size() == 0)
+                err->finiteDifferences(state, errVal, errJac, diff);
+
+            assert(static_cast<size_t>(errVal.size()) == err->dimension());
+            assert(errJac.rows() == errVal.size());
+            assert(errJac.cols() == state.size());
+
             for(unsigned int j = 0; j < errVal.size(); ++j)
                 outValue(eidx + j) = errVal(j);
 

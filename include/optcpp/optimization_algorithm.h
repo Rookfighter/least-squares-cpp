@@ -35,6 +35,22 @@ namespace opt
                       << "\tstate=[" << state.transpose() << "]" << std::endl;
         }
 
+        Eigen::VectorXd calcStep(
+            const Eigen::VectorXd &state,
+            Eigen::VectorXd &errValue,
+            Eigen::MatrixXd &errJacobian)
+        {
+            // static const double diff = std::sqrt(std::numeric_limits<double>::epsilon());
+            // evaluate error functions
+            evalErrorFuncs(state, errFuncs_, errValue, errJacobian);
+
+            assert(errJacobian.rows() == errValue.size());
+            assert(errJacobian.cols() == state.size());
+
+            return calcStepUpdate(state, errValue, errJacobian);
+        }
+
+
     public:
         struct Result
         {
@@ -123,9 +139,8 @@ namespace opt
 
             Eigen::VectorXd errValue;
             Eigen::MatrixXd errJacobian;
-            evalErrorFuncs(state, errFuncs_, errValue, errJacobian);
 
-            Eigen::VectorXd step = calcStepUpdate(state, errValue, errJacobian);
+            Eigen::VectorXd step = calcStep(state, errValue, errJacobian);
             double stepLen = stepLength(state, step);
 
             result.state = state + stepLen * step;
@@ -151,17 +166,14 @@ namespace opt
             Result result;
             result.state = state;
 
-            // calculate initial step
+            // init optimization vectors
             Eigen::VectorXd errValue;
             Eigen::MatrixXd errJacobian;
 
-            // evaluate error functions
-            evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
-            result.error = squaredError(errValue);
-
             // calculate first state increment
-            Eigen::VectorXd step = calcStepUpdate(result.state, errValue, errJacobian);
+            Eigen::VectorXd step = calcStep(result.state, errValue, errJacobian);
             double stepLen = stepLength(result.state, step);
+            result.error = squaredError(errValue);
 
             size_t iterations = 0;
 
@@ -170,13 +182,10 @@ namespace opt
                 // move state
                 result.state += stepLen * step;
 
-                // evaluate error functions
-                evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
-                result.error = squaredError(errValue);
-
                 // calculate next state increment
-                step = calcStepUpdate(result.state, errValue, errJacobian);
+                step = calcStep(result.state, errValue, errJacobian);
                 stepLen = stepLength(result.state, step);
+                result.error = squaredError(errValue);
 
                 if(verbose_)
                     logStep(iterations, result.error, result.state, step, stepLen);
