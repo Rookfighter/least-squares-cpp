@@ -32,6 +32,8 @@ TEST_CASE("Gauss Newton")
         opt::GaussNewton gn;
         gn.setDamping(1.0);
         gn.setErrorFunctions(errFuncs);
+        gn.setMaxIterations(10);
+        gn.setEpsilon(1e-12);
 
         SECTION("optimize")
         {
@@ -40,7 +42,7 @@ TEST_CASE("Gauss Newton")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gn.optimize(state, 1e-12, 10);
+            auto result = gn.optimize(state);
             state << result.state(0) / result.state(0),
                 result.state(1) / result.state(0),
                 result.state(2) / result.state(0);

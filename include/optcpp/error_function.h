@@ -21,7 +21,7 @@ namespace opt
         virtual ~ErrorFunction()
         {}
 
-        void finiteDifferences(const Eigen::VectorXd &state,
+        void computeFiniteDifferences(const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
             Eigen::MatrixXd &outJacobian,
             const double diff) const
@@ -75,7 +75,7 @@ namespace opt
 
             // if no jacobian was computed use finite differences
             if(outJacobian.size() == 0)
-                finiteDifferences(state, outValue, outJacobian, diff);
+                computeFiniteDifferences(state, outValue, outJacobian, diff);
 
             assert(static_cast<size_t>(outValue.size()) == dimension());
             assert(outJacobian.rows() == outValue.size());

@@ -32,10 +32,10 @@ namespace opt
             damping_ = damping;
         }
 
-        Eigen::VectorXd calcStepUpdate(
+        Eigen::VectorXd computeNewtonStep(
             const Eigen::VectorXd &,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) override
+            const Eigen::MatrixXd &errJacobian) const override
         {
             LinearEquationSystem eqSys;
             eqSys.b = errJacobian.transpose() * errValue;

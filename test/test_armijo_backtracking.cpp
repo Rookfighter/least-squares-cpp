@@ -34,6 +34,8 @@ TEST_CASE("Armijo Backtracking")
         GradientDescent gd;
         gd.setDamping(1.0);
         gd.setErrorFunctions(errFuncs);
+        gd.setMaxIterations(10);
+        gd.setEpsilon(1e-6);
 
         SECTION("enables gradient descent to improve")
         {
@@ -44,7 +46,7 @@ TEST_CASE("Armijo Backtracking")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.optimize(state, 1e-6, 10);
+            auto result = gd.optimize(state);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
@@ -56,7 +58,7 @@ TEST_CASE("Armijo Backtracking")
             REQUIRE(squaredError(errValB) >= squaredError(errValA));
 
             gd.setLineSearchAlgorithm(new ArmijoBacktracking());
-            result = gd.optimize(state, 1e-6, 10);
+            result = gd.optimize(state);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);

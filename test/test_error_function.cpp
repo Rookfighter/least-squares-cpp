@@ -74,17 +74,17 @@ TEST_CASE("Error functions")
             state << 3, 2, 1;
 
             eq1._evaluate(state, errVal, expJac);
-            eq1.finiteDifferences(state, errVal, actJac, 1e-8);
+            eq1.computeFiniteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);
 
             eq2._evaluate(state, errVal, expJac);
-            eq2.finiteDifferences(state, errVal, actJac, 1e-8);
+            eq2.computeFiniteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);
 
             eq3._evaluate(state, errVal, expJac);
-            eq3.finiteDifferences(state, errVal, actJac, 1e-8);
+            eq3.computeFiniteDifferences(state, errVal, actJac, 1e-8);
 
             REQUIRE_MAT(expJac, actJac, eps);
         }

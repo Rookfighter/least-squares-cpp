@@ -20,7 +20,10 @@ namespace opt
     protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
+
         bool verbose_;
+        size_t maxIt_;
+        double eps_;
 
         virtual void logStep(const size_t iterations,
             const double error,
@@ -40,14 +43,13 @@ namespace opt
             Eigen::VectorXd &errValue,
             Eigen::MatrixXd &errJacobian)
         {
-            // static const double diff = std::sqrt(std::numeric_limits<double>::epsilon());
             // evaluate error functions
             evalErrorFuncs(state, errFuncs_, errValue, errJacobian);
 
             assert(errJacobian.rows() == errValue.size());
             assert(errJacobian.cols() == state.size());
 
-            return calcStepUpdate(state, errValue, errJacobian);
+            return computeNewtonStep(state, errValue, errJacobian);
         }
 
 
@@ -58,10 +60,14 @@ namespace opt
             double error;
             size_t iterations;
             bool converged;
+
+            Result()
+                : state(), error(0.0), iterations(0.0), converged(false)
+            {}
         };
 
         OptimizationAlgorithm()
-            : errFuncs_(), lineSearch_(nullptr), verbose_(false)
+            : errFuncs_(), lineSearch_(nullptr), verbose_(false), maxIt_(0)
         {}
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm()
@@ -71,9 +77,31 @@ namespace opt
             clearErrorFunctions();
         }
 
+        /** Set verbosity of the algorithm.
+         *  If set to true the algorithm writes information about each
+         *  iteration on stdout.
+         *  @param verbose enable/disable verbosity */
         void setVerbose(const bool verbose)
         {
             verbose_ = verbose;
+        }
+
+        /** Sets maximum iterations for the optimization process.
+         *  Set to 0 for infinite iterations. If the algorithm reaches the
+         *  maximum iterations it terminates and returns as "not converged".
+         *  @param iterations maximum iterations */
+        void setMaxIterations(const size_t iterations)
+        {
+            maxIt_ = iterations;
+        }
+
+        /** Set the convergence criterion of the optimization.
+         *  If the length of incremental newton step of the optimization is
+         *  less than eps, the algorithm will stop and return as "converged".
+         *  @param eps epsilon of the convergence criterion */
+        void setEpsilon(const double eps)
+        {
+            eps_ = eps;
         }
 
         /** Sets the line search algorithm to determine the step length.
@@ -104,33 +132,36 @@ namespace opt
             errFuncs_.clear();
         }
 
-        /** Caclculates the step length according the line search algorithm.
+        /** Caclculates the step length according to the line search algorithm.
          *  @param state current state vector
          *  @param step current optimization step
          *  @return step length */
-        double stepLength(
-            const Eigen::VectorXd &state, const Eigen::VectorXd &step) const
+        double performLineSearch(const Eigen::VectorXd &state,
+            const Eigen::VectorXd &step) const
         {
             if(lineSearch_ == nullptr)
                 return 1.0;
 
-            return lineSearch_->stepLength(state, step, errFuncs_);
+            return lineSearch_->search(state, step, errFuncs_);
         }
 
         /** Calculates the state update vector of the algorithm. The vector
          *  will be added to the state.
          *  @param state current state vector
-         *  @param step state update vector
-         *  @return squared error */
-        virtual Eigen::VectorXd calcStepUpdate(
+         *  @param errValue values of the error functions of the current state
+         *  @param errJacobian jacobian of the error functions of the current
+         *         state
+         *  @return step state update vector */
+        virtual Eigen::VectorXd computeNewtonStep(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) = 0;
+            const Eigen::MatrixXd &errJacobian) const = 0;
 
         /** Updates the given state by one step of the algorithm and returns
          *  the new state.
          *  @param state current state vector
-         *  @return new state vector */
+         *  @return struct containing information about convergence and the new
+         *          state vector */
         Result update(const Eigen::VectorXd &state)
         {
             Result result;
@@ -141,7 +172,7 @@ namespace opt
             Eigen::MatrixXd errJacobian;
 
             Eigen::VectorXd step = calcStep(state, errValue, errJacobian);
-            double stepLen = stepLength(state, step);
+            double stepLen = performLineSearch(state, step);
 
             result.state = state + stepLen * step;
 
@@ -155,13 +186,9 @@ namespace opt
          *  convergence is achieved or the maximum number of iterations has
          *  been reached.
          *  @param state intial state vector
-         *  @param eps epsilon for the convergence condition
-         *  @param maxIt maximum number of iterations (0 = infinite)
          *  @return struct with resulting state vector and convergence
          *          information */
-        Result optimize(const Eigen::VectorXd &state,
-            const double eps,
-            const size_t maxIt = 0)
+        Result optimize(const Eigen::VectorXd &state)
         {
             Result result;
             result.state = state;
@@ -172,19 +199,19 @@ namespace opt
 
             // calculate first state increment
             Eigen::VectorXd step = calcStep(result.state, errValue, errJacobian);
-            double stepLen = stepLength(result.state, step);
+            double stepLen = performLineSearch(result.state, step);
             result.error = squaredError(errValue);
 
             size_t iterations = 0;
 
-            while(step.norm() > eps && (maxIt == 0 || iterations < maxIt))
+            while(step.norm() > eps_ && (maxIt_ == 0 || iterations < maxIt_))
             {
                 // move state
                 result.state += stepLen * step;
 
                 // calculate next state increment
                 step = calcStep(result.state, errValue, errJacobian);
-                stepLen = stepLength(result.state, step);
+                stepLen = performLineSearch(result.state, step);
                 result.error = squaredError(errValue);
 
                 if(verbose_)
@@ -194,7 +221,7 @@ namespace opt
             }
 
             result.iterations = iterations;
-            result.converged = step.norm() <= eps;
+            result.converged = step.norm() <= eps_;
 
             return result;
         }

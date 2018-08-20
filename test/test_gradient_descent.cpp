@@ -35,6 +35,8 @@ TEST_CASE("Gradient Descent")
         gd.setDamping(1.0);
         gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
+        gd.setMaxIterations(10);
+        gd.setEpsilon(1e-6);
 
         SECTION("optimize")
         {
@@ -45,7 +47,7 @@ TEST_CASE("Gradient Descent")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.optimize(state, 1e-6, 10);
+            auto result = gd.optimize(state);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
@@ -78,6 +80,8 @@ TEST_CASE("Gradient Descent")
         gd.setDamping(1.0);
         gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
+        gd.setMaxIterations(10);
+        gd.setEpsilon(1e-6);
 
         SECTION("optimize")
         {
@@ -88,7 +92,7 @@ TEST_CASE("Gradient Descent")
             Eigen::VectorXd stateExp(3);
             stateExp << 1, 2, 3;
 
-            auto result = gd.optimize(state, 1e-6, 10);
+            auto result = gd.optimize(state);
 
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);

@@ -31,10 +31,10 @@ namespace opt
             damping_ = damping;
         }
 
-        Eigen::VectorXd calcStepUpdate(
+        Eigen::VectorXd computeNewtonStep(
             const Eigen::VectorXd &,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) override
+            const Eigen::MatrixXd &errJacobian) const override
         {
             // Gradient method
             return -damping_ * errJacobian.transpose() * errValue;

@@ -19,11 +19,11 @@ namespace opt
     private:
         double damping_;
         double lambda_;
-        size_t maxIt_;
+        size_t maxItLM_;
 
     public:
         LevenbergMarquardt()
-            : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxIt_(0)
+            : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxItLM_(0)
         {}
         LevenbergMarquardt(const LevenbergMarquardt &lm) = delete;
         ~LevenbergMarquardt()
@@ -34,7 +34,7 @@ namespace opt
             damping_ = damping;
         }
 
-        /** Sets the gradient descent factor of levenberg marquardt.
+        /** Sets the initial gradient descent factor of levenberg marquardt.
          *  @param lambda gradient descent factor */
         void setLambda(const double lambda)
         {
@@ -43,22 +43,23 @@ namespace opt
 
         /** Sets maximum iterations of the levenberg marquardt optimization.
          *  Set to 0 for infinite iterations.
-         *  @param maxIt maximum iteration for optimization */
-        void setMaxIterations(const size_t maxIt)
+         *  @param iterations maximum iterations for lambda search */
+        void setMaxIterationsLM(const size_t iterations)
         {
-            maxIt_ = maxIt;
+            maxItLM_ = iterations;
         }
 
-        Eigen::VectorXd calcStepUpdate(
+        Eigen::VectorXd computeNewtonStep(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) override
+            const Eigen::MatrixXd &errJacobian) const override
         {
             Eigen::VectorXd step;
             Eigen::VectorXd errValB;
             Eigen::MatrixXd errJacB;
             double errB;
             double errA = squaredError(errValue);
+            double lambda = lambda_;
 
             LinearEquationSystem eqSys;
             // set value vector (stays constant)
@@ -69,11 +70,11 @@ namespace opt
             size_t iterations = 0;
             bool found = false;
             step.setZero(state.size());
-            while(!found && (maxIt_ == 0 || iterations < maxIt_))
+            while(!found && (maxItLM_ == 0 || iterations < maxItLM_))
             {
                 // compute coefficient matrix
                 eqSys.A = errJacobianSq;
-                eqSys.A += lambda_ * Eigen::MatrixXd::Identity(
+                eqSys.A += lambda * Eigen::MatrixXd::Identity(
                                          eqSys.A.rows(), eqSys.A.cols());
 
                 // solve equation system
@@ -86,13 +87,13 @@ namespace opt
                 {
                     // new error is greater so don't change state
                     // increase lambda
-                    lambda_ *= 2.0;
+                    lambda *= 2.0;
                 }
                 else
                 {
                     // new error has shown improvement
                     // decrease lambda
-                    lambda_ /= 2.0;
+                    lambda /= 2.0;
                     found = true;
                 }
 

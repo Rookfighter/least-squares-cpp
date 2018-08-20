@@ -17,14 +17,9 @@ namespace opt
     {
     private:
         double beta_;
-        double maxStepLen_;
-        double minStepLen_;
-        size_t maxIt_;
-
     public:
         IncreasingLineSearch()
-            : LineSearchAlgorithm(), beta_(2.0), maxStepLen_(2.0),
-            minStepLen_(1e-4), maxIt_(0)
+            : LineSearchAlgorithm(), beta_(2.0)
         {}
         ~IncreasingLineSearch()
         {}
@@ -38,27 +33,7 @@ namespace opt
             beta_ = beta;
         }
 
-        /** Sets the bounds for the step length. The step length is then
-         *  assured to be in the interval [minLen, maxLen].
-         *  @param minLen minimum step length
-         *  @param maxLen maximum step length */
-        void setBounds(const double minLen, const double maxLen)
-        {
-            assert(minStepLen_ < maxStepLen_);
-
-            maxStepLen_ = maxLen;
-            minStepLen_ = minLen;
-        }
-
-        /** Sets maximum iterations for the line search.
-         *  Set to 0 for infinite iterations.
-         *  @param maxIt maximum iterations */
-        void setMaxIterations(const size_t maxIt)
-        {
-            maxIt_ = maxIt;
-        }
-
-        double stepLength(const Eigen::VectorXd &state,
+        double search(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
             const std::vector<ErrorFunction *> &errFuncs) const override
         {
@@ -91,8 +66,7 @@ namespace opt
 
             // use last step length as result
             // limit step length by maximum step length
-            double result = std::min(lastLen, maxStepLen_);
-            return result;
+            return std::min(lastLen, maxStepLen_);
         }
     };
 }
