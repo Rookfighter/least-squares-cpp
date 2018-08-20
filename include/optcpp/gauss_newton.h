@@ -32,16 +32,17 @@ namespace opt
             damping_ = damping;
         }
 
-        Eigen::VectorXd computeNewtonStep(
+        void computeNewtonStep(
             const Eigen::VectorXd &,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) const override
+            const Eigen::MatrixXd &errJacobian,
+            Eigen::VectorXd &outStep) const override
         {
             LinearEquationSystem eqSys;
             eqSys.b = errJacobian.transpose() * errValue;
             eqSys.A = errJacobian.transpose() * errJacobian;
 
-            return -damping_ * eqSys.solveSVD();
+            outStep = -damping_ * eqSys.solveSVD();
         }
     };
 }

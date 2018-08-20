@@ -49,12 +49,12 @@ namespace opt
             maxItLM_ = iterations;
         }
 
-        Eigen::VectorXd computeNewtonStep(
+        void computeNewtonStep(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) const override
+            const Eigen::MatrixXd &errJacobian,
+            Eigen::VectorXd &outStep) const override
         {
-            Eigen::VectorXd step;
             Eigen::VectorXd errValB;
             Eigen::MatrixXd errJacB;
             double errB;
@@ -69,7 +69,7 @@ namespace opt
 
             size_t iterations = 0;
             bool found = false;
-            step.setZero(state.size());
+            outStep.setZero(state.size());
             while(!found && (maxItLM_ == 0 || iterations < maxItLM_))
             {
                 // compute coefficient matrix
@@ -78,9 +78,9 @@ namespace opt
                                          eqSys.A.rows(), eqSys.A.cols());
 
                 // solve equation system
-                step = -damping_ * eqSys.solveSVD();
+                outStep = -damping_ * eqSys.solveSVD();
 
-                evalErrorFuncs(state + step, errFuncs_, errValB, errJacB);
+                evalErrorFuncs(state + outStep, errFuncs_, errValB, errJacB);
                 errB = squaredError(errValB);
 
                 if(errA < errB)
@@ -99,8 +99,6 @@ namespace opt
 
                 ++iterations;
             }
-
-            return step;
         }
     };
 }

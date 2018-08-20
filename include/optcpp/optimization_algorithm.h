@@ -38,18 +38,19 @@ namespace opt
                       << "\tstate=[" << state.transpose() << "]" << std::endl;
         }
 
-        Eigen::VectorXd calcStep(
+        void calcStep(
             const Eigen::VectorXd &state,
-            Eigen::VectorXd &errValue,
-            Eigen::MatrixXd &errJacobian)
+            Eigen::VectorXd &outValue,
+            Eigen::MatrixXd &outJacobian,
+            Eigen::VectorXd &outStep) const
         {
             // evaluate error functions
-            evalErrorFuncs(state, errFuncs_, errValue, errJacobian);
+            evalErrorFuncs(state, errFuncs_, outValue, outJacobian);
 
-            assert(errJacobian.rows() == errValue.size());
-            assert(errJacobian.cols() == state.size());
+            assert(outJacobian.rows() == outValue.size());
+            assert(outJacobian.cols() == state.size());
 
-            return computeNewtonStep(state, errValue, errJacobian);
+            computeNewtonStep(state, outValue, outJacobian, outStep);
         }
 
 
@@ -151,18 +152,19 @@ namespace opt
          *  @param errValue values of the error functions of the current state
          *  @param errJacobian jacobian of the error functions of the current
          *         state
-         *  @return step state update vector */
-        virtual Eigen::VectorXd computeNewtonStep(
+         *  @param outStep step state update vector */
+        virtual void computeNewtonStep(
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian) const = 0;
+            const Eigen::MatrixXd &errJacobian,
+            Eigen::VectorXd &outStep) const = 0;
 
         /** Updates the given state by one step of the algorithm and returns
          *  the new state.
          *  @param state current state vector
          *  @return struct containing information about convergence and the new
          *          state vector */
-        Result update(const Eigen::VectorXd &state)
+        Result update(const Eigen::VectorXd &state) const
         {
             Result result;
             result.iterations = 1;
@@ -170,8 +172,9 @@ namespace opt
 
             Eigen::VectorXd errValue;
             Eigen::MatrixXd errJacobian;
+            Eigen::VectorXd step;
 
-            Eigen::VectorXd step = calcStep(state, errValue, errJacobian);
+            calcStep(state, errValue, errJacobian, step);
             double stepLen = performLineSearch(state, step);
 
             result.state = state + stepLen * step;
@@ -188,7 +191,7 @@ namespace opt
          *  @param state intial state vector
          *  @return struct with resulting state vector and convergence
          *          information */
-        Result optimize(const Eigen::VectorXd &state)
+        Result optimize(const Eigen::VectorXd &state) const
         {
             Result result;
             result.state = state;
@@ -196,9 +199,10 @@ namespace opt
             // init optimization vectors
             Eigen::VectorXd errValue;
             Eigen::MatrixXd errJacobian;
+            Eigen::VectorXd step;
 
             // calculate first state increment
-            Eigen::VectorXd step = calcStep(result.state, errValue, errJacobian);
+            calcStep(result.state, errValue, errJacobian, step);
             double stepLen = performLineSearch(result.state, step);
             result.error = squaredError(errValue);
 
@@ -210,7 +214,7 @@ namespace opt
                 result.state += stepLen * step;
 
                 // calculate next state increment
-                step = calcStep(result.state, errValue, errJacobian);
+                calcStep(result.state, errValue, errJacobian, step);
                 stepLen = performLineSearch(result.state, step);
                 result.error = squaredError(errValue);
 
