@@ -35,7 +35,7 @@ TEST_CASE("Gradient Descent")
         gd.setDamping(1.0);
         gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
-        gd.setMaxIterations(10);
+        gd.setMaxIterations(20);
         gd.setEpsilon(1e-6);
 
         SECTION("optimize")
@@ -52,8 +52,7 @@ TEST_CASE("Gradient Descent")
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
 
-            // gradient descent does not converge
-            REQUIRE(!result.converged);
+            REQUIRE(result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows decrease in error
             REQUIRE(squaredError(errValB) < squaredError(errValA));
@@ -80,7 +79,7 @@ TEST_CASE("Gradient Descent")
         gd.setDamping(1.0);
         gd.setLineSearchAlgorithm(new IncreasingLineSearch());
         gd.setErrorFunctions(errFuncs);
-        gd.setMaxIterations(10);
+        gd.setMaxIterations(20);
         gd.setEpsilon(1e-6);
 
         SECTION("optimize")
@@ -97,8 +96,7 @@ TEST_CASE("Gradient Descent")
             evalErrorFuncs(state, errFuncs, errValA, errJacA);
             evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
 
-            // gradient descent does not converge
-            REQUIRE(!result.converged);
+            REQUIRE(result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows decrease in error
             REQUIRE(squaredError(errValB) < squaredError(errValA));
