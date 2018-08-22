@@ -200,22 +200,25 @@ namespace opt
             Eigen::VectorXd errValue;
             Eigen::MatrixXd errJacobian;
             Eigen::VectorXd step;
+            Eigen::VectorXd scaledStep;
 
             // calculate first state increment
             calcStep(result.state, errValue, errJacobian, step);
             double stepLen = performLineSearch(result.state, step);
+            scaledStep = stepLen * step;
             result.error = squaredError(errValue);
 
             size_t iterations = 0;
 
-            while(step.norm() > eps_ && (maxIt_ == 0 || iterations < maxIt_))
+            while(scaledStep.norm() > eps_ && (maxIt_ == 0 || iterations < maxIt_))
             {
                 // move state
-                result.state += stepLen * step;
+                result.state += scaledStep;
 
                 // calculate next state increment
                 calcStep(result.state, errValue, errJacobian, step);
                 stepLen = performLineSearch(result.state, step);
+                scaledStep = stepLen * step;
                 result.error = squaredError(errValue);
 
                 if(verbose_)
@@ -225,7 +228,7 @@ namespace opt
             }
 
             result.iterations = iterations;
-            result.converged = step.norm() <= eps_;
+            result.converged = scaledStep.norm() <= eps_;
 
             return result;
         }
