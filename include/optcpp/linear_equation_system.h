@@ -8,7 +8,7 @@
 #ifndef OPT_LINEAR_EQUATION_SYSTEM_H_
 #define OPT_LINEAR_EQUATION_SYSTEM_H_
 
-#include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 namespace opt
 {
