@@ -8,7 +8,7 @@
 #ifndef OPT_ERROR_FUNCTION_H_
 #define OPT_ERROR_FUNCTION_H_
 
-#include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 namespace opt
 {
