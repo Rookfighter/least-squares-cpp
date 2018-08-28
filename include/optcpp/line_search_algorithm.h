@@ -65,7 +65,7 @@ namespace opt
          *  @return length of the step */
         virtual double search(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) const = 0;
+            const std::vector<ErrorFunction *> &errFuncs) = 0;
     };
 }
 

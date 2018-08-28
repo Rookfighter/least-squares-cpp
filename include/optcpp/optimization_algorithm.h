@@ -138,7 +138,7 @@ namespace opt
          *  @param step current optimization step
          *  @return step length */
         double performLineSearch(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step) const
+            const Eigen::VectorXd &step)
         {
             if(lineSearch_ == nullptr)
                 return 1.0;

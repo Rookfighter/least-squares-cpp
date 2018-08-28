@@ -17,6 +17,8 @@ namespace opt
     {
     private:
         double beta_;
+        Eigen::VectorXd errVal_;
+        Eigen::MatrixXd errJac_;
     public:
         IncreasingLineSearch()
             : LineSearchAlgorithm(), beta_(2.0)
@@ -35,21 +37,17 @@ namespace opt
 
         double search(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) const override
+            const std::vector<ErrorFunction *> &errFuncs) override
         {
             // start with minimum step length and then increase
             double currLen = minStepLen_;
             double lastLen = currLen;
 
-            // results of error functions
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
+            evalErrorFuncs(state, errFuncs, errVal_, errJac_);
+            double lastErr = squaredError(errVal_);
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
-            double lastErr = squaredError(errVal);
-
-            evalErrorFuncs(state + currLen * step, errFuncs, errVal, errJac);
-            double currErr = squaredError(errVal);
+            evalErrorFuncs(state + currLen * step, errFuncs, errVal_, errJac_);
+            double currErr = squaredError(errVal_);
 
             size_t iterations = 0;
             // keep increasing step length while error shows improvement
@@ -59,9 +57,9 @@ namespace opt
                 lastLen = currLen;
                 currLen *= beta_;
 
-                evalErrorFuncs(state + currLen * step, errFuncs, errVal, errJac);
+                evalErrorFuncs(state + currLen * step, errFuncs, errVal_, errJac_);
                 lastErr = currErr;
-                currErr = squaredError(errVal);
+                currErr = squaredError(errVal_);
             }
 
             // use last step length as result

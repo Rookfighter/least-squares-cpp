@@ -19,6 +19,15 @@ namespace opt
         double beta_;
         double gamma_;
 
+        // value and jacobian for reference (eval armijo condition)
+        Eigen::VectorXd refErrVal_;
+        Eigen::MatrixXd refErrJac_;
+        // value and jacobian for each calculated step length
+        Eigen::VectorXd currErrVal_;
+        Eigen::MatrixXd currErrJac_;
+
+        Eigen::VectorXd refGrad_;
+
         bool armijoCondition(const double currVal,
             const double refVal,
             const Eigen::VectorXd &refGrad,
@@ -60,45 +69,38 @@ namespace opt
 
         double search(const Eigen::VectorXd &state,
             const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) const override
+            const std::vector<ErrorFunction *> &errFuncs) override
         {
             // start with maximum step length and decrease
             double result = maxStepLen_;
 
-            // value and jacobian for reference (eval armijo condition)
-            Eigen::VectorXd refErrVal;
-            Eigen::MatrixXd refErrJac;
-            // value and jacobian for each calculated step length
-            Eigen::VectorXd currErrVal;
-            Eigen::MatrixXd currErrJac;
-
             // calculate error of state without step as reference
-            evalErrorFuncs(state, errFuncs, refErrVal, refErrJac);
-            double refVal = squaredError(refErrVal);
+            evalErrorFuncs(state, errFuncs, refErrVal_, refErrJac_);
+            double refVal = squaredError(refErrVal_);
 
             // calculate error of current step with full step length
-            evalErrorFuncs(state + result * step, errFuncs, currErrVal, currErrJac);
-            double currVal = squaredError(currErrVal);
+            evalErrorFuncs(state + result * step, errFuncs, currErrVal_, currErrJac_);
+            double currVal = squaredError(currErrVal_);
 
             // reference gradient of target function
-            Eigen::VectorXd refGrad = refErrJac.transpose() * refErrVal;
+            refGrad_ = refErrJac_.transpose() * refErrVal_;
 
             // ensure step is descent direction
-            assert(refGrad.size() == step.size());
+            assert(refGrad_.size() == step.size());
             // assert((refGrad.transpose() * step)(0) < 0);
 
             size_t iterations = 0;
             // check for armijo condition
             while(
-                !armijoCondition(currVal, refVal, refGrad, step, result, gamma_) &&
+                !armijoCondition(currVal, refVal, refGrad_, step, result, gamma_) &&
                 (maxIt_ == 0 || iterations < maxIt_) && result > minStepLen_)
             {
                 // decrease step length
                 result *= beta_;
 
                 // calculate error of new state
-                evalErrorFuncs(state + result * step, errFuncs, currErrVal, currErrJac);
-                currVal = squaredError(currErrVal);
+                evalErrorFuncs(state + result * step, errFuncs, currErrVal_, currErrJac_);
+                currVal = squaredError(currErrVal_);
 
                 ++iterations;
             }
