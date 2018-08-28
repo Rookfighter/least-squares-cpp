@@ -115,32 +115,29 @@ namespace opt
         outJacobian.resize(dim, state.size());
         std::vector<size_t> eidx(errFuncs.size());
 
-        eidx[0] = 0;
-        for(unsigned int i = 1; i < errFuncs.size(); ++i)
-            eidx[i] = eidx[i-1] + errFuncs[i-1]->dimension();
-
+        Eigen::VectorXd errVal;
+        Eigen::MatrixXd errJac;
         // keep track of the error index since error functions can
         // return arbitrary amount of values
-        #pragma omp parallel for
+        size_t eidx = 0;
         for(unsigned int i = 0; i < errFuncs.size(); ++i)
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
             const ErrorFunction *errfun = errFuncs[i];
-            size_t idx = eidx[i];
 
             // calculate error function of the current state
             errfun->evaluate(state, errVal, errJac);
 
             for(unsigned int j = 0; j < errVal.size(); ++j)
-                outValue(idx + j) = errVal(j);
+                outValue(eidx + j) = errVal(j);
 
             // copy whole jacobian into one row of coefficient matrix
             for(unsigned int row = 0; row < errJac.rows(); ++row)
             {
                 for(unsigned int col = 0; col < errJac.cols(); ++col)
-                    outJacobian(idx + row, col) = errJac(row, col);
+                    outJacobian(eidx + row, col) = errJac(row, col);
             }
+
+            eidx += errfun->dimension();
         }
     }
 }
