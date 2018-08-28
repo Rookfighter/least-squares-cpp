@@ -14,11 +14,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 add_subdirectory(dep)
+find_package(Threads)
 
 include_directories(
     include
     ${EIGEN3_INCLUDE_DIR}
     ${CATCH2_INCLUDE_DIR}
+    ${TPCPP_INCLUDE_DIR}
 )
 
 install(DIRECTORY include/optcpp DESTINATION include)
@@ -26,3 +28,4 @@ install(DIRECTORY include/optcpp DESTINATION include)
 # Compile tests
 file(GLOB TEST_SRC test/*.cpp)
 add_executable(run_tests ${TEST_SRC})
+target_link_libraries(run_tests ${CMAKE_THREAD_LIBS_INIT})

@@ -20,6 +20,7 @@ namespace opt
     protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
+        tp::ThreadPool *threadPool_;
 
         bool verbose_;
         size_t maxIt_;
@@ -45,7 +46,16 @@ namespace opt
             Eigen::VectorXd &outStep)
         {
             // evaluate error functions
-            evalErrorFuncs(state, errFuncs_, outValue, outJacobian);
+            // either parallel or single threaded
+            if(threadPool_ != nullptr)
+            {
+                evalErrorFuncs(state, errFuncs_, outValue, outJacobian,
+                    *threadPool_);
+            }
+            else
+            {
+                evalErrorFuncs(state, errFuncs_, outValue, outJacobian);
+            }
 
             assert(outJacobian.rows() == outValue.size());
             assert(outJacobian.cols() == state.size());
@@ -68,13 +78,17 @@ namespace opt
         };
 
         OptimizationAlgorithm()
-            : errFuncs_(), lineSearch_(nullptr), verbose_(false), maxIt_(0)
+            : errFuncs_(), lineSearch_(nullptr), threadPool_(nullptr),
+            verbose_(false), maxIt_(0), eps_(1e-6)
         {}
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm()
         {
             if(lineSearch_ != nullptr)
                 delete lineSearch_;
+            if(threadPool_ != nullptr)
+                delete threadPool_;
+
             clearErrorFunctions();
         }
 
@@ -103,6 +117,22 @@ namespace opt
         void setEpsilon(const double eps)
         {
             eps_ = eps;
+        }
+
+        /** Set the amount of threads used to optimize.
+         *  The degree of parallelization depends on the amount of error
+         *  functions. Only different error function instances can be computed
+         *  in parallel.
+         *  Set to 0 to disable multithreading.
+         *  @threads amount of threads to be used */
+        void setThreads(const size_t threads)
+        {
+            if(threadPool_ != nullptr)
+                delete threadPool_;
+            if(threads == 0)
+                threadPool_ = nullptr;
+            else
+                threadPool_ = new tp::ThreadPool(threads);
         }
 
         /** Sets the line search algorithm to determine the step length.

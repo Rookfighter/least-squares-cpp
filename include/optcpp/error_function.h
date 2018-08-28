@@ -9,6 +9,7 @@
 #define OPT_ERROR_FUNCTION_H_
 
 #include <Eigen/Geometry>
+#include <tpcpp/thread_pool.h>
 
 namespace opt
 {
@@ -122,10 +123,10 @@ namespace opt
         size_t eidx = 0;
         for(unsigned int i = 0; i < errFuncs.size(); ++i)
         {
-            const ErrorFunction *err = errFuncs[i];
+            const ErrorFunction *errfun = errFuncs[i];
 
             // calculate error function of the current state
-            err->evaluate(state, errVal, errJac);
+            errfun->evaluate(state, errVal, errJac);
 
             for(unsigned int j = 0; j < errVal.size(); ++j)
                 outValue(eidx + j) = errVal(j);
@@ -137,8 +138,59 @@ namespace opt
                     outJacobian(eidx + row, col) = errJac(row, col);
             }
 
-            eidx += errVal.size();
+            eidx += errfun->dimension();
         }
+    }
+
+    /** Calculates the value and jacobians of a vector of error functions in
+     *  parallel.
+     *  @param state current state vector
+     *  @param errFuncs vector of error functions
+     *  @param outValue function value of the error function
+     *  @param outJacobian jacobian of the error function
+     *  @param threadPool thread pool for parallelization */
+    inline void evalErrorFuncs(const Eigen::VectorXd &state,
+        const std::vector<ErrorFunction *> &errFuncs,
+        Eigen::VectorXd &outValue,
+        Eigen::MatrixXd &outJacobian,
+        tp::ThreadPool &threadPool)
+    {
+        size_t dim = totalDimension(errFuncs);
+        outValue.resize(dim);
+        outJacobian.resize(dim, state.size());
+
+        // keep track of the error index since error functions can
+        // return arbitrary amount of values
+        size_t eidx = 0;
+        for(unsigned int i = 0; i < errFuncs.size(); ++i)
+        {
+            const ErrorFunction *errfun = errFuncs[i];
+
+            threadPool.enqueue(
+                [&state, eidx, errfun, &outValue, &outJacobian]()
+                {
+                    Eigen::VectorXd errVal;
+                    Eigen::MatrixXd errJac;
+
+                    // evaluate error function
+                    errfun->evaluate(state, errVal, errJac);
+
+                    // copy values
+                    for(unsigned int j = 0; j < errVal.size(); ++j)
+                        outValue(eidx + j) = errVal(j);
+                    //copy jacobian
+                    for(unsigned int row = 0; row < errJac.rows(); ++row)
+                    {
+                        for(unsigned int col = 0; col < errJac.cols(); ++col)
+                            outJacobian(eidx + row, col) = errJac(row, col);
+                    }
+                }
+            );
+
+            eidx += errfun->dimension();
+        }
+
+        threadPool.wait();
     }
 }
 
