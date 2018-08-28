@@ -113,7 +113,6 @@ namespace opt
         size_t dim = totalDimension(errFuncs);
         outValue.resize(dim);
         outJacobian.resize(dim, state.size());
-        std::vector<size_t> eidx(errFuncs.size());
 
         Eigen::VectorXd errVal;
         Eigen::MatrixXd errJac;
