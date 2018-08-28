@@ -35,7 +35,7 @@ namespace opt
             const Eigen::VectorXd &,
             const Eigen::VectorXd &errValue,
             const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) const override
+            Eigen::VectorXd &outStep) override
         {
             // Gradient method
             outStep = -damping_ * errJacobian.transpose() * errValue;

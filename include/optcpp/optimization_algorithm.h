@@ -42,7 +42,7 @@ namespace opt
             const Eigen::VectorXd &state,
             Eigen::VectorXd &outValue,
             Eigen::MatrixXd &outJacobian,
-            Eigen::VectorXd &outStep) const
+            Eigen::VectorXd &outStep)
         {
             // evaluate error functions
             evalErrorFuncs(state, errFuncs_, outValue, outJacobian);
@@ -157,33 +157,7 @@ namespace opt
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
             const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) const = 0;
-
-        /** Updates the given state by one step of the algorithm and returns
-         *  the new state.
-         *  @param state current state vector
-         *  @return struct containing information about convergence and the new
-         *          state vector */
-        Result update(const Eigen::VectorXd &state) const
-        {
-            Result result;
-            result.iterations = 1;
-            result.converged = true;
-
-            Eigen::VectorXd errValue;
-            Eigen::MatrixXd errJacobian;
-            Eigen::VectorXd step;
-
-            calcStep(state, errValue, errJacobian, step);
-            double stepLen = performLineSearch(state, step);
-
-            result.state = state + stepLen * step;
-
-            evalErrorFuncs(result.state, errFuncs_, errValue, errJacobian);
-            result.error = squaredError(errValue);
-
-            return result;
-        }
+            Eigen::VectorXd &outStep) = 0;
 
         /** Runs the algorithm on the given initial state. Terminates if either
          *  convergence is achieved or the maximum number of iterations has
@@ -191,7 +165,7 @@ namespace opt
          *  @param state intial state vector
          *  @return struct with resulting state vector and convergence
          *          information */
-        Result optimize(const Eigen::VectorXd &state) const
+        Result optimize(const Eigen::VectorXd &state)
         {
             Result result;
             result.state = state;

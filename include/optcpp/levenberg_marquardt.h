@@ -21,6 +21,10 @@ namespace opt
         double lambda_;
         size_t maxItLM_;
 
+        Eigen::VectorXd errValB_;
+        Eigen::MatrixXd errJacB_;
+        Eigen::MatrixXd errJacobianSq_;
+        LinearEquationSystem eqSys_;
     public:
         LevenbergMarquardt()
             : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxItLM_(0)
@@ -53,19 +57,15 @@ namespace opt
             const Eigen::VectorXd &state,
             const Eigen::VectorXd &errValue,
             const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) const override
+            Eigen::VectorXd &outStep) override
         {
-            Eigen::VectorXd errValB;
-            Eigen::MatrixXd errJacB;
             double errB;
             double errA = squaredError(errValue);
-            double lambda = lambda_;
 
-            LinearEquationSystem eqSys;
             // set value vector (stays constant)
-            eqSys.b = errJacobian.transpose() * errValue;
+            eqSys_.b = errJacobian.transpose() * errValue;
 
-            Eigen::MatrixXd errJacobianSq = errJacobian.transpose() * errJacobian;
+            errJacobianSq_ = errJacobian.transpose() * errJacobian;
 
             size_t iterations = 0;
             bool found = false;
@@ -73,27 +73,28 @@ namespace opt
             while(!found && (maxItLM_ == 0 || iterations < maxItLM_))
             {
                 // compute coefficient matrix
-                eqSys.A = errJacobianSq;
-                eqSys.A += lambda * Eigen::MatrixXd::Identity(
-                                         eqSys.A.rows(), eqSys.A.cols());
+                eqSys_.A = errJacobianSq_;
+                // add identity matrix
+                for(unsigned int i = 0; i < eqSys_.A.rows(); ++i)
+                    eqSys_.A(i, i) += lambda_;
 
                 // solve equation system
-                outStep = -damping_ * eqSys.solveSVD();
+                outStep = -damping_ * eqSys_.solveSVD();
 
-                evalErrorFuncs(state + outStep, errFuncs_, errValB, errJacB);
-                errB = squaredError(errValB);
+                evalErrorFuncs(state + outStep, errFuncs_, errValB_, errJacB_);
+                errB = squaredError(errValB_);
 
                 if(errA < errB)
                 {
                     // new error is greater so don't change state
                     // increase lambda
-                    lambda *= 2.0;
+                    lambda_ *= 2.0;
                 }
                 else
                 {
                     // new error has shown improvement
                     // decrease lambda
-                    lambda /= 2.0;
+                    lambda_ /= 2.0;
                     found = true;
                 }
 

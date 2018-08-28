@@ -18,6 +18,7 @@ namespace opt
     {
     private:
         double damping_;
+        LinearEquationSystem eqSys_;
 
     public:
         GaussNewton()
@@ -36,13 +37,12 @@ namespace opt
             const Eigen::VectorXd &,
             const Eigen::VectorXd &errValue,
             const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) const override
+            Eigen::VectorXd &outStep) override
         {
-            LinearEquationSystem eqSys;
-            eqSys.b = errJacobian.transpose() * errValue;
-            eqSys.A = errJacobian.transpose() * errJacobian;
+            eqSys_.b = errJacobian.transpose() * errValue;
+            eqSys_.A = errJacobian.transpose() * errJacobian;
 
-            outStep = -damping_ * eqSys.solveSVD();
+            outStep = -damping_ * eqSys_.solveSVD();
         }
     };
 }
