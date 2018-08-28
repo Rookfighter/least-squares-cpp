@@ -4,3 +4,6 @@
 [submodule "dep/Catch2"]
 	path = dep/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "dep/threadpool-cpp"]
+	path = dep/threadpool-cpp
+	url = https://github.com/Rookfighter/threadpool-cpp.git
