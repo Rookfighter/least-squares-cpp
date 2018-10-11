@@ -7,11 +7,11 @@
 
 #include "eigen_assert.h"
 #include "error_functions.h"
-#include <optcpp/armijo_backtracking.h>
-#include <optcpp/gradient_descent.h>
-#include <optcpp/linear_equation_system.h>
+#include <lsq/armijo_backtracking.h>
+#include <lsq/gradient_descent.h>
+#include <lsq/linear_equation_system.h>
 
-using namespace opt;
+using namespace lsq;
 
 TEST_CASE("Armijo Backtracking")
 {

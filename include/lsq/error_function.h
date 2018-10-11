@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_ERROR_FUNCTION_H_
-#define OPT_ERROR_FUNCTION_H_
+#ifndef LSQ_ERROR_FUNCTION_H_
+#define LSQ_ERROR_FUNCTION_H_
 
 #include <Eigen/Geometry>
 
-namespace opt
+namespace lsq
 {
     /** Interface to define error functions for optimization problems. */
     class ErrorFunction

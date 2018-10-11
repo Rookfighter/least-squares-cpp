@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_LINE_SEARCH_ALGORITHM_H_
-#define OPT_LINE_SEARCH_ALGORITHM_H_
+#ifndef LSQ_LINE_SEARCH_ALGORITHM_H_
+#define LSQ_LINE_SEARCH_ALGORITHM_H_
 
-#include "optcpp/error_function.h"
+#include "lsq/error_function.h"
 
-namespace opt
+namespace lsq
 {
     /** Interface for defining line search algorithms. */
     class LineSearchAlgorithm

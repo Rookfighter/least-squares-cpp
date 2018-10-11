@@ -8,7 +8,7 @@
 #include "eigen_assert.h"
 #include "error_functions.h"
 
-using namespace opt;
+using namespace lsq;
 
 TEST_CASE("Error functions")
 {

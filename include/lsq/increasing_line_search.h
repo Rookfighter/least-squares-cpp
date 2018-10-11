@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_INCREASING_LINE_SEARCH_H_
-#define OPT_INCREASING_LINE_SEARCH_H_
+#ifndef LSQ_INCREASING_LINE_SEARCH_H_
+#define LSQ_INCREASING_LINE_SEARCH_H_
 
-#include "optcpp/line_search_algorithm.h"
+#include "lsq/line_search_algorithm.h"
 
-namespace opt
+namespace lsq
 {
     /** Implementation of a increasing line search algorithm. */
     class IncreasingLineSearch : public LineSearchAlgorithm

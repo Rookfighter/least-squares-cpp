@@ -7,9 +7,9 @@
 
 #include "eigen_assert.h"
 #include "error_functions.h"
-#include <optcpp/linear_equation_system.h>
+#include <lsq/linear_equation_system.h>
 
-using namespace opt;
+using namespace lsq;
 
 TEST_CASE("Linear equation system")
 {

@@ -7,9 +7,9 @@
 
 #include "eigen_assert.h"
 #include "error_functions.h"
-#include <optcpp/levenberg_marquardt.h>
+#include <lsq/levenberg_marquardt.h>
 
-using namespace opt;
+using namespace lsq;
 
 TEST_CASE("Levenberg Marquardt")
 {

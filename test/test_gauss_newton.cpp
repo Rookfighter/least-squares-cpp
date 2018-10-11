@@ -7,7 +7,7 @@
 
 #include "eigen_assert.h"
 #include "error_functions.h"
-#include <optcpp/gauss_newton.h>
+#include <lsq/gauss_newton.h>
 
 TEST_CASE("Gauss Newton")
 {
@@ -28,8 +28,8 @@ TEST_CASE("Gauss Newton")
         eq3->factors.resize(3);
         eq3->factors << 4, -2, 0;
 
-        std::vector<opt::ErrorFunction *> errFuncs = {eq1, eq2, eq3};
-        opt::GaussNewton gn;
+        std::vector<lsq::ErrorFunction *> errFuncs = {eq1, eq2, eq3};
+        lsq::GaussNewton gn;
         gn.setDamping(1.0);
         gn.setErrorFunctions(errFuncs);
         gn.setMaxIterations(10);

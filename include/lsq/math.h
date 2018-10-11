@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_MATH_H_
-#define OPT_MATH_H_
+#ifndef LSQ_MATH_H_
+#define LSQ_MATH_H_
 
 #include <cmath>
 
-namespace opt
+namespace lsq
 {
     double pi()
     {

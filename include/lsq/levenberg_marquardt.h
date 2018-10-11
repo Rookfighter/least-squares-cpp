@@ -5,13 +5,13 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_LEVENBERG_MARQUARDT_H_
-#define OPT_LEVENBERG_MARQUARDT_H_
+#ifndef LSQ_LEVENBERG_MARQUARDT_H_
+#define LSQ_LEVENBERG_MARQUARDT_H_
 
-#include "optcpp/optimization_algorithm.h"
-#include "optcpp/linear_equation_system.h"
+#include "lsq/optimization_algorithm.h"
+#include "lsq/linear_equation_system.h"
 
-namespace opt
+namespace lsq
 {
     /** Implementation of the levelberg marquardt optimization algorithm. */
     class LevenbergMarquardt : public OptimizationAlgorithm

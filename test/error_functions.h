@@ -8,9 +8,9 @@
 #ifndef OPT_TEST_ERROR_FUNCTIONS_H_
 #define OPT_TEST_ERROR_FUNCTIONS_H_
 
-#include <optcpp/error_function.h>
+#include <lsq/error_function.h>
 
-class LinearErrFunc : public opt::ErrorFunction
+class LinearErrFunc : public lsq::ErrorFunction
 {
 public:
     Eigen::VectorXd factors;
@@ -30,7 +30,7 @@ public:
     }
 };
 
-class LinearErrFuncNoJac : public opt::ErrorFunction
+class LinearErrFuncNoJac : public lsq::ErrorFunction
 {
 public:
     Eigen::VectorXd factors;

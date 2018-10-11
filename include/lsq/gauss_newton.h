@@ -5,13 +5,13 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_GAUSS_NEWTON_H_
-#define OPT_GAUSS_NEWTON_H_
+#ifndef LSQ_GAUSS_NEWTON_H_
+#define LSQ_GAUSS_NEWTON_H_
 
-#include "optcpp/optimization_algorithm.h"
-#include "optcpp/linear_equation_system.h"
+#include "lsq/optimization_algorithm.h"
+#include "lsq/linear_equation_system.h"
 
-namespace opt
+namespace lsq
 {
     /** Implementation of the gauss newton optimization algorithm. */
     class GaussNewton : public OptimizationAlgorithm

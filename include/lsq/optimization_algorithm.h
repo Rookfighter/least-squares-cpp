@@ -5,14 +5,14 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_OPTIMIZATION_ALGORITHM_H_
-#define OPT_OPTIMIZATION_ALGORITHM_H_
+#ifndef LSQ_OPTIMIZATION_ALGORITHM_H_
+#define LSQ_OPTIMIZATION_ALGORITHM_H_
 
-#include "optcpp/line_search_algorithm.h"
+#include "lsq/line_search_algorithm.h"
 #include <vector>
 #include <iostream>
 
-namespace opt
+namespace lsq
 {
     /** Inteface for optimization algorithms. */
     class OptimizationAlgorithm

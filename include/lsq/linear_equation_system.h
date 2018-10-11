@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_LINEAR_EQUATION_SYSTEM_H_
-#define OPT_LINEAR_EQUATION_SYSTEM_H_
+#ifndef LSQ_LINEAR_EQUATION_SYSTEM_H_
+#define LSQ_LINEAR_EQUATION_SYSTEM_H_
 
 #include <Eigen/Geometry>
 
-namespace opt
+namespace lsq
 {
     /** Class representing a linear equation system. Provides functions to
      *  construct the system from error functions and solve it. */

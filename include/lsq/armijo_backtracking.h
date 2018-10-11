@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_ARMIJO_BACKTRACKING_H_
-#define OPT_ARMIJO_BACKTRACKING_H_
+#ifndef LSQ_ARMIJO_BACKTRACKING_H_
+#define LSQ_ARMIJO_BACKTRACKING_H_
 
-#include "optcpp/line_search_algorithm.h"
+#include "lsq/line_search_algorithm.h"
 
-namespace opt
+namespace lsq
 {
     /** Implementation of the ArmijoBacktracking line search algorithm. */
     class ArmijoBacktracking : public LineSearchAlgorithm

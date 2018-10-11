@@ -5,12 +5,12 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef OPT_GRADIENT_DESCENT_H_
-#define OPT_GRADIENT_DESCENT_H_
+#ifndef LSQ_GRADIENT_DESCENT_H_
+#define LSQ_GRADIENT_DESCENT_H_
 
-#include "optcpp/optimization_algorithm.h"
+#include "lsq/optimization_algorithm.h"
 
-namespace opt
+namespace lsq
 {
     /** Implementation of the gradient descent optimization algorithm. */
     class GradientDescent : public OptimizationAlgorithm
