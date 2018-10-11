@@ -22,7 +22,7 @@ include_directories(
     ${TPCPP_INCLUDE_DIR}
 )
 
-install(DIRECTORY include/optcpp DESTINATION include)
+install(DIRECTORY include/lsq DESTINATION include)
 
 # Compile tests
 file(GLOB TEST_SRC test/*.cpp)
