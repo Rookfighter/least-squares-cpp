@@ -42,7 +42,8 @@ namespace lsq
             eqSys_.b = errJacobian.transpose() * errValue;
             eqSys_.A = errJacobian.transpose() * errJacobian;
 
-            outStep = -damping_ * eqSys_.solveSVD();
+            solver_->solve(eqSys_, outStep);
+            outStep *= -damping_;
         }
     };
 }

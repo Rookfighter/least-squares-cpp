@@ -31,17 +31,6 @@ namespace lsq
             : b(b), A(A)
         {}
 
-        /** Solves the linear equation system using SVD decomposition.
-         *  @return */
-        Eigen::VectorXd solveSVD() const
-        {
-            Eigen::JacobiSVD<Eigen::MatrixXd,
-                Eigen::FullPivHouseholderQRPreconditioner>
-                decomp(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
-            return decomp.solve(b);
-        }
-
         /** Returns the amount of equations provided by this system.
          *  Only valid after A and b have been set appropriately.
          *  @return number of equations */

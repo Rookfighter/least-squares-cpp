@@ -7,11 +7,11 @@
 
 #include "eigen_assert.h"
 #include "error_functions.h"
-#include <lsq/linear_equation_system.h>
+#include <lsq/solver_dense_svd.h>
 
 using namespace lsq;
 
-TEST_CASE("Linear equation system")
+TEST_CASE("Solver Dense SVD")
 {
     SECTION("with linear error functions")
     {
@@ -48,7 +48,9 @@ TEST_CASE("Linear equation system")
 
             REQUIRE(!eqSys.underdetermined());
 
-            Eigen::VectorXd step = eqSys.solveSVD();
+            SolverDenseSVD solver;
+            Eigen::VectorXd step ;
+            solver.solve(eqSys, step);
             state -= step;
 
             evalErrorFuncs(state, errFuncs, errVal, errJac);

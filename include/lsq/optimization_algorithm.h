@@ -9,6 +9,7 @@
 #define LSQ_OPTIMIZATION_ALGORITHM_H_
 
 #include "lsq/line_search_algorithm.h"
+#include "lsq/solver_dense_svd.h"
 #include <vector>
 #include <iostream>
 
@@ -20,6 +21,7 @@ namespace lsq
     protected:
         std::vector<ErrorFunction *> errFuncs_;
         LineSearchAlgorithm *lineSearch_;
+        Solver *solver_;
 
         bool verbose_;
         size_t maxIt_;
@@ -69,14 +71,16 @@ namespace lsq
         };
 
         OptimizationAlgorithm()
-            : errFuncs_(), lineSearch_(nullptr), verbose_(false), maxIt_(0),
-            eps_(1e-6)
+            : errFuncs_(), lineSearch_(nullptr), solver_(new SolverDenseSVD()),
+            verbose_(false), maxIt_(0), eps_(1e-6)
         {}
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm()
         {
             if(lineSearch_ != nullptr)
                 delete lineSearch_;
+            if(solver_ != nullptr)
+                delete solver_;
 
             clearErrorFunctions();
         }
@@ -117,6 +121,15 @@ namespace lsq
             if(lineSearch_ != nullptr)
                 delete lineSearch_;
             lineSearch_ = lineSearch;
+        }
+
+        /** Sets the solver to solve linear equation systems.
+         *  @param solver linear equation system solver */
+        void setSolver(Solver *solver)
+        {
+            if(solver_ != nullptr)
+                delete solver_;
+            solver_ = solver;
         }
 
         /** Sets the error functions to be optimized.

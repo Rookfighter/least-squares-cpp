@@ -79,7 +79,8 @@ namespace lsq
                     eqSys_.A(i, i) += lambda_;
 
                 // solve equation system
-                outStep = -damping_ * eqSys_.solveSVD();
+                solver_->solve(eqSys_, outStep);
+                outStep *= -damping_;
 
                 evalErrorFuncs(state + outStep, errFuncs_, errValB_, errJacB_);
                 errB = squaredError(errValB_);
