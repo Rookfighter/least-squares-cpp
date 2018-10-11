@@ -1,11 +1,11 @@
-# optimization-cpp
+# least-squares-cpp
 
 ![Cpp11](https://img.shields.io/badge/C%2B%2B-11-blue.svg)
 ![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
 ![Travis Status](https://travis-ci.org/Rookfighter/optimization-cpp.svg?branch=master)
 ![Appveyer Status](https://ci.appveyor.com/api/projects/status/okg2dl7a9020sy8x?svg=true)
 
-Optimization-cpp is a header-only C++ library for unconstrained nonlinear least squares optimization. It provides newton type optimization algorithms such as:
+least-squares-cpp is a header-only C++ library for unconstrained non-linear least squares optimization. It provides newton type optimization algorithms such as:
 
 * Gauss Newton
 * Gradient Descent
@@ -40,7 +40,7 @@ Make sure Eigen3 can be found by your build system.
 
 ## Usage
 
-There are three major steps to use optimization-cpp:
+There are three major steps to use least-squares-cpp:
 
 * Implement your error function(s)
 * Pick the optimization algorithm of your choice
