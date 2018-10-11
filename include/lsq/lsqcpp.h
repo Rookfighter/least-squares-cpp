@@ -13,5 +13,8 @@
 #include <lsq/gauss_newton.h>
 #include <lsq/gradient_descent.h>
 #include <lsq/levenberg_marquardt.h>
+#include <lsq/solver_dense_cholesky.h>
+#include <lsq/solver_dense_svd.h>
+#include <lsq/solver_sparse_cholesky.h>
 
 #endif
