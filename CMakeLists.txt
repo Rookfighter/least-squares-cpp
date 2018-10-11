@@ -4,7 +4,7 @@
 # Created On: 23 May 2018
 
 cmake_minimum_required(VERSION 3.5)
-project(optcpp)
+project(lsqcpp)
 
 SET(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)

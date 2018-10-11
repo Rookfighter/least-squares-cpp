@@ -9,7 +9,7 @@ before_build:
     - cmake .
 
 build:
-    project: $(APPVEYOR_BUILD_FOLDER)\optcpp.sln
+    project: $(APPVEYOR_BUILD_FOLDER)\lsqcpp.sln
 
 test_script:
     - '%APPVEYOR_BUILD_FOLDER%\Debug\run_tests.exe'
