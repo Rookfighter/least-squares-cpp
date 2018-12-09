@@ -45,3 +45,56 @@ There are three major steps to use least-squares-cpp:
 * Implement your error function(s)
 * Pick the optimization algorithm of your choice
 * Pick the line search algorithm of your choice
+
+```cpp
+#include <lsq/lsqcpp.h>
+
+// implement your error function as sub class of error function
+class MyErrorFunction : public lsq::ErrorFunction<double>
+{
+public:
+    void _evaluate(
+        const lsq::Vectord &state,
+        lsq::Vectord& outVal,
+        lsq::Matrixd& outJac) override
+    {
+        // implement your error function
+        // ...
+    }
+};
+
+int main()
+{
+    // choose optimization algorithm e.g. gauss newton, levenberg marquardt, etc.
+    lsq::GaussNewton<double> optalgo;
+
+    // choose a line search algorithm
+    // set to nullptr (default) to use none
+    optalgo.setLineSearchAlgorithm(new lsq::ArmijoBacktracking());
+
+    // set stop conditions
+    // set maximum number of iterations
+    optalgo.setMaxIterations(20);
+    // set epsilon for newton step length
+    optalgo.setEpsilon(1e-6);
+
+    // set verbosity
+    optalgo.setVerbose(true);
+
+    // set the error function
+    optalgo.setErrorFunction(new MyErrorFunction());
+
+    // choose initial state
+    lsq::Vectord state = lsq::Vectord::Zero(6);
+    // optimize
+    auto result = optalgo.optimize(state)
+    if(result.converged)
+    {
+        printf("converged with %d iterations\n", result.iterations)
+        // do soemthing with the resulting state
+        result.state // ...
+        // or use the error value
+        result.error // ...
+    }
+}
+```
