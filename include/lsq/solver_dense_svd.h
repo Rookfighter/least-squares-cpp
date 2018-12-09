@@ -12,13 +12,14 @@
 
 namespace lsq
 {
-    class SolverDenseSVD : public Solver
+    template<typename Scalar>
+    class SolverDenseSVD : public Solver<Scalar>
     {
     public:
-        void solve(const LinearEquationSystem &system,
-            Eigen::VectorXd &result) const override
+        void solve(const LinearEquationSystem<Scalar> &system,
+            Vector<Scalar> &result) const override
         {
-            Eigen::JacobiSVD<Eigen::MatrixXd,
+            Eigen::JacobiSVD<Matrix<Scalar>,
                 Eigen::FullPivHouseholderQRPreconditioner>
                 decomp(system.A, Eigen::ComputeFullU | Eigen::ComputeFullV);
 

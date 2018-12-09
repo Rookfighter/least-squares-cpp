@@ -12,6 +12,7 @@
 
 namespace lsq
 {
+    template<Scalar>
     class Solver
     {
     public:
@@ -20,8 +21,8 @@ namespace lsq
         virtual ~Solver()
         {}
 
-        virtual void solve(const LinearEquationSystem &system,
-            Eigen::VectorXd &result) const = 0;
+        virtual void solve(const LinearEquationSystem<Scalar> &system,
+            Vector<Scalar> &result) const = 0;
     };
 }
 

@@ -13,13 +13,14 @@
 
 namespace lsq
 {
-    class SolverDenseCholesky : public Solver
+    template<typename Scalar>
+    class SolverDenseCholesky : public Solver<Scalar>
     {
     public:
-        void solve(const LinearEquationSystem &system,
-            Eigen::VectorXd &result) const override
+        void solve(const LinearEquationSystem<Scalar> &system,
+            Vector<Scalar> &result) const override
         {
-            Eigen::LDLT<Eigen::MatrixXd> decomp;
+            Eigen::LDLT<Matrix<Scalar> decomp;
             decomp.compute(system.A);
 
             if(!decomp.isPositive())
