@@ -70,10 +70,10 @@ namespace lsq
 
         double search(const Vector<Scalar> &state,
             const Vector<Scalar> &step,
-            const ErrorFunction<Scalar> &errFunc) override
+            ErrorFunction<Scalar> &errFunc) override
         {
             // start with maximum step length and decrease
-            Scalar result = maxStepLen_;
+            Scalar result = this->maxStepLen_;
 
             // calculate error of state without step as reference
             errFunc.evaluate(state, refErrVal_, refErrJac_);

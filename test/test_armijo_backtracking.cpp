@@ -15,59 +15,53 @@ using namespace lsq;
 
 TEST_CASE("Armijo Backtracking")
 {
-    SECTION("with linear error functions")
+    SECTION("with linear error function")
     {
-        LinearErrFunc *eq1 = new LinearErrFunc();
-        LinearErrFunc *eq2 = new LinearErrFunc();
-        LinearErrFunc *eq3 = new LinearErrFunc();
+        LinearErrFuncd *errFunc = new LinearErrFuncd();
 
-        eq1->factors.resize(3);
-        eq1->factors << 3, 0, -1;
+        errFunc->factors.resize(3, 3);
+        errFunc->factors << 3, 0, -1,
+            0, -3, 2,
+            4, -2, 0;
+        errFunc->factors.transposeInPlace();
 
-        eq2->factors.resize(3);
-        eq2->factors << 0, -3, 2;
-
-        eq3->factors.resize(3);
-        eq3->factors << 4, -2, 0;
-
-        std::vector<ErrorFunction *> errFuncs = {eq1, eq2, eq3};
-        GradientDescent gd;
+        GradientDescent<double> gd;
         gd.setDamping(1.0);
-        gd.setErrorFunctions(errFuncs);
+        gd.setErrorFunction(errFunc);
         gd.setMaxIterations(10);
         gd.setEpsilon(1e-6);
 
         SECTION("enables gradient descent to improve")
         {
-            Eigen::VectorXd errValA, errValB;
-            Eigen::MatrixXd errJacA, errJacB;
-            Eigen::VectorXd state(3);
+            lsq::Vectord errValA, errValB;
+            lsq::Matrixd errJacA, errJacB;
+            lsq::Vectord state(3);
             state << 3, 2, 1;
-            Eigen::VectorXd stateExp(3);
+            lsq::Vectord stateExp(3);
             stateExp << 1, 2, 3;
 
             auto result = gd.optimize(state);
 
-            evalErrorFuncs(state, errFuncs, errValA, errJacA);
-            evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
+            errFunc->evaluate(state, errValA, errJacA);
+            errFunc->evaluate(result.state, errValB, errJacB);
 
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows no decrease in error
-            REQUIRE(squaredError(errValB) >= squaredError(errValA));
+            REQUIRE(squaredError<double>(errValB) >= squaredError<double>(errValA));
 
-            gd.setLineSearchAlgorithm(new ArmijoBacktracking());
+            gd.setLineSearchAlgorithm(new ArmijoBacktracking<double>());
             result = gd.optimize(state);
 
-            evalErrorFuncs(state, errFuncs, errValA, errJacA);
-            evalErrorFuncs(result.state, errFuncs, errValB, errJacB);
+            errFunc->evaluate(state, errValA, errJacA);
+            errFunc->evaluate(result.state, errValB, errJacB);
 
             // gradient descent does not converge
             REQUIRE(!result.converged);
             REQUIRE(result.iterations == 10);
             // gradient method shows no decrease in error
-            REQUIRE(squaredError(errValB) < squaredError(errValA));
+            REQUIRE(squaredError<double>(errValB) < squaredError<double>(errValA));
         }
     }
 }
