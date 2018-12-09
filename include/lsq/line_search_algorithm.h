@@ -13,16 +13,17 @@
 namespace lsq
 {
     /** Interface for defining line search algorithms. */
+    template<typename Scalar>
     class LineSearchAlgorithm
     {
     protected:
         bool verbose_;
         size_t maxIt_;
-        double maxStepLen_;
-        double minStepLen_;
+        Scalar maxStepLen_;
+        Scalar minStepLen_;
     public:
         LineSearchAlgorithm()
-            : verbose_(false), maxIt_(0), maxStepLen_(1.0), minStepLen_(1e-6)
+            : verbose_(false), maxIt_(0), maxStepLen_(1), minStepLen_(1e-6)
         {}
         virtual ~LineSearchAlgorithm()
         {}
@@ -48,9 +49,9 @@ namespace lsq
          *  assured to be in the interval [minLen, maxLen].
          *  @param minLen minimum step length
          *  @param maxLen maximum step length */
-        void setBounds(const double minLen, const double maxLen)
+        void setBounds(const Scalar minLen, const Scalar maxLen)
         {
-            assert(minStepLen_ < maxStepLen_);
+            assert(minLen < maxLen);
 
             maxStepLen_ = maxLen;
             minStepLen_ = minLen;
@@ -63,9 +64,9 @@ namespace lsq
          *  @param step the current optimization step
          *  @param errFuncs vector of error functions
          *  @return length of the step */
-        virtual double search(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) = 0;
+        virtual double search(const Vector<Scalar> &state,
+            const Vector<Scalar> &step,
+            ErrorFunction<Scalar> &errFunc) = 0;
     };
 }
 

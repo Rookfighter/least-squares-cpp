@@ -13,27 +13,28 @@
 namespace lsq
 {
     /** Implementation of the ArmijoBacktracking line search algorithm. */
-    class ArmijoBacktracking : public LineSearchAlgorithm
+    template<typename Scalar>
+    class ArmijoBacktracking : public LineSearchAlgorithm<Scalar>
     {
     private:
-        double beta_;
-        double gamma_;
+        Scalar beta_;
+        Scalar gamma_;
 
         // value and jacobian for reference (eval armijo condition)
-        Eigen::VectorXd refErrVal_;
-        Eigen::MatrixXd refErrJac_;
+        Vector<Scalar> refErrVal_;
+        Matrix<Scalar> refErrJac_;
         // value and jacobian for each calculated step length
-        Eigen::VectorXd currErrVal_;
-        Eigen::MatrixXd currErrJac_;
+        Vector<Scalar> currErrVal_;
+        Matrix<Scalar> currErrJac_;
 
-        Eigen::VectorXd refGrad_;
+        Vector<Scalar> refGrad_;
 
-        bool armijoCondition(const double currVal,
-            const double refVal,
-            const Eigen::VectorXd &refGrad,
-            const Eigen::VectorXd &step,
-            const double stepLen,
-            const double gamma) const
+        bool armijoCondition(const Scalar currVal,
+            const Scalar refVal,
+            const Vector<Scalar> &refGrad,
+            const Vector<Scalar> &step,
+            const Scalar stepLen,
+            const Scalar gamma) const
         {
             assert(refGrad.size() == step.size());
             return currVal <=
@@ -51,9 +52,9 @@ namespace lsq
          *  The value must be in the interval (0, 1). Choose not too small,
          *  e.g. 0.8.
          *  @param beta reduction factor */
-        void setBeta(const double beta)
+        void setBeta(const Scalar beta)
         {
-            assert(beta_ > 0.0 && beta_ < 1.0);
+            assert(beta > 0.0 && beta < 1.0);
             beta_ = beta;
         }
 
@@ -61,26 +62,26 @@ namespace lsq
          *  condition. The value must be in the interval (0, 0.5). Choose not
          *  too big, e.g. 0.1.
          *  @param gamma relaxation factor */
-        void setGamma(const double gamma)
+        void setGamma(const Scalar gamma)
         {
             assert(gamma > 0.0 && gamma < 0.5);
             gamma_ = gamma;
         }
 
-        double search(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) override
+        double search(const Vector<Scalar> &state,
+            const Vector<Scalar> &step,
+            const ErrorFunction<Scalar> &errFunc) override
         {
             // start with maximum step length and decrease
-            double result = maxStepLen_;
+            Scalar result = maxStepLen_;
 
             // calculate error of state without step as reference
-            evalErrorFuncs(state, errFuncs, refErrVal_, refErrJac_);
-            double refVal = squaredError(refErrVal_);
+            errFunc.evaluate(state, refErrVal_, refErrJac_);
+            Scalar refVal = squaredError<Scalar>(refErrVal_);
 
             // calculate error of current step with full step length
-            evalErrorFuncs(state + result * step, errFuncs, currErrVal_, currErrJac_);
-            double currVal = squaredError(currErrVal_);
+            errFunc.evaluate(state + result * step, currErrVal_, currErrJac_);
+            Scalar currVal = squaredError<Scalar>(currErrVal_);
 
             // reference gradient of target function
             refGrad_ = refErrJac_.transpose() * refErrVal_;
@@ -99,14 +100,14 @@ namespace lsq
                 result *= beta_;
 
                 // calculate error of new state
-                evalErrorFuncs(state + result * step, errFuncs, currErrVal_, currErrJac_);
-                currVal = squaredError(currErrVal_);
+                errFunc.evaluate(state + result * step, currErrVal_, currErrJac_);
+                currVal = squaredError<Scalar>(currErrVal_);
 
                 ++iterations;
             }
 
             // limit step length by minimum step length
-            result = std::max(result, minStepLen_);
+            result = std::max<Scalar>(result, minStepLen_);
 
             return result;
         }

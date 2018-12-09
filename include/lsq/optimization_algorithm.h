@@ -149,7 +149,7 @@ namespace lsq
             if(lineSearch_ == nullptr)
                 return 1.0;
 
-            return lineSearch_->search(state, step, errFuncs_);
+            return lineSearch_->search(state, step, *errFunc_);
         }
 
         /** Calculates the state update vector of the algorithm. The vector
@@ -199,7 +199,7 @@ namespace lsq
                 calcStep(result.state, errValue, errJacobian, step);
                 stepLen = performLineSearch(result.state, step);
                 scaledStep = stepLen * step;
-                result.error = squaredError(errValue);
+                result.error = squaredError<Scalar>(errValue);
 
                 if(verbose_)
                     logStep(iterations, result.error, result.state, step, stepLen);

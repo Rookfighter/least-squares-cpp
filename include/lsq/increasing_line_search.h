@@ -13,12 +13,13 @@
 namespace lsq
 {
     /** Implementation of a increasing line search algorithm. */
-    class IncreasingLineSearch : public LineSearchAlgorithm
+    template<typename Scalar>
+    class IncreasingLineSearch : public LineSearchAlgorithm<Scalar>
     {
     private:
-        double beta_;
-        Eigen::VectorXd errVal_;
-        Eigen::MatrixXd errJac_;
+        Scalar beta_;
+        Vector<Scalar> errVal_;
+        Matrix<Scalar> errJac_;
     public:
         IncreasingLineSearch()
             : LineSearchAlgorithm(), beta_(2.0)
@@ -29,25 +30,25 @@ namespace lsq
         /** Sets the increasing factor during step calculation. The value must
          *  be in the interval (1 inf). Choose not too big, e.g. 2.0.
          *  @param beta increasing factor */
-        void setBeta(const double beta)
+        void setBeta(const Scalar beta)
         {
             assert(beta_ > 1.0);
             beta_ = beta;
         }
 
-        double search(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step,
-            const std::vector<ErrorFunction *> &errFuncs) override
+        double search(const Vector<Scalar> &state,
+            const Vector<Scalar> &step,
+            const ErrorFunction<Scalar> &errFunc) override
         {
             // start with minimum step length and then increase
-            double currLen = minStepLen_;
-            double lastLen = currLen;
+            Scalar currLen = minStepLen_;
+            Scalar lastLen = currLen;
 
-            evalErrorFuncs(state, errFuncs, errVal_, errJac_);
-            double lastErr = squaredError(errVal_);
+            errFunc.evaluate(state, errVal_, errJac_);
+            Scalar lastErr = squaredError<Scalar>(errVal_);
 
-            evalErrorFuncs(state + currLen * step, errFuncs, errVal_, errJac_);
-            double currErr = squaredError(errVal_);
+            errFunc.evaluate(state + currLen * step, errVal_, errJac_);
+            Scalar currErr = squaredError(errVal_);
 
             size_t iterations = 0;
             // keep increasing step length while error shows improvement
@@ -57,14 +58,14 @@ namespace lsq
                 lastLen = currLen;
                 currLen *= beta_;
 
-                evalErrorFuncs(state + currLen * step, errFuncs, errVal_, errJac_);
+                errFunc.evaluate(state + currLen * step, errVal_, errJac_);
                 lastErr = currErr;
-                currErr = squaredError(errVal_);
+                currErr = squaredError<Scalar>(errVal_);
             }
 
             // use last step length as result
             // limit step length by maximum step length
-            return std::min(lastLen, maxStepLen_);
+            return std::min<Scalar>(lastLen, maxStepLen_);
         }
     };
 }

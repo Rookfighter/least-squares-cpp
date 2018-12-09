@@ -40,7 +40,7 @@ namespace lsq
 -         *  @param outJacobian jacobian of the error function */
 -        virtual void _evaluate(const Eigen::VectorXd &state,
 -            Eigen::VectorXd &outValue,
--            Eigen::MatrixXd &outJacobian) const = 0;
+-            Eigen::MatrixXd &outJacobian) = 0;
 
         void computeFiniteDifferences(const Vector<Scalar> &state,
             const Vector<Scalar> &errValue,
