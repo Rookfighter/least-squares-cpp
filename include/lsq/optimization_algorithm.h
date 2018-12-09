@@ -48,7 +48,7 @@ namespace lsq
             Vector<Scalar> &outStep)
         {
             // evaluate error functions
-            errFunc_->evaluate(state, outValue, outJacobian);
+            errorFunc_->evaluate(state, outValue, outJacobian);
             computeNewtonStep(state, outValue, outJacobian, outStep);
         }
 
@@ -67,8 +67,8 @@ namespace lsq
         };
 
         OptimizationAlgorithm()
-            : errFunc_(nullptr), lineSearch_(nullptr),
-            solver_(new SolverDenseSVD()), verbose_(false), maxIt_(0),
+            : errorFunc_(nullptr), lineSearch_(nullptr),
+            solver_(new SolverDenseSVD<Scalar>()), verbose_(false), maxIt_(0),
             eps_(1e-6)
         {}
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
@@ -78,8 +78,8 @@ namespace lsq
                 delete lineSearch_;
             if(solver_ != nullptr)
                 delete solver_;
-            if(errFunc_ != nullptr)
-                delete errFunc;
+            if(errorFunc_ != nullptr)
+                delete errorFunc_;
         }
 
         /** Set verbosity of the algorithm.
@@ -134,9 +134,9 @@ namespace lsq
          *  @param errFunc error function */
         void setErrorFunction(ErrorFunction<Scalar> *errFunc)
         {
-            if(errFunc_ != nullptr)
-                delete errFunc_
-            errFunc_ = errFunc;
+            if(errorFunc_ != nullptr)
+                delete errorFunc_;
+            errorFunc_ = errFunc;
         }
 
         /** Caclculates the step length according to the line search algorithm.
@@ -149,7 +149,7 @@ namespace lsq
             if(lineSearch_ == nullptr)
                 return 1.0;
 
-            return lineSearch_->search(state, step, *errFunc_);
+            return lineSearch_->search(state, step, *errorFunc_);
         }
 
         /** Calculates the state update vector of the algorithm. The vector

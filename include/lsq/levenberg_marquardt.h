@@ -24,11 +24,11 @@ namespace lsq
 
         Vector<Scalar> errValB_;
         Matrix<Scalar> errJacB_;
-        MAtrix<Scalar> errJacobianSq_;
+        Matrix<Scalar> errJacobianSq_;
         LinearEquationSystem<Scalar> eqSys_;
     public:
         LevenbergMarquardt()
-            : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxItLM_(0)
+            : OptimizationAlgorithm<Scalar>(), damping_(1.0), lambda_(1.0), maxItLM_(0)
         {}
         LevenbergMarquardt(const LevenbergMarquardt &lm) = delete;
         ~LevenbergMarquardt()
@@ -80,10 +80,10 @@ namespace lsq
                     eqSys_.A(i, i) += lambda_;
 
                 // solve equation system
-                solver_->solve(eqSys_, outStep);
+                this->solver_->solve(eqSys_, outStep);
                 outStep *= -damping_;
 
-                errFunc_->evaluate(state + outStep, errValB_, errJacB_);
+                this->errorFunc_->evaluate(state + outStep, errValB_, errJacB_);
                 errB = squaredError<Scalar>(errValB_);
 
                 if(errA < errB)

@@ -23,7 +23,7 @@ namespace lsq
 
     public:
         GaussNewton()
-            : OptimizationAlgorithm(), damping_(1.0)
+            : OptimizationAlgorithm<Scalar>(), damping_(1.0)
         {}
         GaussNewton(const GaussNewton &gn) = delete;
         ~GaussNewton()

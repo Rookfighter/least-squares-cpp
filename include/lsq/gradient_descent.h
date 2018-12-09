@@ -21,7 +21,7 @@ namespace lsq
 
     public:
         GradientDescent()
-            : OptimizationAlgorithm(), damping_(1)
+            : OptimizationAlgorithm<Scalar>(), damping_(1)
         {}
         GradientDescent(const GradientDescent &gd) = delete;
         ~GradientDescent()
