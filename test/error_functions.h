@@ -32,7 +32,7 @@ template<typename Scalar>
 class LinearErrFuncNoJac : public lsq::ErrorFunction<Scalar>
 {
 public:
-    lsq::Vector<Scalar> factors;
+    lsq::Matrix<Scalar> factors;
 
     void _evaluate(const lsq::Vector<Scalar> &state,
         lsq::Vector<Scalar> &outValue,

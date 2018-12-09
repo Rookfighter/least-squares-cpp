@@ -22,7 +22,7 @@ namespace lsq
         Matrix<Scalar> errJac_;
     public:
         IncreasingLineSearch()
-            : LineSearchAlgorithm(), beta_(2.0)
+            : LineSearchAlgorithm<Scalar>(), beta_(2.0)
         {}
         ~IncreasingLineSearch()
         {}
@@ -38,10 +38,10 @@ namespace lsq
 
         double search(const Vector<Scalar> &state,
             const Vector<Scalar> &step,
-            const ErrorFunction<Scalar> &errFunc) override
+            ErrorFunction<Scalar> &errFunc) override
         {
             // start with minimum step length and then increase
-            Scalar currLen = minStepLen_;
+            Scalar currLen = this->minStepLen_;
             Scalar lastLen = currLen;
 
             errFunc.evaluate(state, errVal_, errJac_);
@@ -52,8 +52,9 @@ namespace lsq
 
             size_t iterations = 0;
             // keep increasing step length while error shows improvement
-            while(currErr < lastErr && (maxIt_ == 0 || iterations < maxIt_) &&
-                  lastLen < maxStepLen_)
+            while(currErr < lastErr && (this->maxIt_ == 0 ||
+                  iterations < this->maxIt_) &&
+                  lastLen < this->maxStepLen_)
             {
                 lastLen = currLen;
                 currLen *= beta_;
@@ -65,7 +66,7 @@ namespace lsq
 
             // use last step length as result
             // limit step length by maximum step length
-            return std::min<Scalar>(lastLen, maxStepLen_);
+            return std::min<Scalar>(lastLen, this->maxStepLen_);
         }
     };
 }

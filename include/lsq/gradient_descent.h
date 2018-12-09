@@ -33,7 +33,7 @@ namespace lsq
         }
 
         void computeNewtonStep(
-            const Vecetor<Scalar> &,
+            const Vector<Scalar> &,
             const Vector<Scalar> &errValue,
             const Matrix<Scalar> &errJacobian,
             Vector<Scalar> &outStep) override

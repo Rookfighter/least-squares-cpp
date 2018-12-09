@@ -25,5 +25,10 @@ include_directories(
 install(DIRECTORY include/lsq DESTINATION include)
 
 # Compile tests
-file(GLOB TEST_SRC test/*.cpp)
+SET(TEST_SRC
+    "test/main.cpp"
+    "test/test_gradient_descent.cpp"
+    "test/test_levenberg_marquardt.cpp"
+    "test/test_solver_dense_svd.cpp"
+)
 add_executable(run_tests ${TEST_SRC})
