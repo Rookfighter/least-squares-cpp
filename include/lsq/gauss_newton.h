@@ -14,11 +14,12 @@
 namespace lsq
 {
     /** Implementation of the gauss newton optimization algorithm. */
-    class GaussNewton : public OptimizationAlgorithm
+    template<typename Scalar>
+    class GaussNewton : public OptimizationAlgorithm<Scalar>
     {
     private:
-        double damping_;
-        LinearEquationSystem eqSys_;
+        Scalar damping_;
+        LinearEquationSystem<Scalar> eqSys_;
 
     public:
         GaussNewton()
@@ -28,16 +29,16 @@ namespace lsq
         ~GaussNewton()
         {}
 
-        void setDamping(const double damping)
+        void setDamping(const Scalar damping)
         {
             damping_ = damping;
         }
 
         void computeNewtonStep(
-            const Eigen::VectorXd &,
-            const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) override
+            const Vector<Scalar> &,
+            const Vector<Scalar> &errValue,
+            const Matrix<Scalar> &errJacobian,
+            Vector<Scalar> &outStep) override
         {
             eqSys_.b = errJacobian.transpose() * errValue;
             eqSys_.A = errJacobian.transpose() * errJacobian;

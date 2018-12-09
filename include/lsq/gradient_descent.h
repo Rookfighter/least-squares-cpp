@@ -13,29 +13,30 @@
 namespace lsq
 {
     /** Implementation of the gradient descent optimization algorithm. */
-    class GradientDescent : public OptimizationAlgorithm
+    template<typename Scalar>
+    class GradientDescent : public OptimizationAlgorithm<Scalar>
     {
     private:
-        double damping_;
+        Scalar damping_;
 
     public:
         GradientDescent()
-            : OptimizationAlgorithm(), damping_(1.0)
+            : OptimizationAlgorithm(), damping_(1)
         {}
         GradientDescent(const GradientDescent &gd) = delete;
         ~GradientDescent()
         {}
 
-        void setDamping(const double damping)
+        void setDamping(const Scalar damping)
         {
             damping_ = damping;
         }
 
         void computeNewtonStep(
-            const Eigen::VectorXd &,
-            const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) override
+            const Vecetor<Scalar> &,
+            const Vector<Scalar> &errValue,
+            const Matrix<Scalar> &errJacobian,
+            Vector<Scalar> &outStep) override
         {
             // Gradient method
             outStep = -damping_ * errJacobian.transpose() * errValue;

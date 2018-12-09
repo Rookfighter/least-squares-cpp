@@ -14,17 +14,18 @@
 namespace lsq
 {
     /** Implementation of the levelberg marquardt optimization algorithm. */
-    class LevenbergMarquardt : public OptimizationAlgorithm
+    template<typename Scalar>
+    class LevenbergMarquardt : public OptimizationAlgorithm<Scalar>
     {
     private:
-        double damping_;
-        double lambda_;
+        Scalar damping_;
+        Scalar lambda_;
         size_t maxItLM_;
 
-        Eigen::VectorXd errValB_;
-        Eigen::MatrixXd errJacB_;
-        Eigen::MatrixXd errJacobianSq_;
-        LinearEquationSystem eqSys_;
+        Vector<Scalar> errValB_;
+        Matrix<Scalar> errJacB_;
+        MAtrix<Scalar> errJacobianSq_;
+        LinearEquationSystem<Scalar> eqSys_;
     public:
         LevenbergMarquardt()
             : OptimizationAlgorithm(), damping_(1.0), lambda_(1.0), maxItLM_(0)
@@ -33,14 +34,14 @@ namespace lsq
         ~LevenbergMarquardt()
         {}
 
-        void setDamping(const double damping)
+        void setDamping(const Scalar damping)
         {
             damping_ = damping;
         }
 
         /** Sets the initial gradient descent factor of levenberg marquardt.
          *  @param lambda gradient descent factor */
-        void setLambda(const double lambda)
+        void setLambda(const Scalar lambda)
         {
             lambda_ = lambda;
         }
@@ -54,13 +55,13 @@ namespace lsq
         }
 
         void computeNewtonStep(
-            const Eigen::VectorXd &state,
-            const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) override
+            const Vector<Scalar> &state,
+            const Vector<Scalar> &errValue,
+            const Matrix<Scalar> &errJacobian,
+            Vector<Scalar> &outStep) override
         {
-            double errB;
-            double errA = squaredError(errValue);
+            Scalar errB;
+            Scalar errA = squaredError<Scalar>(errValue);
 
             // set value vector (stays constant)
             eqSys_.b = errJacobian.transpose() * errValue;
@@ -75,15 +76,15 @@ namespace lsq
                 // compute coefficient matrix
                 eqSys_.A = errJacobianSq_;
                 // add identity matrix
-                for(unsigned int i = 0; i < eqSys_.A.rows(); ++i)
+                for(Eigen::Index i = 0; i < eqSys_.A.rows(); ++i)
                     eqSys_.A(i, i) += lambda_;
 
                 // solve equation system
                 solver_->solve(eqSys_, outStep);
                 outStep *= -damping_;
 
-                evalErrorFuncs(state + outStep, errFuncs_, errValB_, errJacB_);
-                errB = squaredError(errValB_);
+                errFunc_->evaluate(state + outStep, errValB_, errJacB_);
+                errB = squaredError<Scalar>(errValB_);
 
                 if(errA < errB)
                 {
