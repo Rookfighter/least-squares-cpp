@@ -42,7 +42,7 @@ Make sure Eigen3 can be found by your build system.
 
 There are three major steps to use least-squares-cpp:
 
-* Implement your error function(s)
+* Implement your error function
 * Pick the optimization algorithm of your choice
 * Pick the line search algorithm of your choice
 
