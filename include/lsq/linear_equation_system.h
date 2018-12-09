@@ -8,33 +8,34 @@
 #ifndef LSQ_LINEAR_EQUATION_SYSTEM_H_
 #define LSQ_LINEAR_EQUATION_SYSTEM_H_
 
-#include <Eigen/Geometry>
+#include "lsq/matrix.h"
 
 namespace lsq
 {
     /** Class representing a linear equation system. Provides functions to
      *  construct the system from error functions and solve it. */
+    template<typename Scalar>
     class LinearEquationSystem
     {
     public:
         /** Constant vector. */
-        Eigen::VectorXd b;
+        Vector<Scalar> b;
         /** Coefficient matrix. */
-        Eigen::MatrixXd A;
+        Matrix<Scalar> A;
 
         LinearEquationSystem()
         : b(), A()
         {}
 
         LinearEquationSystem(
-            const Eigen::VectorXd &b, const Eigen::MatrixXd &A)
+            const Vector<Scalar> &b, const Matrix<Scalar> &A)
             : b(b), A(A)
         {}
 
         /** Returns the amount of equations provided by this system.
          *  Only valid after A and b have been set appropriately.
          *  @return number of equations */
-        size_t equations() const
+        Eigen::Index equations() const
         {
             return b.size();
         }
@@ -42,7 +43,7 @@ namespace lsq
         /** Returns the amount of unknowns in this system.
          *  Only valid after A and b have been set appropriately.
          *  @return number of unknowns */
-        size_t unknowns() const
+        Eigen::Index unknowns() const
         {
             return A.cols();
         }
