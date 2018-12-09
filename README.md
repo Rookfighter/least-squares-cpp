@@ -49,7 +49,7 @@ There are three major steps to use least-squares-cpp:
 ```cpp
 #include <lsq/lsqcpp.h>
 
-// implement your error function as sub class of error function
+// implement your error function as sub class of lsq::ErrorFunction
 class MyErrorFunction : public lsq::ErrorFunction<double>
 {
 public:
@@ -59,6 +59,8 @@ public:
         lsq::Matrixd& outJac) override
     {
         // implement your error function
+        // if you do not calculate outJac (leave it untouched), finite
+        // differences will be used to estimate it
         // ...
     }
 };
