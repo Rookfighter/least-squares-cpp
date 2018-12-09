@@ -6,7 +6,7 @@ install:
     - git submodule update --init --recursive
 
 before_build:
-    - cmake .
+    - cmake -DBUILD_TESTS=True .
 
 build:
     project: $(APPVEYOR_BUILD_FOLDER)\lsqcpp.sln
