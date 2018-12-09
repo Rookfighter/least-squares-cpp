@@ -16,36 +16,28 @@ TEST_CASE("Error functions")
     {
         const double eps = 1e-6;
 
-        LinearErrFunc eq1;
-        LinearErrFunc eq2;
-        LinearErrFunc eq3;
-
-        eq1.factors.resize(3);
-        eq1.factors << 3, 0, -1;
-
-        eq2.factors.resize(3);
-        eq2.factors << 0, -3, 2;
-
-        eq3.factors.resize(3);
-        eq3.factors << 4, -2, 0;
-
-        std::vector<ErrorFunction *> errFuncs = {&eq1, &eq2, &eq3};
+        LinearErrFuncd errFunc;
+        errFunc.factors.resize(3, 3);
+        errFunc.factors << 3, 0, -1,
+            0, -3, 2,
+            4, -2, 0;
+        errFunc.factors.transposeInPlace();
 
         SECTION("evaluate functions")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
+            lsq::Vectord errVal;
+            lsq::Matrixd errJac;
 
-            Eigen::VectorXd state(3);
+            lsq::Vectord state(3);
             state << 3, 2, 1;
 
-            Eigen::VectorXd valExp(3);
+            lsq::Vectord valExp(3);
             valExp << 8, -4, 8;
 
-            Eigen::MatrixXd jacExp(3, 3);
+            lsq::Matrixd jacExp(3, 3);
             jacExp << 3, 0, -1, 0, -3, 2, 4, -2, 0;
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            errFunc.evaluate(state, errVal, errJac);
 
             REQUIRE_MAT(valExp, errVal, eps);
             REQUIRE_MAT(jacExp, errJac, eps);
@@ -53,38 +45,29 @@ TEST_CASE("Error functions")
 
         SECTION("calculate squared error")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
-            Eigen::VectorXd state(3);
+            lsq::Vectord errVal;
+            lsq::Matrixd errJac;
+            lsq::Vectord state(3);
             state << 3, 2, 1;
             double errExp = 72.0;
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
-            double err = squaredError(errVal);
+            errFunc.evaluate(state, errVal, errJac);
+            double err = squaredError<double>(errVal);
 
             REQUIRE(Approx(errExp).margin(eps) == err);
         }
 
         SECTION("finite differences")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd expJac;
-            Eigen::MatrixXd actJac;
-            Eigen::VectorXd state(3);
+            lsq::Vectord errVal;
+            lsq::Matrixd expJac;
+            lsq::Matrixd actJac;
+            lsq::Vectord state(3);
             state << 3, 2, 1;
 
-            eq1._evaluate(state, errVal, expJac);
-            eq1.computeFiniteDifferences(state, errVal, actJac, 1e-8);
-
-            REQUIRE_MAT(expJac, actJac, eps);
-
-            eq2._evaluate(state, errVal, expJac);
-            eq2.computeFiniteDifferences(state, errVal, actJac, 1e-8);
-
-            REQUIRE_MAT(expJac, actJac, eps);
-
-            eq3._evaluate(state, errVal, expJac);
-            eq3.computeFiniteDifferences(state, errVal, actJac, 1e-8);
+            errFunc.setNumericalEps(1e-8);
+            errFunc.evaluate(state, errVal, expJac);
+            errFunc.computeFiniteDifferences(state, errVal, actJac);
 
             REQUIRE_MAT(expJac, actJac, eps);
         }
@@ -94,36 +77,29 @@ TEST_CASE("Error functions")
     {
         const double eps = 1e-6;
 
-        LinearErrFuncNoJac eq1;
-        LinearErrFuncNoJac eq2;
-        LinearErrFuncNoJac eq3;
+        LinearErrFuncNoJacd errFunc;
 
-        eq1.factors.resize(3);
-        eq1.factors << 3, 0, -1;
-
-        eq2.factors.resize(3);
-        eq2.factors << 0, -3, 2;
-
-        eq3.factors.resize(3);
-        eq3.factors << 4, -2, 0;
-
-        std::vector<ErrorFunction *> errFuncs = {&eq1, &eq2, &eq3};
+        errFunc.factors.resize(3, 3);
+        errFunc.factors << 3, 0, -1,
+            0, -3, 2,
+            4, -2, 0;
+        errFunc.factors.transposeInPlace();
 
         SECTION("evaluate functions")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
+            lsq::Vectord errVal;
+            lsq::Matrixd errJac;
 
-            Eigen::VectorXd state(3);
+            lsq::Vectord state(3);
             state << 3, 2, 1;
 
-            Eigen::VectorXd valExp(3);
+            lsq::Vectord valExp(3);
             valExp << 8, -4, 8;
 
-            Eigen::MatrixXd jacExp(3, 3);
+            lsq::Matrixd jacExp(3, 3);
             jacExp << 3, 0, -1, 0, -3, 2, 4, -2, 0;
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            errFunc.evaluate(state, errVal, errJac);
 
             REQUIRE_MAT(valExp, errVal, eps);
             REQUIRE_MAT(jacExp, errJac, eps);
@@ -131,13 +107,13 @@ TEST_CASE("Error functions")
 
         SECTION("calculate squared error")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
-            Eigen::VectorXd state(3);
+            lsq::Vectord errVal;
+            lsq::Matrixd errJac;
+            lsq::Vectord state(3);
             state << 3, 2, 1;
             double errExp = 72.0;
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            errFunc.evaluate(state, errVal, errJac);
             double err = squaredError(errVal);
 
             REQUIRE(Approx(errExp).margin(eps) == err);
