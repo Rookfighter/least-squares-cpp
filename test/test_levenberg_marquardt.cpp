@@ -21,6 +21,7 @@ TEST_CASE("Levenberg Marquardt")
         errFunc->factors << 3, 0, -1,
             0, -3, 2,
             4, -2, 0;
+        errFunc->factors.transposeInPlace();
 
         LevenbergMarquardt<double> lm;
         lm.setDamping(1.0);

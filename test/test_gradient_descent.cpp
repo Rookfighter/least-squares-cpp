@@ -23,6 +23,7 @@ TEST_CASE("Gradient Descent")
         errFunc->factors << 3, 0, -1,
             0, -3, 2,
             4, -2, 0;
+        errFunc->factors.transposeInPlace();
 
         GradientDescent<double> gd;
         gd.setDamping(1.0);
@@ -46,7 +47,7 @@ TEST_CASE("Gradient Descent")
             errFunc->evaluate(result.state, errValB, errJacB);
 
             REQUIRE(result.converged);
-            REQUIRE(result.iterations == 9);
+            REQUIRE(result.iterations == 10);
             // gradient method shows decrease in error
             REQUIRE(squaredError<double>(errValB) < squaredError<double>(errValA));
         }
@@ -60,6 +61,7 @@ TEST_CASE("Gradient Descent")
         errFunc->factors << 3, 0, -1,
             0, -3, 2,
             4, -2, 0;
+        errFunc->factors.transposeInPlace();
 
         GradientDescent<double> gd;
         gd.setDamping(1.0);
@@ -83,7 +85,7 @@ TEST_CASE("Gradient Descent")
             errFunc->evaluate(result.state, errValB, errJacB);
 
             REQUIRE(result.converged);
-            REQUIRE(result.iterations == 9);
+            REQUIRE(result.iterations == 10);
             // gradient method shows decrease in error
             REQUIRE(squaredError<double>(errValB) < squaredError<double>(errValA));
         }

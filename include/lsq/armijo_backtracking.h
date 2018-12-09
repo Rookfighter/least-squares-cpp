@@ -43,7 +43,7 @@ namespace lsq
 
     public:
         ArmijoBacktracking()
-            : LineSearchAlgorithm(), beta_(0.8), gamma_(0.1)
+            : LineSearchAlgorithm<Scalar>(), beta_(0.8), gamma_(0.1)
         {}
         ~ArmijoBacktracking()
         {}
@@ -94,7 +94,8 @@ namespace lsq
             // check for armijo condition
             while(
                 !armijoCondition(currVal, refVal, refGrad_, step, result, gamma_) &&
-                (maxIt_ == 0 || iterations < maxIt_) && result > minStepLen_)
+                (this->maxIt_ == 0 || iterations < this->maxIt_)
+                && result > this->minStepLen_)
             {
                 // decrease step length
                 result *= beta_;
@@ -107,7 +108,7 @@ namespace lsq
             }
 
             // limit step length by minimum step length
-            result = std::max<Scalar>(result, minStepLen_);
+            result = std::max<Scalar>(result, this->minStepLen_);
 
             return result;
         }

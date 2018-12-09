@@ -11,35 +11,29 @@
 
 TEST_CASE("Gauss Newton")
 {
-    SECTION("with linear error functions")
+    SECTION("with linear error function")
     {
         const double eps = 1e-6;
 
-        LinearErrFunc *eq1 = new LinearErrFunc();
-        LinearErrFunc *eq2 = new LinearErrFunc();
-        LinearErrFunc *eq3 = new LinearErrFunc();
+        LinearErrFuncd *errFunc = new LinearErrFuncd();
 
-        eq1->factors.resize(3);
-        eq1->factors << 3, 0, -1;
+        errFunc->factors.resize(3, 3);
+        errFunc->factors << 3, 0, -1,
+            0, -3, 2,
+            4, -2, 0;
+        errFunc->factors.transposeInPlace();
 
-        eq2->factors.resize(3);
-        eq2->factors << 0, -3, 2;
-
-        eq3->factors.resize(3);
-        eq3->factors << 4, -2, 0;
-
-        std::vector<lsq::ErrorFunction *> errFuncs = {eq1, eq2, eq3};
-        lsq::GaussNewton gn;
+        lsq::GaussNewton<double> gn;
         gn.setDamping(1.0);
-        gn.setErrorFunctions(errFuncs);
+        gn.setErrorFunction(errFunc);
         gn.setMaxIterations(10);
         gn.setEpsilon(1e-12);
 
         SECTION("optimize")
         {
-            Eigen::VectorXd state(3);
+            lsq::Vectord state(3);
             state << 3, 2, 1;
-            Eigen::VectorXd stateExp(3);
+            lsq::Vectord stateExp(3);
             stateExp << 1, 2, 3;
 
             auto result = gn.optimize(state);

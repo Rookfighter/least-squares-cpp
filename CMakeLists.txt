@@ -27,6 +27,7 @@ install(DIRECTORY include/lsq DESTINATION include)
 # Compile tests
 SET(TEST_SRC
     "test/main.cpp"
+    "test/test_gauss_newton.cpp"
     "test/test_gradient_descent.cpp"
     "test/test_levenberg_marquardt.cpp"
     "test/test_solver_dense_svd.cpp"
