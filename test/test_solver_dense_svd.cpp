@@ -13,47 +13,39 @@ using namespace lsq;
 
 TEST_CASE("Solver Dense SVD")
 {
-    SECTION("with linear error functions")
+    SECTION("with linear error function")
     {
         const double eps = 1e-6;
 
-        LinearErrFunc eq1;
-        LinearErrFunc eq2;
-        LinearErrFunc eq3;
+        LinearErrFuncd errFunc;
 
-        eq1.factors.resize(3);
-        eq1.factors << 3, 0, -1;
-
-        eq2.factors.resize(3);
-        eq2.factors << 0, -3, 2;
-
-        eq3.factors.resize(3);
-        eq3.factors << 4, -2, 0;
-
-        std::vector<ErrorFunction *> errFuncs = {&eq1, &eq2, &eq3};
+        errFunc.factors.resize(3, 3);
+        errFunc.factors << 3, 0, -1,
+            0, -3, 2,
+            4, -2, 0;
 
         SECTION("solve non underdetermined")
         {
-            Eigen::VectorXd errVal;
-            Eigen::MatrixXd errJac;
-            Eigen::VectorXd state(3);
+            lsq::Vectord errVal;
+            lsq::Matrixd errJac;
+            lsq::Vectord state(3);
             state << 3, 2, 1;
 
-            Eigen::VectorXd errExp = Eigen::VectorXd::Zero(3);
+            lsq::Vectord errExp = lsq::Vectord::Zero(3);
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
-            LinearEquationSystem eqSys;
+            errFunc.evaluate(state, errVal, errJac);
+            LinearEquationSystem<double> eqSys;
             eqSys.b = errJac.transpose() * errVal;
             eqSys.A = errJac.transpose() * errJac;
 
             REQUIRE(!eqSys.underdetermined());
 
-            SolverDenseSVD solver;
-            Eigen::VectorXd step ;
+            SolverDenseSVD<double> solver;
+            lsq::Vectord step ;
             solver.solve(eqSys, step);
             state -= step;
 
-            evalErrorFuncs(state, errFuncs, errVal, errJac);
+            errFunc.evaluate(state, errVal, errJac);
 
             REQUIRE_MAT(errExp, errVal, eps);
         }

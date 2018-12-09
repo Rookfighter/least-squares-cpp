@@ -10,19 +10,15 @@
 
 #include <lsq/error_function.h>
 
-class LinearErrFunc : public lsq::ErrorFunction
+template<typename Scalar>
+class LinearErrFunc : public lsq::ErrorFunction<Scalar>
 {
 public:
-    Eigen::VectorXd factors;
+    lsq::Matrix<Scalar> factors;
 
-    size_t dimension() const override
-    {
-        return 1;
-    }
-
-    void _evaluate(const Eigen::VectorXd &state,
-        Eigen::VectorXd &outValue,
-        Eigen::MatrixXd &outJacobian) const override
+    void _evaluate(const lsq::Vector<Scalar> &state,
+        lsq::Vector<Scalar> &outValue,
+        lsq::Matrix<Scalar> &outJacobian) override
     {
         // assert(factors.size == state.size())
         outValue = factors.transpose() * state;
@@ -30,23 +26,23 @@ public:
     }
 };
 
-class LinearErrFuncNoJac : public lsq::ErrorFunction
+typedef LinearErrFunc<double> LinearErrFuncd;
+
+template<typename Scalar>
+class LinearErrFuncNoJac : public lsq::ErrorFunction<Scalar>
 {
 public:
-    Eigen::VectorXd factors;
+    lsq::Vector<Scalar> factors;
 
-    size_t dimension() const override
-    {
-        return 1;
-    }
-
-    void _evaluate(const Eigen::VectorXd &state,
-        Eigen::VectorXd &outValue,
-        Eigen::MatrixXd &) const override
+    void _evaluate(const lsq::Vector<Scalar> &state,
+        lsq::Vector<Scalar> &outValue,
+        lsq::Matrix<Scalar> &) override
     {
         // assert(factors.size == state.size())
         outValue = factors.transpose() * state;
     }
 };
+
+typedef LinearErrFuncNoJac<double> LinearErrFuncNoJacd;
 
 #endif

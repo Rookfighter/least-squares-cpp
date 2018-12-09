@@ -13,7 +13,7 @@
 namespace lsq
 {
     /** Interface to define error functions for optimization problems. */
-    template<typename Scalar, typename Error>
+    template<typename Scalar>
     class ErrorFunction
     {
     private:
@@ -21,7 +21,7 @@ namespace lsq
 
     public:
         ErrorFunction()
-            : fdEps_(std::sqrt(std::numeric_limits<double>::epsilon()))
+            : fdEps_(std::sqrt(std::numeric_limits<Scalar>::epsilon()))
         {}
 
         virtual ~ErrorFunction()
@@ -33,34 +33,34 @@ namespace lsq
         }
 
         /** Internal evaluation of the error function and its jacobian.
--         *  If the function calculates no jacobian then finite differences
--         *  is used to approximate it.
--         *  @param state current state estimate
--         *  @param outValue function value of the error function
--         *  @param outJacobian jacobian of the error function */
--        virtual void _evaluate(const Eigen::VectorXd &state,
--            Eigen::VectorXd &outValue,
--            Eigen::MatrixXd &outJacobian) = 0;
+         *  If the function calculates no jacobian then finite differences
+         *  is used to approximate it.
+         *  @param state current state estimate
+         *  @param outValue function value of the error function
+         *  @param outJacobian jacobian of the error function */
+        virtual void _evaluate(const Vector<Scalar> &state,
+            Vector<Scalar> &outValue,
+            Matrix<Scalar> &outJacobian) = 0;
 
         void computeFiniteDifferences(const Vector<Scalar> &state,
             const Vector<Scalar> &errValue,
             Matrix<Scalar> &outJacobian)
         {
-            Eigen::VectorXd stateTmp;
-            Eigen::VectorXd errValueTmp;
-            Eigen::MatrixXd errJacobianTmp;
+            Vector<Scalar> stateTmp;
+            Vector<Scalar> errValueTmp;
+            Matrix<Scalar> errJacobianTmp;
 
             outJacobian.resize(errValue.size(), state.size());
 
-            for(unsigned int i = 0; i < state.size(); ++i)
+            for(Eigen::Index i = 0; i < state.size(); ++i)
             {
                 stateTmp = state;
                 stateTmp(i) += fdEps_;
 
-                errFunctor_(stateTmp, errValueTmp, errJacobianTmp);
+                _evaluate(stateTmp, errValueTmp, errJacobianTmp);
                 assert(errValueTmp.size() == errValue.size());
 
-                outJacobian.col(i) = (errValueTmp - errValue) / diff;
+                outJacobian.col(i) = (errValueTmp - errValue) / fdEps_;
             }
         }
 
@@ -73,7 +73,7 @@ namespace lsq
             Matrix<Scalar> &outJacobian)
         {
             outJacobian.resize(0, 0);
-            errFunctor_(state, outValue, outJacobian);
+            _evaluate(state, outValue, outJacobian);
 
             // if no jacobian was computed use finite differences
             if(outJacobian.size() == 0)

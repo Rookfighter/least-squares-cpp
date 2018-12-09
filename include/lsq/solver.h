@@ -12,7 +12,7 @@
 
 namespace lsq
 {
-    template<Scalar>
+    template<typename Scalar>
     class Solver
     {
     public:

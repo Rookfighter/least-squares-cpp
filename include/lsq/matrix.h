@@ -18,4 +18,12 @@ namespace lsq
 
     template<typename Scalar>
     using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+
+    typedef Vector<double> Vectord;
+    typedef Vector<float> Vectorf;
+
+    typedef Matrix<double> Matrixd;
+    typedef Matrix<float> Matrixf;
 }
+
+#endif
