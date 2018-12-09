@@ -16,21 +16,22 @@
 namespace lsq
 {
     /** Inteface for optimization algorithms. */
+    template<typename Scalar>
     class OptimizationAlgorithm
     {
     protected:
-        std::vector<ErrorFunction *> errFuncs_;
-        LineSearchAlgorithm *lineSearch_;
-        Solver *solver_;
+        ErrorFunction<Scalar> *errorFunc_;
+        LineSearchAlgorithm<Scalar> *lineSearch_;
+        Solver<Scalar> *solver_;
 
         bool verbose_;
         size_t maxIt_;
-        double eps_;
+        Scalar eps_;
 
         virtual void logStep(const size_t iterations,
             const double error,
-            const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step,
+            const Vector<Scalar> &state,
+            const Vector<Scalar> &step,
             const double stepLen) const
         {
             std::cout << "iter=" << iterations
@@ -41,18 +42,13 @@ namespace lsq
         }
 
         void calcStep(
-            const Eigen::VectorXd &state,
-            Eigen::VectorXd &outValue,
-            Eigen::MatrixXd &outJacobian,
-            Eigen::VectorXd &outStep)
+            const Vector<Scalar> &state,
+            Vector<Scalar> &outValue,
+            Matrix<Scalar> &outJacobian,
+            Vector<Scalar> &outStep)
         {
             // evaluate error functions
-            // either parallel or single threaded
-            evalErrorFuncs(state, errFuncs_, outValue, outJacobian);
-
-            assert(outJacobian.rows() == outValue.size());
-            assert(outJacobian.cols() == state.size());
-
+            errFunc_->evaluate(state, outValue, outJacobian);
             computeNewtonStep(state, outValue, outJacobian, outStep);
         }
 
@@ -60,19 +56,20 @@ namespace lsq
     public:
         struct Result
         {
-            Eigen::VectorXd state;
-            double error;
+            Vector<Scalar> state;
+            Scalar error;
             size_t iterations;
             bool converged;
 
             Result()
-                : state(), error(0.0), iterations(0.0), converged(false)
+                : state(), error(0), iterations(0), converged(false)
             {}
         };
 
         OptimizationAlgorithm()
-            : errFuncs_(), lineSearch_(nullptr), solver_(new SolverDenseSVD()),
-            verbose_(false), maxIt_(0), eps_(1e-6)
+            : errFunc_(nullptr), lineSearch_(nullptr),
+            solver_(new SolverDenseSVD()), verbose_(false), maxIt_(0),
+            eps_(1e-6)
         {}
         OptimizationAlgorithm(const OptimizationAlgorithm &optalg) = delete;
         virtual ~OptimizationAlgorithm()
@@ -81,8 +78,8 @@ namespace lsq
                 delete lineSearch_;
             if(solver_ != nullptr)
                 delete solver_;
-
-            clearErrorFunctions();
+            if(errFunc_ != nullptr)
+                delete errFunc;
         }
 
         /** Set verbosity of the algorithm.
@@ -116,7 +113,7 @@ namespace lsq
          *  Set nullptr for no line search. The step length is then 1.0.
          *  The line search algorithm is owned by this class.
          *  @param lineSearch line search algorithm */
-        void setLineSearchAlgorithm(LineSearchAlgorithm *lineSearch)
+        void setLineSearchAlgorithm(LineSearchAlgorithm<Scalar> *lineSearch)
         {
             if(lineSearch_ != nullptr)
                 delete lineSearch_;
@@ -125,36 +122,29 @@ namespace lsq
 
         /** Sets the solver to solve linear equation systems.
          *  @param solver linear equation system solver */
-        void setSolver(Solver *solver)
+        void setSolver(Solver<Scalar> *solver)
         {
             if(solver_ != nullptr)
                 delete solver_;
             solver_ = solver;
         }
 
-        /** Sets the error functions to be optimized.
-         *  The error functions are owned by this class.
-         *  @param errFuncs vector of error functions */
-        void setErrorFunctions(const std::vector<ErrorFunction *> &errFuncs)
+        /** Sets the error function to be optimized.
+         *  The error function is owned by this class.
+         *  @param errFunc error function */
+        void setErrorFunction(ErrorFunction<Scalar> *errFunc)
         {
-            clearErrorFunctions();
-            errFuncs_ = errFuncs;
-        }
-
-        /** Clears and deletes the error functions. */
-        void clearErrorFunctions()
-        {
-            for(ErrorFunction *err : errFuncs_)
-                delete err;
-            errFuncs_.clear();
+            if(errFunc_ != nullptr)
+                delete errFunc_
+            errFunc_ = errFunc;
         }
 
         /** Caclculates the step length according to the line search algorithm.
          *  @param state current state vector
          *  @param step current optimization step
          *  @return step length */
-        double performLineSearch(const Eigen::VectorXd &state,
-            const Eigen::VectorXd &step)
+        Scalar performLineSearch(const Vector<Scalar> &state,
+            const Vector<Scalar> &step)
         {
             if(lineSearch_ == nullptr)
                 return 1.0;
@@ -170,10 +160,10 @@ namespace lsq
          *         state
          *  @param outStep step state update vector */
         virtual void computeNewtonStep(
-            const Eigen::VectorXd &state,
-            const Eigen::VectorXd &errValue,
-            const Eigen::MatrixXd &errJacobian,
-            Eigen::VectorXd &outStep) = 0;
+            const Vector<Scalar> &state,
+            const Vector<Scalar> &errValue,
+            const Matrix<Scalar> &errJacobian,
+            Vector<Scalar> &outStep) = 0;
 
         /** Runs the algorithm on the given initial state. Terminates if either
          *  convergence is achieved or the maximum number of iterations has
@@ -181,22 +171,22 @@ namespace lsq
          *  @param state intial state vector
          *  @return struct with resulting state vector and convergence
          *          information */
-        Result optimize(const Eigen::VectorXd &state)
+        Result optimize(const Vector<Scalar> &state)
         {
             Result result;
             result.state = state;
 
             // init optimization vectors
-            Eigen::VectorXd errValue;
-            Eigen::MatrixXd errJacobian;
-            Eigen::VectorXd step;
-            Eigen::VectorXd scaledStep;
+            Vector<Scalar> errValue;
+            Matrix<Scalar> errJacobian;
+            Vector<Scalar> step;
+            Vector<Scalar> scaledStep;
 
             // calculate first state increment
             calcStep(result.state, errValue, errJacobian, step);
-            double stepLen = performLineSearch(result.state, step);
+            Scalar stepLen = performLineSearch(result.state, step);
             scaledStep = stepLen * step;
-            result.error = squaredError(errValue);
+            result.error = squaredError<Scalar>(errValue);
 
             size_t iterations = 0;
 
