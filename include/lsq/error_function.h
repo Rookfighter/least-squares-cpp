@@ -8,17 +8,10 @@
 #ifndef LSQ_ERROR_FUNCTION_H_
 #define LSQ_ERROR_FUNCTION_H_
 
-#include <Eigen/Geometry>
+#include "lsq/matrix.h"
 
 namespace lsq
 {
-
-    template<typename Scalar>
-    using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-
-    template<typename Scalar>
-    using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-
     /** Interface to define error functions for optimization problems. */
     template<typename Scalar, typename Error>
     class ErrorFunction
