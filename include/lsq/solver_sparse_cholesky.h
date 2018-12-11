@@ -5,8 +5,8 @@
  *      Author: Fabian Meyer
  */
 
-#ifndef LSQ_SOLVER_DENSE_CHOLESKY_H_
-#define LSQ_SOLVER_DENSE_CHOLESKY_H_
+#ifndef LSQ_SOLVER_SPARSE_CHOLESKY_H_
+#define LSQ_SOLVER_SPARSE_CHOLESKY_H_
 
 #include <Eigen/SparseCholesky>
 #include "lsq/solver.h"
@@ -14,7 +14,7 @@
 namespace lsq
 {
     template<typename Scalar>
-    class SolverDenseCholesky : public Solver<Scalar>
+    class SolverSparseCholesky : public Solver<Scalar>
     {
     private:
         typedef Eigen::SparseMatrix<Scalar> SparseMatrix;

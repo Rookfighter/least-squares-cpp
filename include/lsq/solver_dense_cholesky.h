@@ -20,7 +20,7 @@ namespace lsq
         void solve(const LinearEquationSystem<Scalar> &system,
             Vector<Scalar> &result) const override
         {
-            Eigen::LDLT<Matrix<Scalar> decomp;
+            Eigen::LDLT<Matrix<Scalar>> decomp;
             decomp.compute(system.A);
 
             if(!decomp.isPositive())

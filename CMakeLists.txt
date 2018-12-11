@@ -33,7 +33,9 @@ if(${BUILD_TESTS})
         "test/test_gauss_newton.cpp"
         "test/test_gradient_descent.cpp"
         "test/test_levenberg_marquardt.cpp"
+        "test/test_solver_dense_cholesky.cpp"
         "test/test_solver_dense_svd.cpp"
+        "test/test_solver_sparse_cholesky.cpp"
     )
     add_executable(run_tests ${TEST_SRC})
 endif(${BUILD_TESTS})
