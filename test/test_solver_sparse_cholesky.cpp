@@ -1,5 +1,5 @@
 /*
- * test_linear_equation_system.cpp
+ * test_solver_sparse_cholesky.cpp
  *
  *  Created on: 18 Jun 2018
  *      Author: Fabian Meyer

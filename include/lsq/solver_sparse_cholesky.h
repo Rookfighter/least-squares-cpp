@@ -1,5 +1,5 @@
 /*
- * solver_dense_cholesky.h
+ * solver_sparse_cholesky.h
  *
  *  Created on: 11 Oct 2018
  *      Author: Fabian Meyer
