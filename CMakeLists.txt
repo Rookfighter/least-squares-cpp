@@ -32,6 +32,7 @@ if(${BUILD_TESTS})
         "test/test_error_function.cpp"
         "test/test_gauss_newton.cpp"
         "test/test_gradient_descent.cpp"
+        "test/test_increasing_line_search.cpp"
         "test/test_levenberg_marquardt.cpp"
         "test/test_solver_dense_cholesky.cpp"
         "test/test_solver_dense_svd.cpp"
