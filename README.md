@@ -48,6 +48,7 @@ There are three major steps to use least-squares-cpp:
 
 ```cpp
 #include <lsq/lsqcpp.h>
+#include <iostream>
 
 // implement your error function as sub class of lsq::ErrorFunction
 class MyErrorFunction : public lsq::ErrorFunction<double>
@@ -72,7 +73,7 @@ int main()
 
     // choose a line search algorithm
     // set to nullptr (default) to use none
-    optalgo.setLineSearchAlgorithm(new lsq::ArmijoBacktracking());
+    optalgo.setLineSearchAlgorithm(new lsq::ArmijoBacktracking<double>());
 
     // set stop conditions
     // set maximum number of iterations
@@ -92,11 +93,11 @@ int main()
     auto result = optalgo.optimize(state)
     if(result.converged)
     {
-        printf("converged with %d iterations\n", result.iterations)
-        // do soemthing with the resulting state
-        result.state // ...
+        std::cout << "iterations=" result.iterations << std::endl;
+        // do something with the resulting state
+        std::cout << "state=" << result.state.transpose() << std::endl;
         // or use the error value
-        result.error // ...
+        std::cout << "error=" << result.error << std::endl;
     }
 }
 ```

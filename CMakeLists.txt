@@ -40,3 +40,7 @@ if(${BUILD_TESTS})
     )
     add_executable(run_tests ${TEST_SRC})
 endif(${BUILD_TESTS})
+
+if(${BUILD_EXAMPLES})
+    add_executable(my_error_function "example/my_error_function.cpp")
+endif(${BUILD_EXAMPLES})
