@@ -211,6 +211,134 @@ namespace lsq
         }
     };
 
+    /** Step size functor to perform Wolfe Linesearch with backtracking.
+      * The functor iteratively decreases the step size until the following
+      * conditions are met:
+      *
+      * Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
+      * Wolfe: grad(x)^T grad(x - stepSize * grad(x)) <= c2 * grad(x)^T * grad(x)
+      *
+      * If either condition does not hold the step size is decreased:
+      *
+      * stepSize = decrease * stepSize
+      *
+      */
+    template<typename Scalar>
+    class WolfeBacktracking
+    {
+    public:
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef std::function<void(const Vector &, Vector &, Matrix &)> Objective;
+    private:
+        Scalar decrease_;
+        Scalar c1_;
+        Scalar c2_;
+        Scalar minStep_;
+        Scalar maxStep_;
+        Index maxIt_;
+        Objective objective_;
+
+    public:
+        WolfeBacktracking()
+            : WolfeBacktracking(0.8, 1e-4, 0.9, 1e-10, 1.0, 0)
+        { }
+
+        WolfeBacktracking(const Scalar decrease,
+            const Scalar c1,
+            const Scalar c2,
+            const Scalar minStep,
+            const Scalar maxStep,
+            const Index iterations)
+            : decrease_(decrease), c1_(c1), c2_(c2), minStep_(minStep),
+            maxStep_(maxStep), maxIt_(iterations), objective_()
+        { }
+
+        /** Set the decreasing factor for backtracking.
+          * Assure that decrease in (0, 1).
+          * @param decrease decreasing factor */
+        void setBacktrackingDecrease(const Scalar decrease)
+        {
+            decrease_ = decrease;
+        }
+
+        /** Set the wolfe constants for Armijo and Wolfe condition (see class
+          * description).
+          * Assure that c1 < c2 < 1 and c1 in (0, 0.5).
+          * @param c1 armijo constant
+          * @param c2 wolfe constant */
+        void setWolfeConstants(const Scalar c1, const Scalar c2)
+        {
+            assert(c1 < c2);
+            assert(c2 < 1);
+            c1_ = c1;
+            c2_ = c2;
+        }
+
+        /** Set the bounds for the step size during linesearch.
+          * The final step size is guaranteed to be in [minStep, maxStep].
+          * @param minStep minimum step size
+          * @param maxStep maximum step size */
+        void setStepBounds(const Scalar minStep, const Scalar maxStep)
+        {
+            assert(minStep < maxStep);
+            minStep_ = minStep;
+            maxStep_ = maxStep;
+        }
+
+        /** Set the maximum number of iterations.
+          * Set to 0 or negative for infinite iterations.
+          * @param iterations maximum number of iterations */
+        void setMaxIterations(const Index iterations)
+        {
+            maxIt_ = iterations;
+        }
+
+        void setObjective(const Objective &objective)
+        {
+            objective_ = objective;
+        }
+
+        Scalar operator()(const Vector &xval,
+            const Vector &fval,
+            const Matrix &jacobian)
+        {
+            assert(objective_);
+
+            Scalar stepSize = maxStep_ / decrease_;
+            Matrix jacobianN;
+            Vector gradientN;
+            Vector xvalN;
+            Vector fvalN;
+            Scalar fvalNNorm;
+
+            Scalar fvalNorm = fval.squaredNorm();
+            Vector gradient = jacobian.transpose() * fval;
+            Scalar gradientDot = gradient.dot(gradient);
+            bool armijoCondition = false;
+            bool wolfeCondition = false;
+
+            Index iterations = 0;
+            while((maxIt_ <= 0 || iterations < maxIt_) &&
+                stepSize * decrease_ >= minStep_ &&
+                !(armijoCondition && wolfeCondition))
+            {
+                stepSize = decrease_ * stepSize;
+                xvalN = xval - stepSize * gradient;
+                objective_(xvalN, fvalN, jacobianN);
+                fvalNNorm = fvalN.squaredNorm();
+                gradientN = jacobianN.transpose() * fvalN;
+
+                armijoCondition = fvalNNorm <= fvalNorm - c1_ * stepSize * gradientDot;
+                wolfeCondition = gradient.dot(gradientN) <= c2_ * gradientDot;
+
+                ++iterations;
+            }
+
+            return stepSize;
+        }
+    };
+
     template<typename Scalar>
     class GradientDescent
     {
