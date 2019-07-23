@@ -18,29 +18,15 @@ add_subdirectory(dep)
 include_directories(
     include
     ${EIGEN3_INCLUDE_DIR}
-    ${CATCH2_INCLUDE_DIR}
-    ${TPCPP_INCLUDE_DIR}
 )
 
 install(DIRECTORY include/lsq DESTINATION include)
 
 if(${BUILD_TESTS})
     # Compile tests
-    SET(TEST_SRC
-        "test/main.cpp"
-        "test/test_armijo_backtracking.cpp"
-        "test/test_error_function.cpp"
-        "test/test_gauss_newton.cpp"
-        "test/test_gradient_descent.cpp"
-        "test/test_increasing_line_search.cpp"
-        "test/test_levenberg_marquardt.cpp"
-        "test/test_solver_dense_cholesky.cpp"
-        "test/test_solver_dense_svd.cpp"
-        "test/test_solver_sparse_cholesky.cpp"
-    )
-    add_executable(run_tests ${TEST_SRC})
+    add_subdirectory(test)
 endif(${BUILD_TESTS})
 
 if(${BUILD_EXAMPLES})
-    add_executable(my_error_function "example/my_error_function.cpp")
+    add_subdirectory(examples)
 endif(${BUILD_EXAMPLES})
