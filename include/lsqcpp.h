@@ -401,6 +401,24 @@ namespace lsq
         }
     };
 
+    template<typename Scalar>
+    struct DenseSVDSolver
+    {
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>
+            Solver;
+
+        void operator()(const Matrix &A, const Vector &b, Vector &result) const
+        {
+            Solver solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+            result = solver.solve(gradient);
+        }
+    }
+
+    /** Base class for least squares algorithms.
+      * It implements the whole optimization strategy except the step
+      * calculation. Cannot be instantiated. */
     template<typename Scalar,
         typename ErrorFunction,
         typename StepSize,
@@ -411,7 +429,6 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-
     protected:
         Objective objective_;
         StepSize stepSize_;
@@ -472,11 +489,17 @@ namespace lsq
         virtual ~LeastSquaresAlgorithm()
         { }
 
+        /** Set the number of threads used to compute gradients.
+          * This only works if OpenMP is enabled.
+          * Set to 0 to allow automatic detection of thread number.
+          * @param threads number of threads to be used */
         void setThreads(const Index threads)
         {
             finiteDifferences_.setThreads(threads);
         }
 
+        /** Set the difference for gradient estimation with finite differences.
+          * @param eps numerical epsilon */
         void setNumericalEpsilon(const Scalar eps)
         {
             finiteDifferences_.setNumericalEpsilon(eps);
@@ -513,6 +536,10 @@ namespace lsq
             minStepLen_ = steplen;
         }
 
+        /** Set the level of verbosity to print status information after each
+          * iteration.
+          * Set to 0 to deacticate any output.
+          * @param verbosity level of verbosity */
         void setVerbosity(const Index verbosity)
         {
             verbosity_ = verbosity;
@@ -550,7 +577,7 @@ namespace lsq
 
                 calculateStep(xval, fval, jacobian, gradient, step);
 
-                // update step according to step size and momentum
+                // update step according to step size
                 stepSize = stepSize_(xval, fval, jacobian, gradient, step);
                 step *= stepSize;
                 stepLen = step.norm();
@@ -626,28 +653,27 @@ namespace lsq
         typename ErrorFunction,
         typename StepSize=WolfeBacktracking<Scalar>,
         typename Callback=NoCallback<Scalar>,
-        typename FiniteDifferences=CentralDifferences<Scalar>>
+        typename FiniteDifferences=CentralDifferences<Scalar>,
+        typename Solver=DenseSVDSolver<Scalar>>
     class GaussNewton : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
         StepSize, Callback, FiniteDifferences>
     {
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>
-            SVDSolver;
     protected:
-        Matrix A_;
-
         void calculateStep(const Vector &,
             const Vector &,
             const Matrix &jacobian,
             const Vector &gradient
             Vector &step) override
         {
-            A_ = jacobian.transpose() * jacobian;
+            Solver solver;
 
-            SVDSolver solver(A_, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            step = -solver.solve(gradient);
+            Matrix A = jacobian.transpose() * jacobian();
+            solver(A, gradient, step);
+
+            step *= -1;
         }
     public:
         GaussNewton()
@@ -660,35 +686,101 @@ namespace lsq
         typename ErrorFunction,
         typename StepSize=WolfeBacktracking<Scalar>,
         typename Callback=NoCallback<Scalar>,
-        typename FiniteDifferences=CentralDifferences<Scalar>>
+        typename FiniteDifferences=CentralDifferences<Scalar>,
+        typename Solver=DenseSVDSolver<Scalar>>
     class LevenbergMarquardt : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
         StepSize, Callback, FiniteDifferences>
     {
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>
-            SVDSolver;
     protected:
-        Matrix A_;
+        Scalar increase_;
+        Scalar decrease_;
+        Scalar lambda_;
+        Index maxItLM_
 
         void calculateStep(const Vector &xval,
             const Vector &fval,
             const Matrix &jacobian,
-            const Vector &gradient
+            const Vector &gradient,
             Vector &step) override
         {
-            Scalar error = fval.squaredNorm();
-            A_ = jacobian.transpose() * jacobian;
+            Solver solver;
+            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar errorN = error + 1;
 
-            SVDSolver solver(A_, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            step = -solver.solve(gradient);
+            Vector xvalN;
+            Vector fvalN;
+            Matrix jacobianN;
+
+            Matrix jacobianSq = jacobian.transpose() * jacobian;
+            Matrix A;
+
+            Index iterations = 0;
+            while((maxItLM_ <= 0 || iterations < maxIt_) &&
+                error > errorN)
+            {
+                A = jacobianSq;
+                // add identity matrix
+                for(Index i = 0; i < A.rows(); ++i)
+                    A(i, i) += lambda_;
+
+                solver(A, gradient, step);
+                step *= -1;
+
+                xvalN = xval + step;
+                objective_(xvalN, fvalN, jacobianN);
+                errorN = 0.5 * fvalN.squaredNorm();
+
+                if(errorN > error)
+                    lambda_ *= increase_;
+                else
+                    lambda_ *= decrease_;
+
+                ++iterations;
+            }
         }
     public:
         LevenbergMarquardt()
             : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                StepSize, Callback, FiniteDifferences>()
+                StepSize, Callback, FiniteDifferences>(), increase_(2),
+                decrease_(0.5), lambda_(1), maxItLM_(0)
         { }
+
+        /** Set the initial gradient descent factor of levenberg marquardt.
+          * @param lambda gradient descent factor */
+        void setLambda(const Scalar lambda)
+        {
+            lambda_ = lambda;
+        }
+
+        /** Set maximum iterations of the levenberg marquardt optimization.
+          * Set to 0 or negative for infinite iterations.
+          * @param iterations maximum iterations for lambda search */
+        void setMaxIterationsLM(const Index iterations)
+        {
+            maxItLM_ = iterations;
+        }
+
+        /** Set the increase factor for the lambda damping.
+          * Make sure the value is greater than 1.
+          * @param increase factor for increasing lambda */
+        void setLambdaIncrease(const Scalar increase)
+        {
+            assert(increase > 1);
+            increase_ = increase;
+        }
+
+        /** Set the decrease factor for the lambda damping.
+          * Make sure the value is in (0, 1).
+          * @param increase factor for increasing lambda */
+        void setLambdaDecrease(const Scalar decrease)
+        {
+            assert(decrease < 1);
+            assert(decrease > 0);
+            decrease_ = decrease;
+        }
 
     };
 }
