@@ -56,7 +56,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setObjective(const Objective &objective)
+        void setErrorFunction(const Objective &objective)
         {
             objective_ = objective;
         }
@@ -71,7 +71,7 @@ namespace lsq
             #pragma omp parallel for num_threads(threads_)
             for(Index i = 0; i < xval.size(); ++i)
             {
-                Vector fvalN
+                Vector fvalN;
                 Vector xvalN = xval;
                 xvalN(i) += eps_;
                 objective_(xvalN, fvalN);
@@ -119,7 +119,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setObjective(const Objective &objective)
+        void setErrorFunction(const Objective &objective)
         {
             objective_ = objective;
         }
@@ -155,6 +155,7 @@ namespace lsq
     {
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
         typedef std::function<Scalar(const Vector &)> Objective;
     private:
         Scalar eps_;
@@ -180,7 +181,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setObjective(const Objective &objective)
+        void setErrorFunction(const Objective &objective)
         {
             objective_ = objective;
         }
@@ -235,6 +236,7 @@ namespace lsq
     {
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
         typedef std::function<Scalar(const Vector &, Vector &)> Objective;
     private:
         Scalar stepSize_;
@@ -259,7 +261,7 @@ namespace lsq
             stepSize_ = stepSize;
         }
 
-        void setObjective(const Objective &)
+        void setErrorFunction(const Objective &)
         { }
 
         Scalar operator()(const Vector &,
@@ -355,7 +357,7 @@ namespace lsq
             maxIt_ = iterations;
         }
 
-        void setObjective(const Objective &objective)
+        void setErrorFunction(const Objective &objective)
         {
             objective_ = objective;
         }
@@ -388,7 +390,7 @@ namespace lsq
                 stepSize = decrease_ * stepSize;
                 xvalN = xval - stepSize * gradient;
                 objective_(xvalN, fvalN, jacobianN);
-                errorN = fvalN.squaredNorm();
+                Scalar errorN = fvalN.squaredNorm();
                 gradientN = jacobianN.transpose() * fvalN;
 
                 armijoCondition = errorN <= error + c1_ * stepSize * stepGrad;
@@ -412,9 +414,9 @@ namespace lsq
         void operator()(const Matrix &A, const Vector &b, Vector &result) const
         {
             Solver solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            result = solver.solve(gradient);
+            result = solver.solve(b);
         }
-    }
+    };
 
     /** Base class for least squares algorithms.
       * It implements the whole optimization strategy except the step
@@ -430,13 +432,14 @@ namespace lsq
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     protected:
-        Objective objective_;
+        ErrorFunction errorFunction_;
         StepSize stepSize_;
         Callback callback_;
         FiniteDifferences finiteDifferences_;
 
         Index maxIt_;
         Scalar minStepLen_;
+        Scalar minError_;
         Index verbosity_;
 
         virtual void calculateStep(const Vector &xval,
@@ -445,10 +448,10 @@ namespace lsq
             const Vector &gradient,
             Vector &step) = 0;
 
-        void evaluateObjective(const Vector &xval, Vector &fval, Matrix &jacobian)
+        void evaluateErrorFunction(const Vector &xval, Vector &fval, Matrix &jacobian)
         {
             jacobian.resize(0, 0);
-            objective_(xval, fval, jacobian);
+            errorFunction_(xval, fval, jacobian);
             if(jacobian.size() == 0)
                 finiteDifferences_(xval, fval, jacobian);
         }
@@ -482,7 +485,7 @@ namespace lsq
         };
 
         LeastSquaresAlgorithm()
-            : objective_(), stepSize_(), callback_(), finiteDifferences_(),
+            : errorFunction_(), stepSize_(), callback_(), finiteDifferences_(),
             maxIt_(0), minStepLen_(1e-6), verbosity_(0)
         { }
 
@@ -505,9 +508,9 @@ namespace lsq
             finiteDifferences_.setNumericalEpsilon(eps);
         }
 
-        void setObjective(const Objective &objective)
+        void setErrorFunction(const ErrorFunction &errorFunction)
         {
-            objective_ = objective;
+            errorFunction_ = errorFunction;
         }
 
         void setCallback(const Callback &callback)
@@ -536,6 +539,14 @@ namespace lsq
             minStepLen_ = steplen;
         }
 
+        /** Set the minimum squared error.
+          * If the error falls below this value, the optimizer stops.
+          * @param error minimum error */
+        void setMinError(const Scalar error)
+        {
+            minError_ = error;
+        }
+
         /** Set the level of verbosity to print status information after each
           * iteration.
           * Set to 0 to deacticate any output.
@@ -547,12 +558,12 @@ namespace lsq
 
         Result minimize(const Vector &initialGuess)
         {
-            finiteDifferences_.setObjective(
-                [this](const Vector &xva, Vector &fval)
-                { Matrix tmp; this->objective_(xval, fval, tmp); });
-            stepSize_.setObjective(
+            finiteDifferences_.setErrorFunction(
+                [this](const Vector &xval, Vector &fval)
+                { Matrix tmp; this->errorFunction_(xval, fval, tmp); });
+            stepSize_.setErrorFunction(
                 [this](const Vector &xval, Vector &fval, Matrix &jacobian)
-                { evaluateObjective(xval, fval, jacobian); });
+                { evaluateErrorFunction(xval, fval, jacobian); });
 
             Vector xval = initialGuess;
             Vector fval;
@@ -571,7 +582,7 @@ namespace lsq
                 callbackResult)
             {
                 xval -= step;
-                evaluateObjective(xval, fval, jacobian);
+                evaluateErrorFunction(xval, fval, jacobian);
                 error = 0.5 * fval.squaredNorm();
                 gradient = jacobian.transpose() * fval;
 
@@ -665,12 +676,12 @@ namespace lsq
         void calculateStep(const Vector &,
             const Vector &,
             const Matrix &jacobian,
-            const Vector &gradient
+            const Vector &gradient,
             Vector &step) override
         {
             Solver solver;
 
-            Matrix A = jacobian.transpose() * jacobian();
+            Matrix A = jacobian.transpose() * jacobian;
             solver(A, gradient, step);
 
             step *= -1;
@@ -698,7 +709,7 @@ namespace lsq
         Scalar increase_;
         Scalar decrease_;
         Scalar lambda_;
-        Index maxItLM_
+        Index maxItLM_;
 
         void calculateStep(const Vector &xval,
             const Vector &fval,
@@ -718,7 +729,7 @@ namespace lsq
             Matrix A;
 
             Index iterations = 0;
-            while((maxItLM_ <= 0 || iterations < maxIt_) &&
+            while((maxItLM_ <= 0 || iterations < maxItLM_) &&
                 error > errorN)
             {
                 A = jacobianSq;
