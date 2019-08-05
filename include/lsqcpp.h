@@ -743,7 +743,7 @@ namespace lsq
 
         LeastSquaresAlgorithm()
             : errorFunction_(), stepSize_(), callback_(), finiteDifferences_(),
-            maxIt_(0), minStepLen_(1e-6), minGradLen_(1e-6), minError_(0),
+            maxIt_(0), minStepLen_(1e-9), minGradLen_(1e-9), minError_(0),
             verbosity_(0)
         { }
 
