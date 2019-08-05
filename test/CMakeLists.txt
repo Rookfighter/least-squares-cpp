@@ -12,7 +12,7 @@ set(TEST_SRC
     "main.cpp"
     "dense_solver.cpp"
     "finite_differences.cpp"
-    "lsqcpp.cpp"
+    "optimization.cpp"
 )
 
 add_executable(run_tests ${TEST_SRC})
