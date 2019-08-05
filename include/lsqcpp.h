@@ -237,13 +237,13 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<Scalar(const Vector &, Vector &)> ErrorFunction;
+        typedef std::function<void(const Vector &, Vector &, Matrix &)> ErrorFunction;
     private:
         Scalar stepSize_;
     public:
 
         ConstantStepSize()
-            : ConstantStepSize(0.7)
+            : ConstantStepSize(1.0)
         {
 
         }
@@ -271,6 +271,243 @@ namespace lsq
             const Vector &)
         {
             return stepSize_;
+        }
+    };
+
+    /** Step size functor to compute Barzilai-Borwein (BB) steps.
+      * The functor can either compute the direct or inverse BB step.
+      * The steps are computed as follows:
+      *
+      * s_k = x_k - x_k-1         k >= 1
+      * y_k = step_k - step_k-1   k >= 1
+      * Direct:  stepSize = (s_k^T * s_k) / (y_k^T * s_k)
+      * Inverse: stepSize = (y_k^T * s_k) / (y_k^T * y_k)
+      *
+      * The very first step is computed as a constant. */
+    template<typename Scalar>
+    class BarzilaiBorwein
+    {
+    public:
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef std::function<void(const Vector &, Vector &, Matrix &)> ErrorFunction;
+
+        enum class Method
+        {
+            Direct,
+            Inverse
+        };
+    private:
+        Vector lastXval_;
+        Vector lastStep_;
+        Method method_;
+        Scalar constStep_;
+
+        Scalar constantStep() const
+        {
+            return constStep_;
+        }
+
+        Scalar directStep(const Vector &xval,
+            const Vector &step)
+        {
+            auto sk = xval - lastXval_;
+            auto yk = step - lastStep_;
+            Scalar num = sk.dot(sk);
+            Scalar denom = sk.dot(yk);
+
+            if(denom == 0)
+                return 1;
+            else
+                return num / denom;
+        }
+
+        Scalar inverseStep(const Vector &xval,
+            const Vector &step)
+        {
+            auto sk = xval - lastXval_;
+            auto yk = step - lastStep_;
+            Scalar num = sk.dot(yk);
+            Scalar denom = yk.dot(yk);
+
+            if(denom == 0)
+                return 1;
+            else
+                return num / denom;
+        }
+    public:
+        BarzilaiBorwein()
+            : BarzilaiBorwein(Method::Direct, 1e-2)
+        { }
+
+        BarzilaiBorwein(const Method method, const Scalar constStep)
+            : lastXval_(), lastStep_(), method_(method),
+            constStep_(constStep)
+        { }
+
+        void setErrorFunction(const ErrorFunction &)
+        { }
+
+        void setMethod(const Method method)
+        {
+            method_ = method;
+        }
+
+        void setConstStepSize(const Scalar stepSize)
+        {
+            constStep_ = stepSize;
+        }
+
+        Scalar operator()(const Vector &xval,
+            const Vector &,
+            const Matrix &,
+            const Vector &,
+            const Vector &step)
+        {
+            Scalar stepSize = 0;
+            if(lastXval_.size() == 0)
+            {
+                stepSize = (1 / step.norm()) * constStep_;
+            }
+            else
+            {
+                switch(method_)
+                {
+                case Method::Direct:
+                    stepSize = directStep(xval, step);
+                    break;
+                case Method::Inverse:
+                    stepSize = inverseStep(xval, step);
+                    break;
+                default:
+                    assert(false);
+                    break;
+                }
+            }
+
+            lastStep_ = step;
+            lastXval_ = xval;
+
+            return stepSize;
+        }
+    };
+
+    /** Step size functor to perform Armijo Linesearch with backtracking.
+      * The functor iteratively decreases the step size until the following
+      * conditions are met:
+      *
+      * Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
+      *
+      * If the condition does not hold the step size is decreased:
+      *
+      * stepSize = decrease * stepSize
+      */
+    template<typename Scalar>
+    class ArmijoBacktracking
+    {
+    public:
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef std::function<void(const Vector &, Vector &, Matrix &)> ErrorFunction;
+    private:
+        Scalar decrease_;
+        Scalar c1_;
+        Scalar minStep_;
+        Scalar maxStep_;
+        Index maxIt_;
+        ErrorFunction objective_;
+
+    public:
+        ArmijoBacktracking()
+            : ArmijoBacktracking(0.8, 0.1, 1e-10, 1.0, 0)
+        { }
+
+        ArmijoBacktracking(const Scalar decrease,
+            const Scalar c1,
+            const Scalar minStep,
+            const Scalar maxStep,
+            const Index iterations)
+            : decrease_(decrease), c1_(c1), minStep_(minStep),
+            maxStep_(maxStep), maxIt_(iterations), objective_()
+        { }
+
+        /** Set the decreasing factor for backtracking.
+          * Assure that decrease in (0, 1).
+          * @param decrease decreasing factor */
+        void setBacktrackingDecrease(const Scalar decrease)
+        {
+            decrease_ = decrease;
+        }
+
+        /** Set the Armijo constant for the Armijo (see class description).
+          * Assure that c1 in (0, 0.5).
+          * @param c1 armijo constant */
+        void setArmijoConstant(const Scalar c1)
+        {
+            assert(c1 > 0);
+            assert(c1 < 0.5);
+            c1_ = c1;
+        }
+
+        /** Set the bounds for the step size during linesearch.
+          * The final step size is guaranteed to be in [minStep, maxStep].
+          * @param minStep minimum step size
+          * @param maxStep maximum step size */
+        void setStepBounds(const Scalar minStep, const Scalar maxStep)
+        {
+            assert(minStep < maxStep);
+            minStep_ = minStep;
+            maxStep_ = maxStep;
+        }
+
+        /** Set the maximum number of iterations.
+          * Set to 0 or negative for infinite iterations.
+          * @param iterations maximum number of iterations */
+        void setMaxIterations(const Index iterations)
+        {
+            maxIt_ = iterations;
+        }
+
+        void setErrorFunction(const ErrorFunction &objective)
+        {
+            objective_ = objective;
+        }
+
+        Scalar operator()(const Vector &xval,
+            const Vector &fval,
+            const Matrix &,
+            const Vector &gradient,
+            const Vector &step)
+        {
+            assert(objective_);
+
+            Scalar stepSize = maxStep_ / decrease_;
+            Matrix jacobianN;
+            Vector gradientN;
+            Vector xvalN;
+            Vector fvalN;
+
+            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar stepGrad = gradient.dot(step);
+            bool armijoCondition = false;
+
+            Index iterations = 0;
+            while((maxIt_ <= 0 || iterations < maxIt_) &&
+                stepSize * decrease_ >= minStep_ &&
+                !armijoCondition)
+            {
+                stepSize = decrease_ * stepSize;
+                xvalN = xval - stepSize * step;
+                objective_(xvalN, fvalN, jacobianN);
+                Scalar errorN = 0.5 * fvalN.squaredNorm();
+                gradientN = jacobianN.transpose() * fvalN;
+
+                armijoCondition = errorN <= error + c1_ * stepSize * stepGrad;
+
+                ++iterations;
+            }
+
+            return stepSize;
         }
     };
 
@@ -304,7 +541,7 @@ namespace lsq
 
     public:
         WolfeBacktracking()
-            : WolfeBacktracking(0.8, 1e-4, 0.9, 1e-10, 1.0, 0)
+            : WolfeBacktracking(0.8, 0.1, 0.9, 1e-10, 1.0, 0)
         { }
 
         WolfeBacktracking(const Scalar decrease,
@@ -376,8 +613,8 @@ namespace lsq
             Vector xvalN;
             Vector fvalN;
 
-            Scalar error = fval.squaredNorm();
-            Scalar stepGrad = step.dot(gradient);
+            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar stepGrad = gradient.dot(step);
             bool armijoCondition = false;
             bool wolfeCondition = false;
 
@@ -387,13 +624,13 @@ namespace lsq
                 !(armijoCondition && wolfeCondition))
             {
                 stepSize = decrease_ * stepSize;
-                xvalN = xval - stepSize * gradient;
+                xvalN = xval - stepSize * step;
                 objective_(xvalN, fvalN, jacobianN);
-                Scalar errorN = fvalN.squaredNorm();
+                Scalar errorN = 0.5 * fvalN.squaredNorm();
                 gradientN = jacobianN.transpose() * fvalN;
 
                 armijoCondition = errorN <= error + c1_ * stepSize * stepGrad;
-                wolfeCondition = step.dot(gradientN) >= c2_ * stepGrad;
+                wolfeCondition = gradientN.dot(step) >= c2_ * stepGrad;
 
                 ++iterations;
             }
@@ -592,7 +829,7 @@ namespace lsq
                 { Matrix tmp; this->errorFunction_(xval, fval, tmp); });
             stepSize_.setErrorFunction(
                 [this](const Vector &xval, Vector &fval, Matrix &jacobian)
-                { evaluateErrorFunction(xval, fval, jacobian); });
+                { this->evaluateErrorFunction(xval, fval, jacobian); });
 
             Vector xval = initialGuess;
             Vector fval;
@@ -668,7 +905,7 @@ namespace lsq
 
     template<typename Scalar,
         typename ErrorFunction,
-        typename StepSize=WolfeBacktracking<Scalar>,
+        typename StepSize=BarzilaiBorwein<Scalar>,
         typename Callback=NoCallback<Scalar>,
         typename FiniteDifferences=CentralDifferences<Scalar>>
     class GradientDescent : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
@@ -684,7 +921,7 @@ namespace lsq
             const Vector &gradient,
             Vector &step) override
         {
-            step = -gradient;
+            step = gradient;
         }
     public:
         GradientDescent()
@@ -696,7 +933,7 @@ namespace lsq
 
     template<typename Scalar,
         typename ErrorFunction,
-        typename StepSize=WolfeBacktracking<Scalar>,
+        typename StepSize=ArmijoBacktracking<Scalar>,
         typename Callback=NoCallback<Scalar>,
         typename FiniteDifferences=CentralDifferences<Scalar>,
         typename Solver=DenseSVDSolver<Scalar>>
@@ -717,8 +954,6 @@ namespace lsq
 
             Matrix A = jacobian.transpose() * jacobian;
             solver(A, gradient, step);
-
-            step *= -1;
         }
     public:
         GaussNewton()
@@ -729,7 +964,7 @@ namespace lsq
 
     template<typename Scalar,
         typename ErrorFunction,
-        typename StepSize=WolfeBacktracking<Scalar>,
+        typename StepSize=ConstantStepSize<Scalar>,
         typename Callback=NoCallback<Scalar>,
         typename FiniteDifferences=CentralDifferences<Scalar>,
         typename Solver=DenseSVDSolver<Scalar>>
@@ -764,7 +999,7 @@ namespace lsq
 
             Index iterations = 0;
             while((maxItLM_ <= 0 || iterations < maxItLM_) &&
-                error > errorN)
+                errorN > error)
             {
                 A = jacobianSq;
                 // add identity matrix
@@ -772,10 +1007,9 @@ namespace lsq
                     A(i, i) += lambda_;
 
                 solver(A, gradient, step);
-                step *= -1;
 
-                xvalN = xval + step;
-                objective_(xvalN, fvalN, jacobianN);
+                xvalN = xval - step;
+                this->errorFunction_(xvalN, fvalN, jacobianN);
                 errorN = 0.5 * fvalN.squaredNorm();
 
                 if(errorN > error)
