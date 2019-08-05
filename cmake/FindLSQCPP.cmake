@@ -1,4 +1,4 @@
-# FindLSQCpp.txt
+# FindLSQCPP.txt
 #
 #     Author: Fabian Meyer
 # Created On: 05 Oct 2018
