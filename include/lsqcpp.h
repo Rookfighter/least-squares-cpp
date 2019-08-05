@@ -417,6 +417,25 @@ namespace lsq
         }
     };
 
+    template<typename Scalar>
+    struct DenseCholeskySolver
+    {
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+        typedef Eigen::LDLT<Matrix> Solver;
+
+        void operator()(const Matrix &A, const Vector &b, Vector &result) const
+        {
+            Solver decomp;
+            decomp.compute(A);
+
+            if(!decomp.isPositive())
+                throw std::runtime_error("DenseCholeskySolver: matrix is not positive semi-definite");
+
+            result = decomp.solve(b);
+        }
+    };
+
     /** Base class for least squares algorithms.
       * It implements the whole optimization strategy except the step
       * calculation. Cannot be instantiated. */
