@@ -896,7 +896,9 @@ namespace lsq
             result.fval = fval;
             result.error = error;
             result.iterations = iterations;
-            result.converged = stepLen < minStepLen_;
+            result.converged = stepLen < minStepLen_ ||
+                gradLen < minGradLen_ ||
+                error < minError_;
 
             return result;
         }
