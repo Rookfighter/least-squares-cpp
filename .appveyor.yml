@@ -12,5 +12,4 @@ build:
     project: $(APPVEYOR_BUILD_FOLDER)\lsqcpp.sln
 
 test_script:
-    - '%APPVEYOR_BUILD_FOLDER%\Debug\run_tests.exe'
-    - '%APPVEYOR_BUILD_FOLDER%\Debug\my_error_function.exe'
+    - '%APPVEYOR_BUILD_FOLDER%\test\Debug\run_tests.exe'
