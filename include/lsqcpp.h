@@ -9,6 +9,7 @@
 #define LSQCPP_LSQCPP_H_
 
 #include <Eigen/Geometry>
+#include <vector>
 #include <limits>
 #include <iostream>
 #include <iomanip>
