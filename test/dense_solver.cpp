@@ -1,4 +1,4 @@
-/* finite_differences.cpp
+/* dense_solver.cpp
  *
  * Author: Fabian Meyer
  * Created On: 05 Aug 2019
