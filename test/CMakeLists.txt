@@ -11,6 +11,7 @@ include_directories(
 set(TEST_SRC
     "main.cpp"
 
+    "finite_differences.cpp"
     "lsqcpp.cpp"
 )
 
