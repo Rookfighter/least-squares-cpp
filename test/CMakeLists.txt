@@ -10,7 +10,7 @@ include_directories(
 
 set(TEST_SRC
     "main.cpp"
-
+    "dense_solver.cpp"
     "finite_differences.cpp"
     "lsqcpp.cpp"
 )
