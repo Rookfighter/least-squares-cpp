@@ -31,11 +31,11 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<void(const Vector &, Vector &)> Objective;
+        typedef std::function<void(const Vector &, Vector &)> ErrorFunction;
     private:
         Scalar eps_;
         Index threads_;
-        Objective objective_;
+        ErrorFunction objective_;
     public:
         ForwardDifferences()
             : ForwardDifferences(
@@ -56,7 +56,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setErrorFunction(const Objective &objective)
+        void setErrorFunction(const ErrorFunction &objective)
         {
             objective_ = objective;
         }
@@ -94,11 +94,11 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<void(const Vector &, Vector &)> Objective;
+        typedef std::function<void(const Vector &, Vector &)> ErrorFunction;
     private:
         Scalar eps_;
         Index threads_;
-        Objective objective_;
+        ErrorFunction objective_;
     public:
         BackwardDifferences()
             : BackwardDifferences(
@@ -119,7 +119,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setErrorFunction(const Objective &objective)
+        void setErrorFunction(const ErrorFunction &objective)
         {
             objective_ = objective;
         }
@@ -156,11 +156,11 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<Scalar(const Vector &)> Objective;
+        typedef std::function<void(const Vector &, Vector &)> ErrorFunction;
     private:
         Scalar eps_;
         Index threads_;
-        Objective objective_;
+        ErrorFunction objective_;
     public:
         CentralDifferences()
             : CentralDifferences(
@@ -181,7 +181,7 @@ namespace lsq
             threads_ = threads;
         }
 
-        void setErrorFunction(const Objective &objective)
+        void setErrorFunction(const ErrorFunction &objective)
         {
             objective_ = objective;
         }
@@ -237,7 +237,7 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<Scalar(const Vector &, Vector &)> Objective;
+        typedef std::function<Scalar(const Vector &, Vector &)> ErrorFunction;
     private:
         Scalar stepSize_;
     public:
@@ -261,7 +261,7 @@ namespace lsq
             stepSize_ = stepSize;
         }
 
-        void setErrorFunction(const Objective &)
+        void setErrorFunction(const ErrorFunction &)
         { }
 
         Scalar operator()(const Vector &,
@@ -292,7 +292,7 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        typedef std::function<void(const Vector &, Vector &, Matrix &)> Objective;
+        typedef std::function<void(const Vector &, Vector &, Matrix &)> ErrorFunction;
     private:
         Scalar decrease_;
         Scalar c1_;
@@ -300,7 +300,7 @@ namespace lsq
         Scalar minStep_;
         Scalar maxStep_;
         Index maxIt_;
-        Objective objective_;
+        ErrorFunction objective_;
 
     public:
         WolfeBacktracking()
@@ -357,14 +357,14 @@ namespace lsq
             maxIt_ = iterations;
         }
 
-        void setErrorFunction(const Objective &objective)
+        void setErrorFunction(const ErrorFunction &objective)
         {
             objective_ = objective;
         }
 
         Scalar operator()(const Vector &xval,
             const Vector &fval,
-            const Matrix &jacobian,
+            const Matrix &,
             const Vector &gradient,
             const Vector &step)
         {
@@ -375,7 +375,6 @@ namespace lsq
             Vector gradientN;
             Vector xvalN;
             Vector fvalN;
-            Scalar fvalNNorm;
 
             Scalar error = fval.squaredNorm();
             Scalar stepGrad = step.dot(gradient);
@@ -439,6 +438,7 @@ namespace lsq
 
         Index maxIt_;
         Scalar minStepLen_;
+        Scalar minGradLen_;
         Scalar minError_;
         Index verbosity_;
 
@@ -480,13 +480,15 @@ namespace lsq
         {
             Vector xval;
             Vector fval;
+            Scalar error;
             Index iterations;
             bool converged;
         };
 
         LeastSquaresAlgorithm()
             : errorFunction_(), stepSize_(), callback_(), finiteDifferences_(),
-            maxIt_(0), minStepLen_(1e-6), verbosity_(0)
+            maxIt_(0), minStepLen_(1e-6), minGradLen_(1e-6), minError_(0),
+            verbosity_(0)
         { }
 
         virtual ~LeastSquaresAlgorithm()
@@ -539,6 +541,14 @@ namespace lsq
             minStepLen_ = steplen;
         }
 
+        /** Set the minimum gradient length.
+          * If the gradient length falls below this value, the optimizer stops.
+          * @param gradlen minimum gradient length */
+        void setMinGradientLength(const Scalar gradlen)
+        {
+            minGradLen_ = gradlen;
+        }
+
         /** Set the minimum squared error.
           * If the error falls below this value, the optimizer stops.
           * @param error minimum error */
@@ -569,6 +579,7 @@ namespace lsq
             Vector fval;
             Matrix jacobian;
             Vector gradient;
+            Scalar gradLen = minGradLen_ + 1;
             Scalar stepSize;
             Scalar error = minError_ + 1;
             Vector step = Vector::Zero(xval.size());
@@ -577,6 +588,7 @@ namespace lsq
 
             Index iterations = 0;
             while((maxIt_ <= 0 || iterations < maxIt_) &&
+                gradLen >= minGradLen_ &&
                 stepLen >= minStepLen_ &&
                 error >= minError_ &&
                 callbackResult)
@@ -585,6 +597,7 @@ namespace lsq
                 evaluateErrorFunction(xval, fval, jacobian);
                 error = 0.5 * fval.squaredNorm();
                 gradient = jacobian.transpose() * fval;
+                gradLen = gradient.norm();
 
                 calculateStep(xval, fval, jacobian, gradient, step);
 
@@ -603,7 +616,8 @@ namespace lsq
                         << std::setw(4) << iterations
                         << std::fixed << std::showpoint << std::setprecision(6)
                         << "    stepsize=" << stepSize
-                        << "    steplen=" << stepLen;
+                        << "    steplen=" << stepLen
+                        << "    gradlen=" << gradLen;
 
                     if(verbosity_ > 2)
                         ss << "    callback=" << (callbackResult ? "true" : "false");
@@ -624,6 +638,7 @@ namespace lsq
             Result result;
             result.xval = xval;
             result.fval = fval;
+            result.error = error;
             result.iterations = iterations;
             result.converged = stepLen < minStepLen_;
 
