@@ -195,7 +195,7 @@ namespace lsq
 
             std::vector<Vector> fvalN(xval.size() * 2);
             #pragma omp parallel for num_threads(threads_)
-            for(size_t i = 0; i < fvalN.size(); ++i)
+            for(Index i = 0; i < static_cast<Index>(fvalN.size()); ++i)
             {
                 Index idx = i / 2;
                 Vector xvalN = xval;
