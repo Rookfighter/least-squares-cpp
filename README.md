@@ -142,3 +142,18 @@ int main()
     return 0;
 }
 ```
+
+## Performance Considerations
+
+The performance for solving an optimization problem with ```least-squares-cpp``` can be significantly
+influenced by the following factors:
+
+* line search, such as Armijo or Wolfe Backtracking, is expensive
+  * limit the maximum number of iterations for line search algorithms
+    * if you do not have a full analysis of your objective, numerics can do funny things and the algroithm can get stuck for quite some in line search loops
+* calculating jacobians numerically by finite differences is expensive and has low precision
+  * consider providing an explicit jacobian in your error functor
+  * consider using algorithmic differentiation in your error functor (not necessarily faster, but more precise!)
+
+
+
