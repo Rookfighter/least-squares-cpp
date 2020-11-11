@@ -1,6 +1,17 @@
 version: '1.0.{build}'
 
-image: Visual Studio 2017
+platform:
+  - x86
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+image:
+  - Visual Studio 2015
+  - Visual Studio 2017
+  - Visual Studio 2019
 
 install:
     - git submodule update --init --recursive
