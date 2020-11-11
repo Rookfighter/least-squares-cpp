@@ -17,7 +17,7 @@
 
 namespace lsq
 {
-    typedef long int Index;
+    typedef Eigen::MatrixXd::Index Index;
 
     /** Functor to compute forward differences.
       * Computes the gradient of the objective f(x) as follows:
@@ -884,8 +884,8 @@ namespace lsq
                 stepSize = stepSize_(xval, fval, jacobian, gradient, step);
                 step *= stepSize;
                 stepLen = step.norm();
-                // evaluate callback an save its result
-                callbackResult = callback_(iterations, xval, fval, jacobian,
+                // evaluate callback and save its result
+                callbackResult = callback_(iterations + 1, xval, fval, jacobian,
                     gradient, step);
 
                 if(verbosity_ > 0)
