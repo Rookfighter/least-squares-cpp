@@ -47,11 +47,14 @@ You can use the CMake Find module in ```cmake/``` to find the installed header.
 
 ## Usage
 
+For examples on using different algorithms and stop criteria, please have a look at the ```examples/``` directory.
+
 There are three major steps to use ```least-squares-cpp```:
 
 * Implement your error function as functor
 * Instantiate the optimization algorithm of your choice
 * Pick the line search algorithm and parameters of your choice
+
 
 ```cpp
 #include <lsqcpp.h>
@@ -114,11 +117,11 @@ int main()
     optimizer.setMinError(0);
 
     // Set the the parametrized StepSize functor used for the step calculation.
-    optimizer.setStepSize(lsq::ArmijoBacktracking<double>(0.8, 0.1, 1e-10, 1.0, 0));
+    optimizer.setStepSize(lsq::ArmijoBacktracking<double>(0.8, 1e-4, 1e-10, 1.0, 0));
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.
-    optimizer.setVerbosity(2);
+    optimizer.setVerbosity(4);
 
     // Set initial guess.
     Eigen::VectorXd initialGuess(4);
