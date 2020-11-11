@@ -10,9 +10,14 @@ include_directories(
 
 set(TEST_SRC
     "main.cpp"
-    "dense_solver.cpp"
-    "finite_differences.cpp"
-    "optimization.cpp"
+    "dense_cholesky_solver.cpp"
+    "dense_svd_solver.cpp"
+    "backward_differences.cpp"
+    "forward_differences.cpp"
+    "central_differences.cpp"
+    "gauss_newton.cpp"
+    "gradient_descent.cpp"
+    "levenberg_marquardt.cpp"
 )
 
 add_executable(run_tests ${TEST_SRC})
