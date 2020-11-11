@@ -420,7 +420,12 @@ namespace lsq
 
     public:
         ArmijoBacktracking()
-            : ArmijoBacktracking(0.8, 0.1, 1e-10, 1.0, 0)
+            : ArmijoBacktracking(
+                static_cast<Scalar>(0.8),
+                static_cast<Scalar>(1e-4),
+                static_cast<Scalar>(1e-10),
+                static_cast<Scalar>(1.0),
+                0)
         { }
 
         ArmijoBacktracking(const Scalar decrease,
@@ -437,21 +442,25 @@ namespace lsq
           * @param decrease decreasing factor */
         void setBacktrackingDecrease(const Scalar decrease)
         {
+            assert(decrease > static_cast<Scalar>(0));
+            assert(decrease < static_cast<Scalar>(1));
             decrease_ = decrease;
         }
 
-        /** Set the Armijo constant for the Armijo (see class description).
+        /** Set the relaxation constant for the Armijo condition (see class description).
+          * Typically c1 is chosen to be quite small, e.g. 1e-4.
           * Assure that c1 in (0, 0.5).
           * @param c1 armijo constant */
         void setArmijoConstant(const Scalar c1)
         {
-            assert(c1 > 0);
-            assert(c1 < 0.5);
+            assert(c1 > static_cast<Scalar>(0));
+            assert(c1 < static_cast<Scalar>(0.5));
             c1_ = c1;
         }
 
         /** Set the bounds for the step size during linesearch.
           * The final step size is guaranteed to be in [minStep, maxStep].
+          * The
           * @param minStep minimum step size
           * @param maxStep maximum step size */
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
@@ -522,7 +531,6 @@ namespace lsq
       * If either condition does not hold the step size is decreased:
       *
       * stepSize = decrease * stepSize
-      *
       */
     template<typename Scalar>
     class WolfeBacktracking
@@ -542,7 +550,13 @@ namespace lsq
 
     public:
         WolfeBacktracking()
-            : WolfeBacktracking(0.8, 0.1, 0.9, 1e-10, 1.0, 0)
+            : WolfeBacktracking(
+                static_cast<Scalar>(0.8),
+                static_cast<Scalar>(1e-4),
+                static_cast<Scalar>(0.9),
+                static_cast<Scalar>(1e-10),
+                static_cast<Scalar>(1.0),
+                0)
         { }
 
         WolfeBacktracking(const Scalar decrease,
@@ -566,12 +580,15 @@ namespace lsq
         /** Set the wolfe constants for Armijo and Wolfe condition (see class
           * description).
           * Assure that c1 < c2 < 1 and c1 in (0, 0.5).
+          * Typically c1 is chosen to be quite small, e.g. 1e-4.
           * @param c1 armijo constant
           * @param c2 wolfe constant */
         void setWolfeConstants(const Scalar c1, const Scalar c2)
         {
+            assert(c1 > static_cast<Scalar>(0));
+            assert(c1 < static_cast<Scalar>(0.5));
             assert(c1 < c2);
-            assert(c2 < 1);
+            assert(c2 < static_cast<Scalar>(1));
             c1_ = c1;
             c2_ = c2;
         }
@@ -767,6 +784,9 @@ namespace lsq
             finiteDifferences_.setNumericalEpsilon(eps);
         }
 
+        /** Sets the instance values of the custom error function.
+          * Should be used if the error function requires custom data parameters.
+          * @param errorFunction instance that should be copied */
         void setErrorFunction(const ErrorFunction &errorFunction)
         {
             errorFunction_ = errorFunction;
@@ -777,6 +797,8 @@ namespace lsq
             callback_ = callback;
         }
 
+        /** Sets the instance values of the step size functor.
+          * @param stepSize instance that should be copied */
         void setStepSize(const StepSize &stepSize)
         {
             stepSize_ = stepSize;
@@ -876,15 +898,16 @@ namespace lsq
                         << "    steplen=" << stepLen
                         << "    gradlen=" << gradLen;
 
-                    if(verbosity_ > 2)
+                    if(verbosity_ > 1)
                         ss << "    callback=" << (callbackResult ? "true" : "false");
 
                     ss << "    error=" << error;
-                    ss << "    fval=" << vector2str(fval);
 
-                    if(verbosity_ > 1)
-                        ss << "    xval=" << vector2str(xval);
+                    if(verbosity_ > 2)
+                        ss << "    fval=" << vector2str(fval);
                     if(verbosity_ > 3)
+                        ss << "    xval=" << vector2str(xval);
+                    if(verbosity_ > 4)
                         ss << "    step=" << vector2str(step);
                     std::cout << ss.str() << std::endl;
                 }
@@ -967,12 +990,11 @@ namespace lsq
 
     template<typename Scalar,
         typename ErrorFunction,
-        typename StepSize=ConstantStepSize<Scalar>,
         typename Callback=NoCallback<Scalar>,
         typename FiniteDifferences=CentralDifferences<Scalar>,
         typename Solver=DenseSVDSolver<Scalar>>
     class LevenbergMarquardt : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
-        StepSize, Callback, FiniteDifferences>
+        ConstantStepSize<Scalar>, Callback, FiniteDifferences>
     {
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
@@ -1026,7 +1048,7 @@ namespace lsq
     public:
         LevenbergMarquardt()
             : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                StepSize, Callback, FiniteDifferences>(), increase_(2),
+                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(), increase_(2),
                 decrease_(0.5), lambda_(1), maxItLM_(0)
         { }
 
