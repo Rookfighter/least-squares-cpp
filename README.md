@@ -150,10 +150,17 @@ influenced by the following factors:
 
 * line search, such as Armijo or Wolfe Backtracking, is expensive
   * limit the maximum number of iterations for line search algorithms
-    * if you do not have a full analysis of your objective, numerics can do funny things and the algroithm can get stuck for quite some in line search loops
+    * if you do not have a full analysis of your objective, numerics can do funny things and the algroithm can get stuck for quite some time in line search loops
 * calculating jacobians numerically by finite differences is expensive and has low precision
   * consider providing an explicit jacobian in your error functor
-  * consider using algorithmic differentiation in your error functor (not necessarily faster, but more precise!)
+  * consider using algorithmic differentiation in your error functor (not necessarily faster, but more precise)
+* parallelize your error functor
+  * usually calculations for different parts of an error vector can be done independently
+* compile in ```Release``` mode
+  * ```Eigen3``` uses a lot of runtime checks in ```Debug``` mode, so there is quite some performance gain
 
+## References
+
+[1] Jorge Nocedal, Stephen J. Wright, Numerical Optimization, Springer 1999
 
 
