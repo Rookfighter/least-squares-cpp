@@ -12,21 +12,27 @@ jobs:
           - os: ubuntu-18.04
             name: Ubuntu 18.04 Debug
             build_type: Debug
+            test_exec: ./test/run_tests
           - os: ubuntu-18.04
             name: Ubuntu 18.04 Release
             build_type: Release
+            test_exec: ./test/run_tests
           - os: ubuntu-16.04
             name: Ubuntu 16.04 Debug
             build_type: Debug
+            test_exec: ./test/run_tests
           - os: ubuntu-16.04
             name: Ubuntu 16.04 Release
             build_type: Release
+            test_exec: ./test/run_tests
           - os: windows-latest
             name: Windows Debug
             build_type: Debug
+            test_exec: ./test/Release/run_tests.exe
           - os: windows-latest
             name: Windows Release
             build_type: Release
+            test_exec: ./test/Release/run_tests.exe
     steps:
     - uses: actions/checkout@v2
       
@@ -59,4 +65,4 @@ jobs:
       shell: bash
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ./test/run_tests
+      run: ${{matrix.config.test_exec}}
