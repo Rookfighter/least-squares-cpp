@@ -160,7 +160,7 @@ namespace lsq
         typedef std::function<void(const Vector &, Vector &)> ErrorFunction;
     private:
         Scalar eps_;
-        Index threads_;
+        int threads_;
         ErrorFunction objective_;
     public:
         CentralDifferences()
@@ -177,7 +177,7 @@ namespace lsq
             eps_ = eps;
         }
 
-        void setThreads(const Index threads)
+        void setThreads(const int threads)
         {
             threads_ = threads;
         }
