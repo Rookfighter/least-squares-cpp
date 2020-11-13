@@ -28,7 +28,7 @@ jobs:
           - os: windows-latest
             name: Windows Debug
             build_type: Debug
-            test_exec: ./test/Release/run_tests.exe
+            test_exec: ./test/Debug/run_tests.exe
           - os: windows-latest
             name: Windows Release
             build_type: Release
