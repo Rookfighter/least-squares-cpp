@@ -244,7 +244,7 @@ namespace lsq
     public:
 
         ConstantStepSize()
-            : ConstantStepSize(1.0)
+            : ConstantStepSize(static_cast<Scalar>(1.0))
         {
 
         }
@@ -338,7 +338,7 @@ namespace lsq
         }
     public:
         BarzilaiBorwein()
-            : BarzilaiBorwein(Method::Direct, 1e-2)
+            : BarzilaiBorwein(Method::Direct, static_cast<Scalar>(1e-2))
         { }
 
         BarzilaiBorwein(const Method method, const Scalar constStep)
@@ -497,7 +497,7 @@ namespace lsq
             Vector xvalN;
             Vector fvalN;
 
-            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar error = static_cast<Scalar>(0.5) * fval.squaredNorm();
             Scalar stepGrad = gradient.dot(step);
             bool armijoCondition = false;
 
@@ -509,7 +509,7 @@ namespace lsq
                 stepSize = decrease_ * stepSize;
                 xvalN = xval - stepSize * step;
                 objective_(xvalN, fvalN, jacobianN);
-                Scalar errorN = 0.5 * fvalN.squaredNorm();
+                Scalar errorN = static_cast<Scalar>(0.5) * fvalN.squaredNorm();
                 gradientN = jacobianN.transpose() * fvalN;
 
                 armijoCondition = errorN <= error + c1_ * stepSize * stepGrad;
@@ -631,7 +631,7 @@ namespace lsq
             Vector xvalN;
             Vector fvalN;
 
-            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar error = fval.squaredNorm() / 2;
             Scalar stepGrad = gradient.dot(step);
             bool armijoCondition = false;
             bool wolfeCondition = false;
@@ -644,7 +644,7 @@ namespace lsq
                 stepSize = decrease_ * stepSize;
                 xvalN = xval - stepSize * step;
                 objective_(xvalN, fvalN, jacobianN);
-                Scalar errorN = 0.5 * fvalN.squaredNorm();
+                Scalar errorN = fvalN.squaredNorm() / 2;
                 gradientN = jacobianN.transpose() * fvalN;
 
                 armijoCondition = errorN <= error + c1_ * stepSize * stepGrad;
@@ -760,8 +760,14 @@ namespace lsq
         };
 
         LeastSquaresAlgorithm()
-            : errorFunction_(), stepSize_(), callback_(), finiteDifferences_(),
-            maxIt_(0), minStepLen_(1e-9), minGradLen_(1e-9), minError_(0),
+            : errorFunction_(),
+            stepSize_(),
+            callback_(),
+            finiteDifferences_(),
+            maxIt_(0),
+            minStepLen_(static_cast<Scalar>(1e-9)),
+            minGradLen_(static_cast<Scalar>(1e-9)),
+            minError_(static_cast<Scalar>(0)),
             verbosity_(0)
         { }
 
@@ -874,7 +880,7 @@ namespace lsq
             {
                 xval -= step;
                 evaluateErrorFunction(xval, fval, jacobian);
-                error = 0.5 * fval.squaredNorm();
+                error = fval.squaredNorm() / 2;
                 gradient = jacobian.transpose() * fval;
                 gradLen = gradient.norm();
 
@@ -1012,7 +1018,7 @@ namespace lsq
             Vector &step) override
         {
             Solver solver;
-            Scalar error = 0.5 * fval.squaredNorm();
+            Scalar error = fval.squaredNorm() / 2;
             Scalar errorN = error + 1;
 
             Vector xvalN;
@@ -1035,7 +1041,7 @@ namespace lsq
 
                 xvalN = xval - step;
                 this->errorFunction_(xvalN, fvalN, jacobianN);
-                errorN = 0.5 * fvalN.squaredNorm();
+                errorN = fvalN.squaredNorm() / 2;
 
                 if(errorN > error)
                     lambda_ *= increase_;
@@ -1048,8 +1054,11 @@ namespace lsq
     public:
         LevenbergMarquardt()
             : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(), increase_(2),
-                decrease_(0.5), lambda_(1), maxItLM_(0)
+                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
+                increase_(static_cast<Scalar>(2)),
+                decrease_(static_cast<Scalar>(0.5)),
+                lambda_(static_cast<Scalar>(1)),
+                maxItLM_(0)
         { }
 
         /** Set the initial gradient descent factor of levenberg marquardt.
@@ -1072,7 +1081,7 @@ namespace lsq
           * @param increase factor for increasing lambda */
         void setLambdaIncrease(const Scalar increase)
         {
-            assert(increase > 1);
+            assert(increase > static_cast<Scalar>(1));
             increase_ = increase;
         }
 
@@ -1081,8 +1090,8 @@ namespace lsq
           * @param increase factor for increasing lambda */
         void setLambdaDecrease(const Scalar decrease)
         {
-            assert(decrease < 1);
-            assert(decrease > 0);
+            assert(decrease < static_cast<Scalar>(1));
+            assert(decrease > static_cast<Scalar>(0));
             decrease_ = decrease;
         }
 
