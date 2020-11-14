@@ -12,13 +12,13 @@ using namespace lsq;
 
 TEST_CASE("dense Cholesky solver")
 {
-    SECTION("float")
+    SECTION("double")
     {
-        typedef float Scalar;
+        typedef double Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
-        const Scalar eps = 1e-6;
+        const Scalar eps = static_cast<Scalar>(1e-6);
 
         SECTION("deny non positive semi-definite")
         {
@@ -59,13 +59,13 @@ TEST_CASE("dense Cholesky solver")
         }
     }
 
-    SECTION("double")
+    SECTION("float")
     {
-        typedef double Scalar;
+        typedef float Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
-        const Scalar eps = 1e-6;
+        const Scalar eps = static_cast<Scalar>(1e-6);
 
         SECTION("deny non positive semi-definite")
         {

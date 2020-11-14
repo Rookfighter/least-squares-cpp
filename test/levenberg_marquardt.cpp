@@ -91,15 +91,15 @@ TEST_CASE("levenberg marquardt")
     {
         typedef float Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-        const Scalar eps = 1e-3;
+        const Scalar eps = 1e-3f;
 
         SECTION("with jacobian")
         {
             LevenbergMarquardt<Scalar, ParabolicError<Scalar>> optimizer;
 
             optimizer.setMaxIterations(100);
-            optimizer.setMinStepLength(1e-10);
-            optimizer.setMinGradientLength(1e-10);
+            optimizer.setMinStepLength(1e-10f);
+            optimizer.setMinGradientLength(1e-10f);
 
             Vector initGuess(4);
             initGuess << 2, 1, 3, 4;
@@ -121,8 +121,8 @@ TEST_CASE("levenberg marquardt")
             LevenbergMarquardt<Scalar, ParabolicErrorNoJacobian<Scalar>> optimizer;
 
             optimizer.setMaxIterations(100);
-            optimizer.setMinStepLength(1e-10);
-            optimizer.setMinGradientLength(1e-10);
+            optimizer.setMinStepLength(1e-10f);
+            optimizer.setMinGradientLength(1e-10f);
 
             Vector initGuess(4);
             initGuess << 2, 1, 3, 4;
@@ -144,8 +144,8 @@ TEST_CASE("levenberg marquardt")
             LevenbergMarquardt<Scalar, ParabolicErrorInverseJacobian<Scalar>> optimizer;
 
             optimizer.setMaxIterations(100);
-            optimizer.setMinStepLength(1e-10);
-            optimizer.setMinGradientLength(1e-10);
+            optimizer.setMinStepLength(1e-10f);
+            optimizer.setMinGradientLength(1e-10f);
 
             Vector initGuess(4);
             initGuess << 2, 1, 3, 4;

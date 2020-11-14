@@ -17,7 +17,7 @@ TEST_CASE("forward differences")
         typedef double Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        const Scalar eps = 1e-6;
+        const Scalar eps = static_cast<Scalar>(1e-6);
 
         Matrix jacobianAct;
         Matrix jacobianExp;
@@ -46,13 +46,13 @@ TEST_CASE("forward differences")
         typedef float Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-        const Scalar eps = 1e-1;
+        const Scalar eps = static_cast<Scalar>(1e-1);
 
         Matrix jacobianAct;
         Matrix jacobianExp;
         ParabolicError<Scalar> parabError;
         Vector xval(4);
-        xval << 2.1, 1.7, 3.5, 5.9;
+        xval << 2.1f, 1.7f, 3.5f, 5.9f;
         Vector fval;
         ForwardDifferences<Scalar> differences;
 

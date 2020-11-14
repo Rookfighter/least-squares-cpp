@@ -172,7 +172,7 @@ TEST_CASE("gradient descent")
     {
         typedef float Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-        const Scalar eps = 1e-3;
+        const Scalar eps = 1e-3f;
 
         SECTION("with jacobian")
         {
@@ -181,9 +181,9 @@ TEST_CASE("gradient descent")
 
                 GradientDescent<Scalar, ParabolicError<Scalar>, ConstantStepSize<Scalar>> optimizer;
 
-                optimizer.setStepSize({1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -195,8 +195,8 @@ TEST_CASE("gradient descent")
 
                 auto result = optimizer.minimize(initGuess);
 
-                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1);
-                REQUIRE_MATRIX_APPROX(fvalExp, result.fval, 1);
+                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1.0f);
+                REQUIRE_MATRIX_APPROX(fvalExp, result.fval, 1.0f);
                 REQUIRE(Approx(errorExp).margin(0.1) == result.error);
             }
 
@@ -205,9 +205,9 @@ TEST_CASE("gradient descent")
 
                 GradientDescent<Scalar, ParabolicError<Scalar>, BarzilaiBorwein<Scalar>> optimizer;
 
-                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Direct, 1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Direct, 1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -229,9 +229,9 @@ TEST_CASE("gradient descent")
             {
                 GradientDescent<Scalar, ParabolicError<Scalar>, BarzilaiBorwein<Scalar>> optimizer;
 
-                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Inverse, 1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Inverse, 1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -256,9 +256,9 @@ TEST_CASE("gradient descent")
             {
                 GradientDescent<Scalar, ParabolicErrorNoJacobian<Scalar>, ConstantStepSize<Scalar>> optimizer;
 
-                optimizer.setStepSize({1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -279,9 +279,9 @@ TEST_CASE("gradient descent")
             {
                 GradientDescent<Scalar, ParabolicErrorNoJacobian<Scalar>, BarzilaiBorwein<Scalar>> optimizer;
 
-                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Direct, 1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Direct, 1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -303,9 +303,9 @@ TEST_CASE("gradient descent")
             {
                 GradientDescent<Scalar, ParabolicErrorNoJacobian<Scalar>, BarzilaiBorwein<Scalar>> optimizer;
 
-                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Inverse, 1e-2});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({BarzilaiBorwein<Scalar>::Method::Inverse, 1e-2f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);

@@ -16,7 +16,7 @@ TEST_CASE("gauss newton")
     {
         typedef double Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-        const Scalar eps = 1e-3;
+        const Scalar eps = static_cast<Scalar>(1e-3);
 
         SECTION("with jacobian")
         {
@@ -257,7 +257,7 @@ TEST_CASE("gauss newton")
     {
         typedef float Scalar;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-        const Scalar eps = 1e-3;
+        const Scalar eps = static_cast<Scalar>(1e-3);
 
         SECTION("with jacobian")
         {
@@ -265,9 +265,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicError<Scalar>, ConstantStepSize<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.5});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.5f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -280,7 +280,7 @@ TEST_CASE("gauss newton")
                 auto result = optimizer.minimize(initGuess);
 
                 REQUIRE(result.converged);
-                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1);
+                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1f);
                 REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
@@ -290,9 +290,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicError<Scalar>, ArmijoBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 1e-10, 1.0, 50});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 1e-10f, 1.0f, 50});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -305,7 +305,7 @@ TEST_CASE("gauss newton")
                 auto result = optimizer.minimize(initGuess);
 
                 REQUIRE(result.converged);
-                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1);
+                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1f);
                 REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
@@ -315,9 +315,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicError<Scalar>, WolfeBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 0.1, 1e-10, 1.0, 100});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 0.1f, 1e-10f, 1.0f, 100});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -343,9 +343,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorNoJacobian<Scalar>, ConstantStepSize<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.5});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.5f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -358,7 +358,7 @@ TEST_CASE("gauss newton")
                 auto result = optimizer.minimize(initGuess);
 
                 REQUIRE(result.converged);
-                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1);
+                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1f);
                 REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
@@ -368,9 +368,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorNoJacobian<Scalar>, ArmijoBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 1e-10, 1.0, 50});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 1e-10f, 1.0f, 50});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -383,7 +383,7 @@ TEST_CASE("gauss newton")
                 auto result = optimizer.minimize(initGuess);
 
                 REQUIRE(result.converged);
-                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1);
+                REQUIRE_MATRIX_APPROX(xvalExp, result.xval, 1e-1f);
                 REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
                 REQUIRE(Approx(errorExp).margin(eps) == result.error);
@@ -393,9 +393,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorNoJacobian<Scalar>, WolfeBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 0.1, 1e-10, 1.0, 100});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 0.1f, 1e-10f, 1.0f, 100});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -421,9 +421,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorInverseJacobian<Scalar>, ConstantStepSize<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.5});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.5f});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -446,9 +446,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorInverseJacobian<Scalar>, ArmijoBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 1e-10, 1.0, 50});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 1e-10f, 1.0f, 50});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
@@ -471,9 +471,9 @@ TEST_CASE("gauss newton")
             {
                 GaussNewton<Scalar, ParabolicErrorInverseJacobian<Scalar>, WolfeBacktracking<Scalar>> optimizer;
 
-                optimizer.setStepSize({0.8, 1e-4, 0.1, 1e-10, 1.0, 100});
-                optimizer.setMinStepLength(1e-10);
-                optimizer.setMinGradientLength(1e-10);
+                optimizer.setStepSize({0.8f, 1e-4f, 0.1f, 1e-10f, 1.0f, 100});
+                optimizer.setMinStepLength(1e-10f);
+                optimizer.setMinGradientLength(1e-10f);
                 optimizer.setMaxIterations(100);
 
                 Vector initGuess(4);
