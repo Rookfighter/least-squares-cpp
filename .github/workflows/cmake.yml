@@ -33,6 +33,14 @@ jobs:
             name: Windows Release
             build_type: Release
             test_exec: ./test/Release/run_tests.exe
+          - os: macos-latest
+            name: Mac OS Debug
+            build_type: Debug
+            test_exec: ./test/run_tests
+          - os: macos-latest
+            name: Mac OS Release
+            build_type: Release
+            test_exec: ./test/run_tests
     steps:
     - uses: actions/checkout@v2
       
