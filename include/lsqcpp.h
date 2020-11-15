@@ -1096,6 +1096,144 @@ namespace lsq
         }
 
     };
+
+    template<typename Scalar,
+        typename ErrorFunction,
+        typename Callback=NoCallback<Scalar>,
+        typename FiniteDifferences=CentralDifferences<Scalar>,
+        typename Solver=DenseSVDSolver<Scalar>>
+    class DoglegMethod : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
+        ConstantStepSize<Scalar>, Callback, FiniteDifferences>
+    {
+    public:
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+        typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+
+    private:
+        Scalar radius_;
+        Scalar maxRadius_;
+        Scalar radiusEps_;
+        Scalar acceptFitness_;
+        Index maxItTR_;
+
+        Scalar calulateModelFitness(const Vector &xval,
+            const Vector &fval,
+            const Vector &gradient,
+            const Matrix &hessian,
+            const Vector &step)
+        {
+            Scalar error = fval.squaredNorm() / 2;
+
+            // evaluate the error function at the new position
+            Vector xvalNext = xval + step;
+            Vector fvalNext;
+            Matrix jacobianNext;
+            this->errorFunction_(xvalNext, fvalNext, jacobianNext);
+            // compute the actual new error
+            Scalar nextError = fvalNext.squaredNorm() / 2;
+            // compute the new error by the model
+            Scalar modelError = error + (gradient.transpose() * step)(0) + (step.transpose() * hessian * step)(0) / 2;
+
+            return (error - nextError) / (error - modelError);
+        }
+
+    protected:
+        void calculateStep(const Vector &xval,
+            const Vector &fval,
+            const Matrix &jacobian,
+            const Vector &gradient,
+            Vector &step) override
+        {
+            // approximate hessian
+            Matrix hessian = jacobian.transpose() * jacobian;
+
+            // compute the full newton step
+            Vector fullStep;
+            Solver solver;
+            solver(hessian, gradient, fullStep);
+
+            // precompute the full step length
+            Scalar fullStepLen = fullStep.norm();
+
+            // compute the cauchy step
+            Scalar gradLen = gradient.norm();
+            Scalar curvature = (gradient.transpose() * hessian * gradient)(0);
+            Scalar gradientSq = (gradient.transpose() * gradient)(0);
+            Vector cauchyStep = -(gradientSq / curvature) * gradient;
+            Scalar cauchyStepLen = cauchyStep.norm();
+
+            Scalar modelFitness = acceptFitness_ - 1;
+            Index iteration = 0;
+
+            // keep computing while the model fitness is bad
+            while(modelFitness < acceptFitness_
+                && (maxItTR_ <= 0 || iteration < maxItTR_))
+            {
+                // if the full step is within the trust region simply
+                // use it, it provides a good minimizer
+                if(fullStepLen <= radius_)
+                {
+                    step = fullStep;
+                }
+                else
+                {
+                    // if the radius is very small we can approximate
+                    // we use the gradient descent method (cauchy step outside radius)
+                    if(radius_ < cauchyStepLen)
+                    {
+                        step = -(radius_ / gradLen) * gradient;
+                    }
+                    else
+                    {
+                        Scalar tau = 1;
+                        if(curvature > 0)
+                        {
+                            tau = (gradLen * gradLen * gradLen) / (radius_ * curvature);
+                            if(tau > 2)
+                                tau = 2;
+                        }
+
+                        if(tau >= 0 && tau <= 1)
+                            step = tau * cauchyStep;
+                        else
+                            step = cauchyStep + (tau - 1)(fullStep - cauchyStep);
+                    }
+                }
+
+                // compute the model fitness to determine the update scheme for
+                // the trust region radius
+                modelFitness = calulateModelFitness(xval, fval, gradient, hessian, step);
+
+                Scalar stepLen = step.norm();
+
+                // if the model fitness is really bad reduce the radius!
+                if(modelFitness < static_cast<Scalar>(0.25))
+                    radius_ = static_cast<Scalar>(0.25) * stepLen;
+                // if the model fitness is very good then increase it
+                else if(modelFitness > static_cast<Scalar>(0.75) && std::abs(stepLen - radius_) < radiusEps_)
+                {
+                    // use the double radius
+                    radius_ = 2 * radius_;
+                    // maintain radius border if configured
+                    if(maxRadius_ > 0 && radius_ > maxRadius_)
+                        radius_ = maxRadius_;
+                }
+
+                ++iteration;
+            }
+        }
+    public:
+        DoglegMethod()
+            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
+                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
+                radius_(1),
+                smallRadius_(static_cast<Scalar>(1e-4)),
+                maxRadius_(static_cast<Scalar>(2)),
+                radiusEps_(static_cast<Scalar>(1e-6)),
+                acceptFitness_(static_cast<Scalar>(0.25)),
+                maxItTR_(0)
+        { }
+    };
 }
 
 #endif
