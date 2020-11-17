@@ -1132,7 +1132,7 @@ namespace lsq
             // compute the actual new error
             Scalar nextError = fvalNext.squaredNorm() / 2;
             // compute the new error by the model
-            Scalar modelError = error + (gradient.transpose() * step)(0) + (step.transpose() * hessian * step)(0) / 2;
+            Scalar modelError = error + gradient.dot(step) + step.dot(hessian * step) / 2;
 
             return (error - nextError) / (error - modelError);
         }
@@ -1153,14 +1153,18 @@ namespace lsq
             solver(hessian, gradient, fullStep);
 
             // precompute the full step length
-            Scalar fullStepLen = fullStep.norm();
+            Scalar fullStepLenSq = fullStep.squaredNorm();
 
             // compute the cauchy step
-            Scalar gradLen = gradient.norm();
-            Scalar curvature = (gradient.transpose() * hessian * gradient)(0);
-            Scalar gradientSq = (gradient.transpose() * gradient)(0);
-            Vector cauchyStep = -(gradientSq / curvature) * gradient;
-            Scalar cauchyStepLen = cauchyStep.norm();
+            Scalar gradientLenSq = gradient.squaredNorm();
+            Scalar curvature = gradient.dot(hessian * gradient);
+            Vector cauchyStep = -(gradientLenSq / curvature) * gradient;
+            Scalar cauchyStepLenSq = cauchyStep.squaredNorm();
+
+            // compute step diff
+            Vector diffStep = fullStep - cauchyStep;
+            Scalar diffLenSq = diffStep.squaredNorm();
+            Scalar diffFac = cauchyStep.dot(diffStep) / diffLenSq;
 
             Scalar modelFitness = acceptFitness_ - 1;
             Index iteration = 0;
@@ -1169,34 +1173,29 @@ namespace lsq
             while(modelFitness < acceptFitness_
                 && (maxItTR_ <= 0 || iteration < maxItTR_))
             {
+                Scalar radiusSq = radius_ * radius_;
+
                 // if the full step is within the trust region simply
                 // use it, it provides a good minimizer
-                if(fullStepLen <= radius_)
+                if(fullStepLenSq <= radiusSq)
                 {
                     step = fullStep;
                 }
                 else
                 {
-                    // if the radius is very small we can approximate
-                    // we use the gradient descent method (cauchy step outside radius)
-                    if(radius_ < cauchyStepLen)
+                    // if the cauchy step lies outside the trust region
+                    // go towards it until the trust region boundary
+                    if(cauchyStepLenSq >= radiusSq)
                     {
-                        step = -(radius_ / gradLen) * gradient;
+                        step = (radius_ / std::sqrt(cauchyStepLenSq)) * cauchyStep;
                     }
                     else
                     {
-                        Scalar tau = 1;
-                        if(curvature > 0)
-                        {
-                            tau = (gradLen * gradLen * gradLen) / (radius_ * curvature);
-                            if(tau > 2)
-                                tau = 2;
-                        }
+                        Scalar secondTerm = std::sqrt(diffFac * diffFac + (radiusSq + cauchyStepLenSq) / diffLenSq);
+                        Scalar scale1 = -diffFac - secondTerm;
+                        Scalar scale2 = -diffFac + secondTerm;
 
-                        if(tau >= 0 && tau <= 1)
-                            step = tau * cauchyStep;
-                        else
-                            step = cauchyStep + (tau - 1)(fullStep - cauchyStep);
+                        step = cauchyStep + std::max(scale1, scale2) * (fullStep - cauchyStep);
                     }
                 }
 
@@ -1227,7 +1226,6 @@ namespace lsq
             : LeastSquaresAlgorithm<Scalar, ErrorFunction,
                 ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
                 radius_(1),
-                smallRadius_(static_cast<Scalar>(1e-4)),
                 maxRadius_(static_cast<Scalar>(2)),
                 radiusEps_(static_cast<Scalar>(1e-6)),
                 acceptFitness_(static_cast<Scalar>(0.25)),
