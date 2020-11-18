@@ -1242,6 +1242,29 @@ namespace lsq
         {
             maxItTR_ = iterations;
         }
+
+        /** Set the minimum fitness value at which a model is accepted.
+          * The model fitness is computed as follows:
+          *
+          * fitness = f(xval) - f(xval + step) / m(0) - m(step)
+          *
+          * Where f(x) is the objective error function and m(x) is the
+          * model function describe by the trust region method.
+          *
+          * @param fitness minimum fitness for step acceptance */
+        void setAcceptanceFitness(const Scalar fitness)
+        {
+            acceptFitness_ = fitness;
+        }
+
+        /** Set the comparison epsilon on how close the step should be
+          * to the trust region radius to trigger an increase of the radius.
+          * Should usually be picked low, e.g. 1e-8.
+          * @param eps comparison epsilon for radius increase */
+        void setRaidusEps(const Scalar eps)
+        {
+            radiusEps_ = eps;
+        }
     };
 }
 
