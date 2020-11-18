@@ -1151,6 +1151,7 @@ namespace lsq
             Vector fullStep;
             Solver solver;
             solver(hessian, gradient, fullStep);
+            fullStep = -fullStep;
 
             // precompute the full step length
             Scalar fullStepLenSq = fullStep.squaredNorm();
@@ -1220,6 +1221,8 @@ namespace lsq
 
                 ++iteration;
             }
+
+            step = -step;
         }
     public:
         DoglegMethod()
@@ -1231,6 +1234,14 @@ namespace lsq
                 acceptFitness_(static_cast<Scalar>(0.25)),
                 maxItTR_(0)
         { }
+
+        /** Set maximum iterations of the trust region radius search.
+          * Set to 0 or negative for infinite iterations.
+          * @param iterations maximum iterations for radius search */
+        void setMaxIterationsTR(const Index iterations)
+        {
+            maxItTR_ = iterations;
+        }
     };
 }
 

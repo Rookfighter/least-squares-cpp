@@ -13,6 +13,7 @@ set(TEST_SRC
     "dense_cholesky_solver.cpp"
     "dense_svd_solver.cpp"
     "backward_differences.cpp"
+    "dogleg_method.cpp"
     "forward_differences.cpp"
     "central_differences.cpp"
     "gauss_newton.cpp"
