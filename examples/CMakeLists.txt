@@ -4,6 +4,7 @@
 # Created On: 13 Jul 2019
 
 add_executable(custom_termination_criterion "custom_termination_criterion.cpp")
+add_executable(dogleg_method "dogleg_method.cpp")
 add_executable(gauss_newton_armijo_backtracking "gauss_newton_armijo_backtracking.cpp")
 add_executable(gauss_newton_wolfe_backtracking "gauss_newton_wolfe_backtracking.cpp")
 add_executable(gradient_descent_barzilai_borwein "gradient_descent_barzilai_borwein.cpp")

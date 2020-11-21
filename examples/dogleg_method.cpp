@@ -1,4 +1,4 @@
-/* levenberg_marquardt.cpp
+/* dogleg_method.cpp
  *
  *  Created on: 11 Nov 2020
  *      Author: Fabian Meyer
@@ -24,10 +24,10 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::LevenbergMarquardt<double, ParabolicError> optimizer;
+    lsq::DoglegMethod<double, ParabolicError> optimizer;
 
-    // Set number of iterations for levenberg-marquardt.
-    optimizer.setMaxIterationsLM(100);
+    // Set number of iterations for trust region method.
+    optimizer.setMaxIterationsTR(100);
 
     // Set number of iterations as stop criterion.
     optimizer.setMaxIterations(100);
