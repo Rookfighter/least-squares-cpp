@@ -10,12 +10,15 @@ include_directories(
 
 set(TEST_SRC
     "main.cpp"
+    "backward_differences.double.cpp"
+    "backward_differences.float.cpp"
+    "forward_differences.double.cpp"
+    "forward_differences.float.cpp"
+    "central_differences.double.cpp"
+    "central_differences.float.cpp"
     "dense_cholesky_solver.cpp"
     "dense_svd_solver.cpp"
-    "backward_differences.cpp"
     "dogleg_method.cpp"
-    "forward_differences.cpp"
-    "central_differences.cpp"
     "gauss_newton.cpp"
     "gradient_descent.cpp"
     "levenberg_marquardt.cpp"
