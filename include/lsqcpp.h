@@ -716,12 +716,6 @@ namespace lsq
         Scalar minError_;
         Index verbosity_;
 
-        virtual void calculateStep(const Vector &xval,
-            const Vector &fval,
-            const Matrix &jacobian,
-            const Vector &gradient,
-            Vector &step) = 0;
-
         void evaluateErrorFunction(const Vector &xval, Vector &fval, Matrix &jacobian)
         {
             jacobian.resize(0, 0);
@@ -933,6 +927,12 @@ namespace lsq
             return result;
         }
 
+        virtual void calculateStep(const Vector &xval,
+            const Vector &fval,
+            const Matrix &jacobian,
+            const Vector &gradient,
+            Vector &step) = 0;
+
     };
 
     template<typename Scalar,
@@ -946,7 +946,12 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-    protected:
+
+        GradientDescent()
+            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
+                StepSize, Callback, FiniteDifferences>()
+        { }
+
         void calculateStep(const Vector &,
             const Vector &,
             const Matrix &,
@@ -955,11 +960,6 @@ namespace lsq
         {
             step = gradient;
         }
-    public:
-        GradientDescent()
-            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                StepSize, Callback, FiniteDifferences>()
-        { }
 
     };
 
@@ -975,7 +975,13 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-    protected:
+
+    public:
+        GaussNewton()
+            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
+                StepSize, Callback, FiniteDifferences>()
+        { }
+
         void calculateStep(const Vector &,
             const Vector &,
             const Matrix &jacobian,
@@ -987,11 +993,6 @@ namespace lsq
             Matrix A = jacobian.transpose() * jacobian;
             solver(A, gradient, step);
         }
-    public:
-        GaussNewton()
-            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                StepSize, Callback, FiniteDifferences>()
-        { }
     };
 
     template<typename Scalar,
@@ -1005,52 +1006,12 @@ namespace lsq
     public:
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
         typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-    protected:
+    private:
         Scalar increase_;
         Scalar decrease_;
         Scalar lambda_;
         Index maxItLM_;
 
-        void calculateStep(const Vector &xval,
-            const Vector &fval,
-            const Matrix &jacobian,
-            const Vector &gradient,
-            Vector &step) override
-        {
-            Solver solver;
-            Scalar error = fval.squaredNorm() / 2;
-            Scalar errorN = error + 1;
-
-            Vector xvalN;
-            Vector fvalN;
-            Matrix jacobianN;
-
-            Matrix jacobianSq = jacobian.transpose() * jacobian;
-            Matrix A;
-
-            Index iterations = 0;
-            while((maxItLM_ <= 0 || iterations < maxItLM_) &&
-                errorN > error)
-            {
-                A = jacobianSq;
-                // add identity matrix
-                for(Index i = 0; i < A.rows(); ++i)
-                    A(i, i) += lambda_;
-
-                solver(A, gradient, step);
-
-                xvalN = xval - step;
-                this->errorFunction_(xvalN, fvalN, jacobianN);
-                errorN = fvalN.squaredNorm() / 2;
-
-                if(errorN > error)
-                    lambda_ *= increase_;
-                else
-                    lambda_ *= decrease_;
-
-                ++iterations;
-            }
-        }
     public:
         LevenbergMarquardt()
             : LeastSquaresAlgorithm<Scalar, ErrorFunction,
@@ -1095,8 +1056,49 @@ namespace lsq
             decrease_ = decrease;
         }
 
+        void calculateStep(const Vector &xval,
+            const Vector &fval,
+            const Matrix &jacobian,
+            const Vector &gradient,
+            Vector &step) override
+        {
+            Solver solver;
+            Scalar error = fval.squaredNorm() / 2;
+            Scalar errorN = error + 1;
+
+            Vector xvalN;
+            Vector fvalN;
+            Matrix jacobianN;
+
+            Matrix jacobianSq = jacobian.transpose() * jacobian;
+            Matrix A;
+
+            Index iterations = 0;
+            while((maxItLM_ <= 0 || iterations < maxItLM_) &&
+                errorN > error)
+            {
+                A = jacobianSq;
+                // add identity matrix
+                for(Index i = 0; i < A.rows(); ++i)
+                    A(i, i) += lambda_;
+
+                solver(A, gradient, step);
+
+                xvalN = xval - step;
+                this->errorFunction_(xvalN, fvalN, jacobianN);
+                errorN = fvalN.squaredNorm() / 2;
+
+                if(errorN > error)
+                    lambda_ *= increase_;
+                else
+                    lambda_ *= decrease_;
+
+                ++iterations;
+            }
+        }
     };
 
+    /** Implementation of Powell's Dogleg Method. */
     template<typename Scalar,
         typename ErrorFunction,
         typename Callback=NoCallback<Scalar>,
@@ -1137,7 +1139,48 @@ namespace lsq
             return (error - nextError) / (error - modelError);
         }
 
-    protected:
+    public:
+        DoglegMethod()
+            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
+                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
+                radius_(1),
+                maxRadius_(static_cast<Scalar>(2)),
+                radiusEps_(static_cast<Scalar>(1e-6)),
+                acceptFitness_(static_cast<Scalar>(0.25)),
+                maxItTR_(0)
+        { }
+
+        /** Set maximum iterations of the trust region radius search.
+          * Set to 0 or negative for infinite iterations.
+          * @param iterations maximum iterations for radius search */
+        void setMaxIterationsTR(const Index iterations)
+        {
+            maxItTR_ = iterations;
+        }
+
+        /** Set the minimum fitness value at which a model is accepted.
+          * The model fitness is computed as follows:
+          *
+          * fitness = f(xval) - f(xval + step) / m(0) - m(step)
+          *
+          * Where f(x) is the objective error function and m(x) is the
+          * model function describe by the trust region method.
+          *
+          * @param fitness minimum fitness for step acceptance */
+        void setAcceptanceFitness(const Scalar fitness)
+        {
+            acceptFitness_ = fitness;
+        }
+
+        /** Set the comparison epsilon on how close the step should be
+          * to the trust region radius to trigger an increase of the radius.
+          * Should usually be picked low, e.g. 1e-8.
+          * @param eps comparison epsilon for radius increase */
+        void setRaidusEps(const Scalar eps)
+        {
+            radiusEps_ = eps;
+        }
+
         void calculateStep(const Vector &xval,
             const Vector &fval,
             const Matrix &jacobian,
@@ -1223,47 +1266,6 @@ namespace lsq
             }
 
             step = -step;
-        }
-    public:
-        DoglegMethod()
-            : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-                ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
-                radius_(1),
-                maxRadius_(static_cast<Scalar>(2)),
-                radiusEps_(static_cast<Scalar>(1e-6)),
-                acceptFitness_(static_cast<Scalar>(0.25)),
-                maxItTR_(0)
-        { }
-
-        /** Set maximum iterations of the trust region radius search.
-          * Set to 0 or negative for infinite iterations.
-          * @param iterations maximum iterations for radius search */
-        void setMaxIterationsTR(const Index iterations)
-        {
-            maxItTR_ = iterations;
-        }
-
-        /** Set the minimum fitness value at which a model is accepted.
-          * The model fitness is computed as follows:
-          *
-          * fitness = f(xval) - f(xval + step) / m(0) - m(step)
-          *
-          * Where f(x) is the objective error function and m(x) is the
-          * model function describe by the trust region method.
-          *
-          * @param fitness minimum fitness for step acceptance */
-        void setAcceptanceFitness(const Scalar fitness)
-        {
-            acceptFitness_ = fitness;
-        }
-
-        /** Set the comparison epsilon on how close the step should be
-          * to the trust region radius to trigger an increase of the radius.
-          * Should usually be picked low, e.g. 1e-8.
-          * @param eps comparison epsilon for radius increase */
-        void setRaidusEps(const Scalar eps)
-        {
-            radiusEps_ = eps;
         }
     };
 }
