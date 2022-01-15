@@ -6,16 +6,19 @@
 cmake_minimum_required(VERSION 3.5)
 project(lsqcpp)
 
-SET(CMAKE_CXX_STANDARD 11)
+option(BUILD_TESTS "Enables if tests should be built" OFF)
+option(BUILD_EXAMPLES "Enables if examples should be built" OFF)
+
+SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
-endif(CMAKE_COMPILER_IS_GNUCXX)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_CXX_FLAGS "/WX /wd4834 /wd4530")
-endif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 # find OpenMP
 find_package(OpenMP)
@@ -36,9 +39,12 @@ install(FILES "include/lsqcpp.h"
     DESTINATION include)
 
 if(${BUILD_TESTS})
+    # Compile tests
+    include_directories(${CATCH2_INCLUDE_DIR})
     add_subdirectory(test)
 endif(${BUILD_TESTS})
 
 if(${BUILD_EXAMPLES})
+    # Compile examples
     add_subdirectory(examples)
 endif(${BUILD_EXAMPLES})

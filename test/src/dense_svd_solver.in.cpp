@@ -5,7 +5,7 @@
  */
 
 #include <lsqcpp.h>
-#include "assert/eigen_require.h"
+#include "eigen_require.h"
 
 using namespace lsq;
 

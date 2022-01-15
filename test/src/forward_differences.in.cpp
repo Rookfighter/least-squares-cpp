@@ -1,16 +1,16 @@
-/* central_differences.cpp
+/* forward_differences.cpp
  *
  * Author: Fabian Meyer
  * Created On: 11 Nov 2020
  */
 
 #include <lsqcpp.h>
-#include "assert/eigen_require.h"
-#include "errors/parabolic_error.h"
+#include "eigen_require.h"
+#include "parabolic_error.h"
 
 using namespace lsq;
 
-TEST_CASE("central differences " DATATYPE_STR)
+TEST_CASE("forward differences" DATATYPE_STR)
 {
     typedef DATATYPE Scalar;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
@@ -21,14 +21,9 @@ TEST_CASE("central differences " DATATYPE_STR)
     Matrix jacobianExp;
     ParabolicError<Scalar> parabError;
     Vector xval(4);
-    xval <<
-        static_cast<Scalar>(2.1),
-        static_cast<Scalar>(1.7),
-        static_cast<Scalar>(3.5),
-        static_cast<Scalar>(5.9);
-
+    xval << 2.1, 1.7, 3.5, 5.9;
     Vector fval;
-    CentralDifferences<Scalar> differences;
+    ForwardDifferences<Scalar> differences;
 
     differences.setErrorFunction(
     [](const Vector &xval, Vector &fval)

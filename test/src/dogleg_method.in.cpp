@@ -5,8 +5,8 @@
  */
 
 #include <lsqcpp.h>
-#include "assert/eigen_require.h"
-#include "errors/parabolic_error.h"
+#include "eigen_require.h"
+#include "parabolic_error.h"
 
 using namespace lsq;
 
