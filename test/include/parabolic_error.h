@@ -8,7 +8,7 @@ struct ParabolicError
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
-    void operator()(const Vector &xval, Vector &fval, Matrix &jacobian)
+    void operator()(const Vector &xval, Vector &fval, Matrix &jacobian) const
     {
         assert(xval.size() % 2 == 0);
 
@@ -34,7 +34,7 @@ struct ParabolicErrorNoJacobian
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
-    void operator()(const Vector &xval, Vector &fval, Matrix &)
+    void operator()(const Vector &xval, Vector &fval) const
     {
         Matrix jac;
         error_(xval, fval, jac);
