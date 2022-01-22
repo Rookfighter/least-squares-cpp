@@ -37,6 +37,8 @@ namespace lsq
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
             static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+            // mark to be used, otherwise get warning unused if no OMP is enabled
+            (void) threads;
 
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
@@ -74,6 +76,8 @@ namespace lsq
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
             static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+            // mark to be used, otherwise get warning unused if no OMP is enabled
+            (void) threads;
 
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
@@ -111,6 +115,8 @@ namespace lsq
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
             static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+            // mark to be used, otherwise get warning unused if no OMP is enabled
+            (void) threads;
 
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
@@ -704,7 +710,7 @@ namespace lsq
             {
                 stepSize = _decrease * stepSize;
                 xvalN = xval - stepSize * step;
-                objective_(xvalN, fvalN, jacobianN);
+                objective(xvalN, fvalN, jacobianN);
                 Scalar errorN = fvalN.squaredNorm() / 2;
                 gradientN = jacobianN.transpose() * fvalN;
 
