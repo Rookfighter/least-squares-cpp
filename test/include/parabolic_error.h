@@ -2,13 +2,12 @@
 #ifndef LSQCPP_PARABOLIC_ERROR_
 #define LSQCPP_PARABOLIC_ERROR_
 
-template<typename Scalar>
 struct ParabolicError
 {
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-
-    void operator()(const Vector &xval, Vector &fval, Matrix &jacobian) const
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval,
+                    Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
     {
         assert(xval.size() % 2 == 0);
 
@@ -27,32 +26,30 @@ struct ParabolicError
     }
 };
 
-template<typename Scalar>
 struct ParabolicErrorNoJacobian
 {
-    ParabolicError<Scalar> error_;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-
-    void operator()(const Vector &xval, Vector &fval) const
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
-        Matrix jac;
-        error_(xval, fval, jac);
+        Eigen::Matrix<Scalar, Outputs, Inputs> jac;
+        ParabolicError error;
+        error(xval, fval, jac);
     }
 };
 
-template<typename Scalar>
-struct ParabolicErrorInverseJacobian
-{
-    ParabolicError<Scalar> error_;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+// template<typename Scalar>
+// struct ParabolicErrorInverseJacobian
+// {
+//     ParabolicError<Scalar> error_;
+//     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
+//     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
-    void operator()(const Vector &xval, Vector &fval, Matrix &jacobian)
-    {
-        error_(xval, fval, jacobian);
-        jacobian *= -1;
-    }
-};
+//     void operator()(const Vector &xval, Vector &fval, Matrix &jacobian)
+//     {
+//         error_(xval, fval, jacobian);
+//         jacobian *= -1;
+//     }
+// };
 
 #endif

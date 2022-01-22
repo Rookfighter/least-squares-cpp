@@ -36,6 +36,8 @@ namespace lsq
                           const int threads,
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
 
@@ -71,6 +73,8 @@ namespace lsq
                           const int threads,
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
 
@@ -106,6 +110,8 @@ namespace lsq
                           const int threads,
                           Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
         {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
             using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
 
@@ -130,8 +136,11 @@ namespace lsq
         }
     };
 
-    /** Generic finite differences operation, which acts as a container for parametrization
-      * of the underlying method. */
+    /** Parametrization container for jacobian estimation using finite differences.
+      * The method parameter determines the actual finite differences method, which is used
+      * for computation.
+      * This class holds parameters for the finite differences operation, such as the
+      * number of threads to be used and the numerical espilon. */
     template<typename _Scalar, typename _Method>
     struct FiniteDifferences
     {
@@ -139,22 +148,52 @@ namespace lsq
         using Scalar = _Scalar;
         using Method = _Method;
 
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
         FiniteDifferences() = default;
 
         FiniteDifferences(const Scalar eps)
             : _eps(eps)
         { }
 
-        void setNumericalEpsilon(const Scalar eps)
+        FiniteDifferences(const Scalar eps, const int threads)
+            : _eps(eps), _threads(threads)
+        { }
+
+        /** Sets the numerical espilon that is used as step between two sucessive function evaluations.
+          * @param eps numerical epsilon */
+        void setEpsilon(const Scalar eps)
         {
             _eps = eps;
         }
 
+        /** Returns the numerical epsilon, which is used for jacobian approximation.
+          * @return numerical epsilon */
+        Scalar epsilon() const
+        {
+            return _eps;
+        }
+
+        /** Sets the number of threads which should be used to compute finite differences
+          * (OMP only).
+          * Set to 0 or negative for auto-detection of a suitable number.
+          * Each dimension of the input vector can be handled independently.
+          * @param threads number of threads */
         void setThreads(const int threads)
         {
             _threads = threads;
         }
 
+        int threads() const
+        {
+            return _threads;
+        }
+
+        /** Executes the chosen finite differences method with the configured parameters.
+          * @param xval current state vector of estimation problem.
+          * @param fval evaluated residual of the objective at the current state vector.
+          * @param objective objective function of the estimation problem
+          * @param jacobian jacobian that will be computed by finit differenes */
         template<typename Scalar, int Inputs, int Outputs, typename Objective>
         void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
                         const Eigen::Matrix<Scalar, Outputs, 1> &fval,
@@ -165,26 +204,37 @@ namespace lsq
         }
 
     private:
-        Scalar _eps = std::sqrt(std::numeric_limits<Scalar>::epsilon());
+        Scalar _eps = std::sqrt(Eigen::NumTraits<Scalar>::epsilon());
         int _threads = 1;
         Method _method = {};
     };
 
+    /** Generic class for refining a computed newton step.
+      * The method parameter determines how the step is actually refined, e.g
+      * ArmijoBacktracking, DoglegMethod or WolfeBacktracking. */
     template<typename Scalar, int Inputs, int Outputs, typename Method>
     class NewtonStepRefiner { };
 
-    /** Applies a constant scaling factor to the newton step. */
+    /** Newton step refinement method which applies a constant scaling factor to the newton step. */
     struct ConstantStepSize { };
 
-    template<typename Scalar, int Inputs, int Outputs>
-    class NewtonStepRefiner<Scalar, Inputs, Outputs, ConstantStepSize>
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ConstantStepSize>
     {
     public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ConstantStepSize;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
         using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
         using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
 
         NewtonStepRefiner() = default;
 
@@ -192,13 +242,22 @@ namespace lsq
             : _stepSize(stepSize)
         { }
 
-        /** Set the step size returned by this functor.
-          * @param stepSize step size returned by functor */
+        /** Sets the constant scaling factor which is applied to the newton step.
+          * @param stepSize constant newton step scaling factor */
         void setStepSize(const Scalar stepSize)
         {
             _stepSize = stepSize;
         }
 
+        /** Returns the constant scaling factor which is applied to the newton step.
+          * @return constant newton step scaling factor */
+        Scalar stepSize() const
+        {
+            return _stepSize;
+        }
+
+        /** Refines the given newton step and scales it by a constant factor.
+          * @param step newton step which is scaled. */
         template<typename Objective>
         void operator()(const InputVector &,
                         const OutputVector &,
@@ -223,38 +282,69 @@ namespace lsq
       * Inverse: stepSize = (y_k^T * s_k) / (y_k^T * y_k)
       *
       * The very first step is computed as a constant. */
-    struct BarzilaiBorwein { };
+    struct BarzilaiBorwein
+    {
+        enum class Mode
+        {
+            Direct,
+            Inverse
+        };
+    };
 
-    template<typename Scalar, int Inputs, int Outputs>
-    class NewtonStepRefiner<Scalar, Inputs, Outputs, BarzilaiBorwein>
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, BarzilaiBorwein>
     {
     public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = BarzilaiBorwein;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
         using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
         using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-
-        enum class Method
-        {
-            Direct,
-            Inverse
-        };
+        using Mode = BarzilaiBorwein::Mode;
 
         NewtonStepRefiner() = default;
 
-        NewtonStepRefiner(const Method method, const Scalar constStep)
-            : _method(method), _constStep(constStep)
+        NewtonStepRefiner(const Mode mode)
+            : _mode(mode)
         { }
 
-        void setMethod(const Method method)
+        NewtonStepRefiner(const Scalar constStep)
+            : _constStep(constStep)
+        { }
+
+        NewtonStepRefiner(const Mode mode, const Scalar constStep)
+            : _mode(mode), _constStep(constStep)
+        { }
+
+        /** Sets the BarzilaiBorwein operation mode.
+          * @param mode mode */
+        void setMode(const Mode mode)
         {
-            _method = method;
+            _mode = mode;
+        }
+
+        /** Returns the BarzilaiBorwein operation mode.
+          * @return mode */
+        Mode mode() const
+        {
+            return _mode;
         }
 
         void setConstantStepSize(const Scalar stepSize)
         {
             _constStep = stepSize;
+        }
+
+        Scalar constantStepSize() const
+        {
+            return _constStep;
         }
 
         template<typename Objective>
@@ -268,16 +358,16 @@ namespace lsq
             auto stepSize = Scalar{0};
             if(_lastXval.sum() == Scalar{0})
             {
-                stepSize = (1 / step.norm()) * _constStep;
+                stepSize = (Scalar{1} / step.norm()) * _constStep;
             }
             else
             {
-                switch(_method)
+                switch(_mode)
                 {
-                case Method::Direct:
+                case Mode::Direct:
                     stepSize = directStep(xval, step);
                     break;
-                case Method::Inverse:
+                case Mode::Inverse:
                     stepSize = inverseStep(xval, step);
                     break;
                 default:
@@ -294,7 +384,7 @@ namespace lsq
     private:
         InputVector _lastXval = {};
         StepVector _lastStep = {};
-        Method _method = Method::Direct;
+        Mode _mode = Mode::Direct;
         Scalar _constStep = static_cast<Scalar>(1e-2);
 
         Scalar constantStep() const
@@ -310,8 +400,8 @@ namespace lsq
             const auto num = sk.dot(sk);
             const auto denom = sk.dot(yk);
 
-            if(denom == 0)
-                return 1;
+            if(denom == Scalar{0})
+                return Scalar{1};
             else
                 return num / denom;
         }
