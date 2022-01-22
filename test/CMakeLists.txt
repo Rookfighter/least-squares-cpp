@@ -12,6 +12,8 @@ set(TEST_SRC
     "src/finite_differences_backward_test.cpp"
     "src/finite_differences_central_test.cpp"
     "src/finite_differences_forward_test.cpp"
+
+    "src/step_refiner_constant_factor_test.cpp"
     # "src/dense_cholesky_solver.double.cpp"
     # "src/dense_cholesky_solver.float.cpp"
     # "src/dense_svd_solver.double.cpp"

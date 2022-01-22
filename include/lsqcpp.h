@@ -216,16 +216,16 @@ namespace lsq
     class NewtonStepRefiner { };
 
     /** Newton step refinement method which applies a constant scaling factor to the newton step. */
-    struct ConstantStepSize { };
+    struct ConstantStepFactor { };
 
     template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ConstantStepSize>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ConstantStepFactor>
     {
     public:
         using Scalar = _Scalar;
         static constexpr int Inputs = _Inputs;
         static constexpr int Outputs = _Outputs;
-        using Method = ConstantStepSize;
+        using Method = ConstantStepFactor;
 
         static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
 
@@ -235,25 +235,24 @@ namespace lsq
         using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
 
-
         NewtonStepRefiner() = default;
 
-        NewtonStepRefiner(const Scalar stepSize)
-            : _stepSize(stepSize)
+        NewtonStepRefiner(const Scalar factor)
+            : _factor(factor)
         { }
 
         /** Sets the constant scaling factor which is applied to the newton step.
-          * @param stepSize constant newton step scaling factor */
-        void setStepSize(const Scalar stepSize)
+          * @param factor constant newton step scaling factor */
+        void setFactor(const Scalar factor)
         {
-            _stepSize = stepSize;
+            _factor = factor;
         }
 
         /** Returns the constant scaling factor which is applied to the newton step.
           * @return constant newton step scaling factor */
-        Scalar stepSize() const
+        Scalar factor() const
         {
-            return _stepSize;
+            return _factor;
         }
 
         /** Refines the given newton step and scales it by a constant factor.
@@ -266,10 +265,10 @@ namespace lsq
                         const Objective &,
                         StepVector &step) const
         {
-            step *= _stepSize;
+            step *= _factor;
         }
     private:
-        Scalar _stepSize = Scalar{1};
+        Scalar _factor = Scalar{1};
     };
 
     /** Applies Barzilai-Borwein (BB) refinemnt to the newton step.

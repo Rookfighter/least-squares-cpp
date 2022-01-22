@@ -65,13 +65,13 @@ TEMPLATE_TEST_CASE("backward differences", "[finite differences]", float, double
         {
             using InputVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
             using OutputVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-            using JacobianMatrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+            using JacobiMatrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
             constexpr auto eps = static_cast<Scalar>(1e-1);
 
             const auto objective = ParabolicErrorNoJacobian{};
 
-            JacobianMatrix actual;
-            JacobianMatrix expected;
+            JacobiMatrix actual;
+            JacobiMatrix expected;
             InputVector xval(4);
             xval <<
                 static_cast<Scalar>(2.1),
@@ -92,13 +92,13 @@ TEMPLATE_TEST_CASE("backward differences", "[finite differences]", float, double
         {
             using InputVector = Eigen::Matrix<Scalar, 4, 1>;
             using OutputVector = Eigen::Matrix<Scalar, 2, 1>;
-            using JacobianMatrix = Eigen::Matrix<Scalar, 2, 4>;
+            using JacobiMatrix = Eigen::Matrix<Scalar, 2, 4>;
             constexpr auto eps = static_cast<Scalar>(1e-1);
 
             const auto objective = ParabolicErrorNoJacobian{};
 
-            JacobianMatrix actual;
-            JacobianMatrix expected;
+            JacobiMatrix actual;
+            JacobiMatrix expected;
             InputVector xval;
             xval <<
                 static_cast<Scalar>(2.1),
