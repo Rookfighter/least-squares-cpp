@@ -205,7 +205,7 @@ namespace lsq
 
     private:
         Scalar _eps = std::sqrt(Eigen::NumTraits<Scalar>::epsilon());
-        int _threads = 1;
+        int _threads = int{1};
         Method _method = {};
     };
 
@@ -427,8 +427,8 @@ namespace lsq
             const auto num = sk.dot(yk);
             const auto denom = yk.dot(yk);
 
-            if(denom == 0)
-                return 1;
+            if(denom == Scalar{0})
+                return Scalar{1};
             else
                 return num / denom;
         }
@@ -445,10 +445,17 @@ namespace lsq
       * stepSize = decrease * stepSize */
     struct ArmijoBacktracking { };
 
-    template<typename Scalar, int Inputs, int Outputs>
-    class NewtonStepRefiner<Scalar, Inputs, Outputs, ArmijoBacktracking>
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ArmijoBacktracking>
     {
     public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ArmijoBacktracking;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
         using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
@@ -458,13 +465,18 @@ namespace lsq
         NewtonStepRefiner() = default;
 
         NewtonStepRefiner(const Scalar decrease,
-                           const Scalar c1,
-                           const Scalar minStep,
-                           const Scalar maxStep,
-                           const Index iterations)
+                          const Scalar c1,
+                          const Scalar minStep,
+                          const Scalar maxStep,
+                          const Index iterations)
             : _decrease(decrease), _c1(c1), _minStep(minStep),
             _maxStep(maxStep), _maxIt(iterations)
-        { }
+        {
+            assert(decrease > static_cast<Scalar>(0));
+            assert(decrease < static_cast<Scalar>(1));
+            assert(c1 > static_cast<Scalar>(0));
+            assert(c1 < static_cast<Scalar>(0.5));
+        }
 
         /** Set the decreasing factor for backtracking.
           * Assure that decrease in (0, 1).
@@ -474,6 +486,14 @@ namespace lsq
             assert(decrease > static_cast<Scalar>(0));
             assert(decrease < static_cast<Scalar>(1));
             _decrease = decrease;
+        }
+
+        /** Returns the decreasing factor for backtracking.
+          * The value should always lie within (0, 1).
+          * @return backtracking decrease */
+        Scalar backtrackingDecrease() const
+        {
+            return _decrease;
         }
 
         /** Set the relaxation constant for the Armijo condition (see class description).
@@ -487,9 +507,16 @@ namespace lsq
             _c1 = c1;
         }
 
+        /** Returns the the relaxation constant for the Armijo condition (see class description).
+          * The value should always lie within (0, 0.5).
+          * @return armijo constant */
+        Scalar armijoConstant() const
+        {
+            return _c1;
+        }
+
         /** Set the bounds for the step size during linesearch.
           * The final step size is guaranteed to be in [minStep, maxStep].
-          * The
           * @param minStep minimum step size
           * @param maxStep maximum step size */
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
@@ -499,12 +526,34 @@ namespace lsq
             _maxStep = maxStep;
         }
 
+        /** Returns the minimum bound for the step size during linesearch.
+          * @return minimum step size bound */
+        Scalar minimumStepBound() const
+        {
+            return _minStep;
+        }
+
+        /** Returns the maximum bound for the step size during linesearch.
+          * @return maximum step size bound */
+        Scalar maximumStepBound() const
+        {
+            return _maxStep;
+        }
+
         /** Set the maximum number of iterations.
           * Set to 0 or negative for infinite iterations.
           * @param iterations maximum number of iterations */
-        void setMaxIterations(const Index iterations)
+        void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
+        }
+
+        /** Returns the maximum number of iterations.
+          * A value of 0 or negative means infinite iterations.
+          * @return maximum number of iterations */
+        Index maximumIterations() const
+        {
+            return _maxIt;
         }
 
         template<typename Objective>
@@ -525,8 +574,8 @@ namespace lsq
             const auto stepGrad = gradient.dot(step);
             bool armijoCondition = false;
 
-            Index iterations = 0;
-            while((_maxIt <= 0 || iterations < _maxIt) &&
+            auto iterations = Index{0};
+            while((_maxIt <= Index{0} || iterations < _maxIt) &&
                    stepSize * _decrease >= _minStep &&
                    !armijoCondition)
             {
@@ -548,7 +597,7 @@ namespace lsq
         Scalar _c1 = static_cast<Scalar>(1e-4);
         Scalar _minStep = static_cast<Scalar>(1e-10);
         Scalar _maxStep = static_cast<Scalar>(1);
-        Index _maxIt = 0;
+        Index _maxIt = Index{0};
     };
 
     /** Step size functor to perform Wolfe Linesearch with backtracking.
