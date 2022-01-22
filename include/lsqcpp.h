@@ -308,19 +308,28 @@ namespace lsq
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using Mode = BarzilaiBorwein::Mode;
 
-        NewtonStepRefiner() = default;
+        NewtonStepRefiner()
+        {
+            init();
+        }
 
         NewtonStepRefiner(const Mode mode)
             : _mode(mode)
-        { }
+        {
+            init();
+        }
 
         NewtonStepRefiner(const Scalar constStep)
             : _constStep(constStep)
-        { }
+        {
+            init();
+        }
 
         NewtonStepRefiner(const Mode mode, const Scalar constStep)
             : _mode(mode), _constStep(constStep)
-        { }
+        {
+            init();
+        }
 
         /** Sets the BarzilaiBorwein operation mode.
           * @param mode mode */
@@ -336,11 +345,15 @@ namespace lsq
             return _mode;
         }
 
+        /** Sets the constant step size, which is used when the refiner was not initialized yet.
+          * @param stepSize constant step size */
         void setConstantStepSize(const Scalar stepSize)
         {
             _constStep = stepSize;
         }
 
+        /** Returns he constant step size, which is used when the refiner was not initialized yet.
+          * @return constant step size */
         Scalar constantStepSize() const
         {
             return _constStep;
@@ -386,9 +399,10 @@ namespace lsq
         Mode _mode = Mode::Direct;
         Scalar _constStep = static_cast<Scalar>(1e-2);
 
-        Scalar constantStep() const
+        void init()
         {
-            return _constStep;
+            _lastXval.setZero();
+            _lastStep.setZero();
         }
 
         Scalar directStep(const InputVector &xval,
