@@ -570,15 +570,14 @@ namespace lsq
                         const Objective &objective,
                         StepVector &step) const
         {
-            auto stepSize = _maxStep / _decrease;
             JacobiMatrix jacobianN;
-            GradientVector gradientN;
             InputVector xvalN;
             OutputVector fvalN;
 
             const auto error = static_cast<Scalar>(0.5) * fval.squaredNorm();
             const auto stepGrad = gradient.dot(step);
             bool armijoCondition = false;
+            auto stepSize = _maxStep / _decrease;
 
             auto iterations = Index{0};
             while((_maxIt <= Index{0} || iterations < _maxIt) &&
@@ -588,8 +587,8 @@ namespace lsq
                 stepSize = _decrease * stepSize;
                 xvalN = xval - stepSize * step;
                 objective(xvalN, fvalN, jacobianN);
+
                 const auto errorN = static_cast<Scalar>(0.5) * fvalN.squaredNorm();
-                gradientN = jacobianN.transpose() * fvalN;
 
                 armijoCondition = errorN <= error + _c1 * stepSize * stepGrad;
 
