@@ -618,10 +618,17 @@ namespace lsq
       * stepSize = decrease * stepSize */
     struct WolfeBacktracking { };
 
-    template<typename Scalar, int Inputs, int Outputs>
-    class NewtonStepRefiner<Scalar, Inputs, Outputs, WolfeBacktracking>
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, WolfeBacktracking>
     {
     public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ArmijoBacktracking;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
         using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
@@ -789,10 +796,17 @@ namespace lsq
     struct DoglegMethod { };
 
     /** Implementation of Powell's Dogleg Method. */
-    template<typename Scalar, int Inputs, int Outputs>
-    class NewtonStepRefiner<Scalar, Inputs, Outputs, DoglegMethod>
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, DoglegMethod>
     {
     public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ArmijoBacktracking;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
         using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
@@ -814,9 +828,16 @@ namespace lsq
         /** Set maximum iterations of the trust region radius search.
           * Set to 0 or negative for infinite iterations.
           * @param iterations maximum iterations for radius search */
-        void setMaxIterations(const Index iterations)
+        void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
+        }
+
+        /** Returns the maximum iterations of the trust region radius search.
+          * @return maximum iterations for radius search */
+        Index maximumIterations() const
+        {
+            return _maxIt;
         }
 
         /** Set the minimum fitness value at which a model is accepted.
@@ -833,13 +854,50 @@ namespace lsq
             _acceptFitness = fitness;
         }
 
-        /** Set the comparison epsilon on how close the step should be
+        /** Returns the minimum fitness value at which a model is accepted.
+          * @return minimum fitness for step acceptance */
+        Scalar acceptanceFitness() const
+        {
+            return _acceptFitness;
+        }
+
+        /** Sets the comparison epsilon on how close the step should be
           * to the trust region radius to trigger an increase of the radius.
           * Should usually be picked low, e.g. 1e-8.
           * @param eps comparison epsilon for radius increase */
-        void setRaidusEps(const Scalar eps)
+        void setRadiusEpsilon(const Scalar eps)
         {
             _radiusEps = eps;
+        }
+
+        /** Returns the comparison epsilon on how close the step should be
+          * to the trust region radius to trigger an increase of the radius.
+          * @return comparison epsilon for radius increase */
+        Scalar radiusEpsilon() const
+        {
+            return _radiusEps;
+        }
+
+        /** Sets the maximum radius that is used for trust region search.
+          * @param radius maximum trust region radius */
+        void setMaximumRadius(const Scalar radius)
+        {
+            _maxRadius = radius;
+            _radius = std::min(_radius, _maxRadius);
+        }
+
+        /** Returns the maximum radius that is used for trust region search.
+          * @return maximum trust region radius */
+        Scalar maximumRadius() const
+        {
+            return _maxRadius;
+        }
+
+        /** Returns the current trust region radius.
+          * @return trust region radius. */
+        Scalar radius() const
+        {
+            return _radius;
         }
 
         template<typename Objective>
@@ -1027,10 +1085,10 @@ namespace lsq
         {
             template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
-                          const Objective& objective,
-                          const FiniteDifferencesCalculator&,
-                          OutputVector &fval,
-                          JacobiMatrix &jacobian) const
+                            const Objective& objective,
+                            const FiniteDifferencesCalculator&,
+                            OutputVector &fval,
+                            JacobiMatrix &jacobian) const
             {
                 objective(xval, fval, jacobian);
             }
@@ -1041,10 +1099,10 @@ namespace lsq
         {
             template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
-                          const Objective& objective,
-                          const FiniteDifferencesCalculator& finiteDifferences,
-                          OutputVector &fval,
-                          JacobiMatrix &jacobian) const
+                            const Objective& objective,
+                            const FiniteDifferencesCalculator& finiteDifferences,
+                            OutputVector &fval,
+                            JacobiMatrix &jacobian) const
             {
                 objective(xval, fval);
                 finiteDifferences(xval, fval, jacobian);

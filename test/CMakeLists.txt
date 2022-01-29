@@ -17,6 +17,7 @@ set(TEST_SRC
     "src/step_refiner_barzilai_borwein_test.cpp"
     "src/step_refiner_armijo_backtracking_test.cpp"
     "src/step_refiner_wolfe_backtracking_test.cpp"
+    "src/step_refiner_dogleg_method_test.cpp"
     # "src/dense_cholesky_solver.double.cpp"
     # "src/dense_cholesky_solver.float.cpp"
     # "src/dense_svd_solver.double.cpp"

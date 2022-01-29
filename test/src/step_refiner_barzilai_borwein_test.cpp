@@ -10,7 +10,7 @@
 
 using namespace lsq;
 
-TEMPLATE_TEST_CASE("barzilai borwein step refiner ", "[step refiner]", float, double)
+TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, double)
 {
     using Scalar = TestType;
     using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, BarzilaiBorwein>;

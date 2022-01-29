@@ -1,4 +1,4 @@
-/* step_refiner_wolfe_backtracking_test.cpp
+/* step_refiner_dogleg_method_test.cpp
  *
  * Author: Fabian Meyer
  * Created On: 22 Jan 2021
@@ -10,72 +10,67 @@
 
 using namespace lsq;
 
-TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, double)
+TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, WolfeBacktracking>;
+    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, DoglegMethod>;
 
     SECTION("construction")
     {
         SECTION("default")
         {
             DynamicRefiner refiner;
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.8));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.9));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-10));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1));
+            REQUIRE(refiner.radius() == static_cast<Scalar>(1));
+            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(2));
+            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-6));
+            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.25));
             REQUIRE(refiner.maximumIterations() == 0);
         }
 
         SECTION("parametrized A")
         {
             DynamicRefiner refiner(static_cast<Scalar>(0.42),
+                                   static_cast<Scalar>(0.78),
                                    static_cast<Scalar>(1e-2),
-                                   static_cast<Scalar>(0.72),
-                                   static_cast<Scalar>(1e-4),
-                                   static_cast<Scalar>(1e-3),
+                                   static_cast<Scalar>(0.11),
                                    10);
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.72));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1e-3));
+            REQUIRE(refiner.radius() == static_cast<Scalar>(0.42));
+            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(0.78));
+            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-2));
+            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.11));
             REQUIRE(refiner.maximumIterations() == 10);
         }
     }
 
     SECTION("setter")
     {
-        SECTION("backtracking decrease")
+        SECTION("maximum radius")
         {
             DynamicRefiner refiner;
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.8));
+            REQUIRE(refiner.radius() == static_cast<Scalar>(1));
+            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(2));
 
-            refiner.setBacktrackingDecrease(static_cast<Scalar>(0.42));
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
+            refiner.setMaximumRadius(static_cast<Scalar>(0.78));
+            REQUIRE(refiner.radius() == static_cast<Scalar>(0.78));
+            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(0.78));
         }
 
-        SECTION("wolfe constants")
+        SECTION("radius epsilon")
         {
             DynamicRefiner refiner;
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.9));
+            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-6));
 
-            refiner.setWolfeConstants(static_cast<Scalar>(1e-2), static_cast<Scalar>(0.72));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.72));
+            refiner.setRadiusEpsilon(static_cast<Scalar>(1e-2));
+            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-2));
         }
 
-        SECTION("step bounds")
+        SECTION("acceptance fitness")
         {
             DynamicRefiner refiner;
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-10));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1));
+            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.25));
 
-            refiner.setStepBounds(static_cast<Scalar>(1e-4), static_cast<Scalar>(1e-3));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1e-3));
+            refiner.setAcceptanceFitness(static_cast<Scalar>(0.11));
+            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.11));
         }
 
         SECTION("maximum iterations")
@@ -99,7 +94,7 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
             using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
             using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, WolfeBacktracking>;
+            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, DoglegMethod>;
             constexpr auto eps = static_cast<Scalar>(1e-6);
 
             ParabolicError objective;
@@ -114,10 +109,10 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
 
             Refiner refiner;
             StepVector expected(4);
-            expected << static_cast<Scalar>(0.0302232),
-                        static_cast<Scalar>(0.0604463),
-                        static_cast<Scalar>(0.0302232),
-                        static_cast<Scalar>(0.0604463);
+            expected << static_cast<Scalar>(-0.316228),
+                        static_cast<Scalar>(-0.632456),
+                        static_cast<Scalar>(-0.316228),
+                        static_cast<Scalar>(-0.632456);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 
@@ -133,7 +128,7 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
             using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
             using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, WolfeBacktracking>;
+            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, DoglegMethod>;
             constexpr auto eps = static_cast<Scalar>(1e-6);
 
             ParabolicError objective;
@@ -148,10 +143,11 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
 
             Refiner refiner;
             StepVector expected(4);
-            expected << static_cast<Scalar>(0.0302232),
-                        static_cast<Scalar>(0.0604463),
-                        static_cast<Scalar>(0.0302232),
-                        static_cast<Scalar>(0.0604463);
+            expected << static_cast<Scalar>(-0.316228),
+                        static_cast<Scalar>(-0.632456),
+                        static_cast<Scalar>(-0.316228),
+                        static_cast<Scalar>(-0.632456);
+
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 
