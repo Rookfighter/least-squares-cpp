@@ -1017,10 +1017,11 @@ namespace lsq
 
     struct DenseSVDSolver
     {
-        template<typename DerivedA, typename DerivedB>
-        auto operator()(const Eigen::MatrixBase<DerivedA> &A, const Eigen::MatrixBase<DerivedB> &b) const
+        template<typename Scalar, int Size>
+        Eigen::Matrix<Scalar, Size, 1> operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                                                  const Eigen::Matrix<Scalar, Size, 1> &b) const
         {
-            using Matrix = typename Eigen::MatrixBase<DerivedA>::PlainMatrix;
+            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
             using Solver = Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>;
             auto solver = Solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
             return solver.solve(b);
@@ -1029,10 +1030,11 @@ namespace lsq
 
     struct DenseCholeskySolver
     {
-        template<typename DerivedA, typename DerivedB>
-        auto operator()(const Eigen::MatrixBase<DerivedA> &A, const Eigen::MatrixBase<DerivedB> &b) const
+        template<typename Scalar, int Size>
+        Eigen::Matrix<Scalar, Size, 1> operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                                                  const Eigen::Matrix<Scalar, Size, 1> &b) const
         {
-            using Matrix = typename Eigen::MatrixBase<DerivedA>::PlainMatrix;
+            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
             using Solver = Eigen::LDLT<Matrix>;
 
             Solver decomp;

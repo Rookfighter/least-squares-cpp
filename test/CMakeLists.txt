@@ -18,15 +18,9 @@ set(TEST_SRC
     "src/step_refiner_armijo_backtracking_test.cpp"
     "src/step_refiner_wolfe_backtracking_test.cpp"
     "src/step_refiner_dogleg_method_test.cpp"
-    # "src/dense_cholesky_solver.double.cpp"
-    # "src/dense_cholesky_solver.float.cpp"
-    # "src/dense_svd_solver.double.cpp"
-    # "src/dense_svd_solver.float.cpp"
-    # "src/dogleg_method.double.cpp"
-    # "src/dogleg_method.float.cpp"
-    # "src/gauss_newton.cpp"
-    # "src/gradient_descent.cpp"
-    # "src/levenberg_marquardt.cpp"
+
+    "src/dense_cholesky_solver_test.cpp"
+    "src/dense_svd_solver_test.cpp"
 )
 
 add_executable(run_tests ${TEST_SRC})
