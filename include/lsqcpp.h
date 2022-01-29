@@ -527,6 +527,7 @@ namespace lsq
           * @param maxStep maximum step size */
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
         {
+            assert(minStep >= 0);
             assert(minStep < maxStep);
             _minStep = minStep;
             _maxStep = maxStep;
@@ -637,14 +638,31 @@ namespace lsq
             const Index iterations)
             : _decrease(decrease), _c1(c1), _c2(c2), _minStep(minStep),
             _maxStep(maxStep), _maxIt(iterations)
-        { }
+        {
+            assert(decrease > static_cast<Scalar>(0));
+            assert(decrease < static_cast<Scalar>(1));
+            assert(c1 > static_cast<Scalar>(0));
+            assert(c1 < static_cast<Scalar>(0.5));
+            assert(c1 < c2);
+            assert(c2 < static_cast<Scalar>(1));
+        }
 
         /** Set the decreasing factor for backtracking.
           * Assure that decrease in (0, 1).
           * @param decrease decreasing factor */
         void setBacktrackingDecrease(const Scalar decrease)
         {
+            assert(decrease > static_cast<Scalar>(0));
+            assert(decrease < static_cast<Scalar>(1));
             _decrease = decrease;
+        }
+
+        /** Returns the decreasing factor for backtracking.
+          * The value should always lie within (0, 1).
+          * @return backtracking decrease */
+        Scalar backtrackingDecrease() const
+        {
+            return _decrease;
         }
 
         /** Set the wolfe constants for Armijo and Wolfe condition (see class
@@ -663,23 +681,61 @@ namespace lsq
             _c2 = c2;
         }
 
+        /** Returns the the relaxation constant for the Armijo condition (see class description).
+          * The value should always lie within (0, 0.5).
+          * @return armijo constant */
+        Scalar armijoConstant() const
+        {
+            return _c1;
+        }
+
+        /** Returns the the relaxation constant for the Wolfe condition (see class description).
+          * @return wolfe constant */
+        Scalar wolfeConstant() const
+        {
+            return _c2;
+        }
+
         /** Set the bounds for the step size during linesearch.
           * The final step size is guaranteed to be in [minStep, maxStep].
           * @param minStep minimum step size
           * @param maxStep maximum step size */
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
         {
+            assert(minStep >= Scalar{0});
             assert(minStep < maxStep);
             _minStep = minStep;
             _maxStep = maxStep;
         }
 
+        /** Returns the minimum bound for the step size during linesearch.
+          * @return minimum step size bound */
+        Scalar minimumStepBound() const
+        {
+            return _minStep;
+        }
+
+        /** Returns the maximum bound for the step size during linesearch.
+          * @return maximum step size bound */
+        Scalar maximumStepBound() const
+        {
+            return _maxStep;
+        }
+
         /** Set the maximum number of iterations.
           * Set to 0 or negative for infinite iterations.
           * @param iterations maximum number of iterations */
-        void setMaxIterations(const Index iterations)
+        void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
+        }
+
+        /** Returns the maximum number of iterations.
+          * A value of 0 or negative means infinite iterations.
+          * @return maximum number of iterations */
+        Index maximumIterations() const
+        {
+            return _maxIt;
         }
 
         template<typename Objective>
