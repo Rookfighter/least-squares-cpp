@@ -1,8 +1,8 @@
-/* step_refiner_constant_factor_test.cpp
- *
- * Author: Fabian Meyer
- * Created On: 22 Jan 2021
- */
+/// step_refiner_constant_factor_test.cpp
+///
+/// Author: Fabian Meyer
+/// Created On: 22 Jan 2021
+
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -68,7 +68,7 @@ TEMPLATE_TEST_CASE("constant factor step refiner", "[step refiner]", float, doub
                     static_cast<Scalar>(21.4);
 
             Refiner refiner(static_cast<Scalar>(2.5));
-            StepVector expected = step * static_cast<Scalar>(2.5);
+            StepVector expected = step/// static_cast<Scalar>(2.5);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 
@@ -99,7 +99,7 @@ TEMPLATE_TEST_CASE("constant factor step refiner", "[step refiner]", float, doub
                     static_cast<Scalar>(21.4);
 
             Refiner refiner(static_cast<Scalar>(2.5));
-            StepVector expected = step * static_cast<Scalar>(2.5);
+            StepVector expected = step/// static_cast<Scalar>(2.5);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 

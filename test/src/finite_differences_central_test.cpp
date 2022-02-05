@@ -1,8 +1,8 @@
-/* finite_differences_central_test.cpp
- *
- * Author: Fabian Meyer
- * Created On: 11 Nov 2020
- */
+/// finite_differences_central_test.cpp
+///
+/// Author: Fabian Meyer
+/// Created On: 11 Nov 2020
+
 
 #include <lsqcpp.h>
 #include "eigen_require.h"

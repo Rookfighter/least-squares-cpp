@@ -1,8 +1,8 @@
-/* step_refiner_dogleg_method_test.cpp
- *
- * Author: Fabian Meyer
- * Created On: 22 Jan 2021
- */
+/// step_refiner_dogleg_method_test.cpp
+///
+/// Author: Fabian Meyer
+/// Created On: 22 Jan 2021
+
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -104,7 +104,7 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose() * fval;
+            GradientVector gradient = jacobian.transpose()/// fval;
             StepVector step = gradient;
 
             Refiner refiner;
@@ -138,7 +138,7 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose() * fval;
+            GradientVector gradient = jacobian.transpose()/// fval;
             StepVector step = gradient;
 
             Refiner refiner;

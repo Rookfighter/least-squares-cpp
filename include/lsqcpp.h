@@ -1,9 +1,9 @@
-/* lsqcpp.h
- *
- * Author: Fabian Meyer
- * Created On: 22 Jul 2019
- * License: MIT
- */
+/// lsqcpp.h
+///
+/// Author:     Fabian Meyer
+/// Created On: 22 Jul 2019
+/// License:    MIT
+
 
 #ifndef LSQCPP_LSQCPP_H_
 #define LSQCPP_LSQCPP_H_
@@ -20,12 +20,12 @@ namespace lsq
 {
     using Index = Eigen::MatrixXd::Index;
 
-    /** Functor to compute forward differences.
-      * Computes the gradient of the objective f(x) as follows:
-      *
-      * grad(x) = (f(x + eps) - f(x)) / eps
-      *
-      * The computation requires len(x) evaluations of the objective. */
+    /// Functor to compute forward differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x + eps) - f(x)) / eps
+    ///
+    /// The computation requires len(x) evaluations of the objective.
     struct ForwardDifferences
     {
         template<typename Scalar, int Inputs, int Outputs, typename Objective>
@@ -59,12 +59,12 @@ namespace lsq
         }
     };
 
-    /** Functor to compute backward differences.
-      * Computes the gradient of the objective f(x) as follows:
-      *
-      * grad(x) = (f(x) - f(x - eps)) / eps
-      *
-      * The computation requires len(x) evaluations of the objective. */
+    /// Functor to compute backward differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x) - f(x - eps)) / eps
+    ///
+    /// The computation requires len(x) evaluations of the objective.
     struct BackwardDifferences
     {
         template<typename Scalar, int Inputs, int Outputs, typename Objective>
@@ -98,12 +98,12 @@ namespace lsq
         }
     };
 
-    /** Functor to compute central differences.
-      * Computes the gradient of the objective f(x) as follows:
-      *
-      * grad(x) = (f(x + 0.5 eps) - f(x - 0.5 eps)) / eps
-      *
-      * The computation requires 2 * len(x) evaluations of the objective. */
+    /// Functor to compute central differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x + 0.5 eps) - f(x - 0.5 eps)) / eps
+    ///
+    /// The computation requires 2 * len(x) evaluations of the objective.
     struct CentralDifferences
     {
         template<typename Scalar, int Inputs, int Outputs, typename Objective>
@@ -142,11 +142,11 @@ namespace lsq
         }
     };
 
-    /** Parametrization container for jacobian estimation using finite differences.
-      * The method parameter determines the actual finite differences method, which is used
-      * for computation.
-      * This class holds parameters for the finite differences operation, such as the
-      * number of threads to be used and the numerical espilon. */
+    /// Parametrization container for jacobian estimation using finite differences.
+    /// The method parameter determines the actual finite differences method, which is used
+    /// for computation.
+    /// This class holds parameters for the finite differences operation, such as the
+    /// number of threads to be used and the numerical espilon.
     template<typename _Scalar, typename _Method>
     struct FiniteDifferences
     {
@@ -166,25 +166,25 @@ namespace lsq
             : _eps(eps), _threads(threads)
         { }
 
-        /** Sets the numerical espilon that is used as step between two sucessive function evaluations.
-          * @param eps numerical epsilon */
+        /// Sets the numerical espilon that is used as step between two sucessive function evaluations.
+        /// @param eps numerical epsilon
         void setEpsilon(const Scalar eps)
         {
             _eps = eps;
         }
 
-        /** Returns the numerical epsilon, which is used for jacobian approximation.
-          * @return numerical epsilon */
+        /// Returns the numerical epsilon, which is used for jacobian approximation.
+        /// @return numerical epsilon
         Scalar epsilon() const
         {
             return _eps;
         }
 
-        /** Sets the number of threads which should be used to compute finite differences
-          * (OMP only).
-          * Set to 0 or negative for auto-detection of a suitable number.
-          * Each dimension of the input vector can be handled independently.
-          * @param threads number of threads */
+        /// Sets the number of threads which should be used to compute finite differences
+        /// (OMP only).
+        /// Set to 0 or negative for auto-detection of a suitable number.
+        /// Each dimension of the input vector can be handled independently.
+        /// @param threads number of threads
         void setThreads(const int threads)
         {
             _threads = threads;
@@ -195,11 +195,11 @@ namespace lsq
             return _threads;
         }
 
-        /** Executes the chosen finite differences method with the configured parameters.
-          * @param xval current state vector of estimation problem.
-          * @param fval evaluated residual of the objective at the current state vector.
-          * @param objective objective function of the estimation problem
-          * @param jacobian jacobian that will be computed by finit differenes */
+        /// Executes the chosen finite differences method with the configured parameters.
+        /// @param xval current state vector of estimation problem.
+        /// @param fval evaluated residual of the objective at the current state vector.
+        /// @param objective objective function of the estimation problem
+        /// @param jacobian jacobian that will be computed by finit differenes
         template<typename Scalar, int Inputs, int Outputs, typename Objective>
         void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
                         const Eigen::Matrix<Scalar, Outputs, 1> &fval,
@@ -215,13 +215,13 @@ namespace lsq
         Method _method = {};
     };
 
-    /** Generic class for refining a computed newton step.
-      * The method parameter determines how the step is actually refined, e.g
-      * ArmijoBacktracking, DoglegMethod or WolfeBacktracking. */
+    /// Generic class for refining a computed newton step.
+    /// The method parameter determines how the step is actually refined, e.g
+    /// ArmijoBacktracking, DoglegMethod or WolfeBacktracking.
     template<typename Scalar, int Inputs, int Outputs, typename Method>
     class NewtonStepRefiner { };
 
-    /** Newton step refinement method which applies a constant scaling factor to the newton step. */
+    /// Newton step refinement method which applies a constant scaling factor to the newton step.
     struct ConstantStepFactor { };
 
     template<typename _Scalar, int _Inputs, int _Outputs>
@@ -247,22 +247,22 @@ namespace lsq
             : _factor(factor)
         { }
 
-        /** Sets the constant scaling factor which is applied to the newton step.
-          * @param factor constant newton step scaling factor */
+        /// Sets the constant scaling factor which is applied to the newton step.
+        /// @param factor constant newton step scaling factor
         void setFactor(const Scalar factor)
         {
             _factor = factor;
         }
 
-        /** Returns the constant scaling factor which is applied to the newton step.
-          * @return constant newton step scaling factor */
+        /// Returns the constant scaling factor which is applied to the newton step.
+        /// @return constant newton step scaling factor
         Scalar factor() const
         {
             return _factor;
         }
 
-        /** Refines the given newton step and scales it by a constant factor.
-          * @param step newton step which is scaled. */
+        /// Refines the given newton step and scales it by a constant factor.
+        /// @param step newton step which is scaled.
         template<typename Objective>
         void operator()(const InputVector &,
                         const OutputVector &,
@@ -277,16 +277,16 @@ namespace lsq
         Scalar _factor = Scalar{1};
     };
 
-    /** Applies Barzilai-Borwein (BB) refinemnt to the newton step.
-      * The functor can either compute the direct or inverse BB step.
-      * The steps are computed as follows:
-      *
-      * s_k = x_k - x_k-1         k >= 1
-      * y_k = step_k - step_k-1   k >= 1
-      * Direct:  stepSize = (s_k^T * s_k) / (y_k^T * s_k)
-      * Inverse: stepSize = (y_k^T * s_k) / (y_k^T * y_k)
-      *
-      * The very first step is computed as a constant. */
+    /// Applies Barzilai-Borwein (BB) refinemnt to the newton step.
+    /// The functor can either compute the direct or inverse BB step.
+    /// The steps are computed as follows:
+    ///
+    /// s_k = x_k - x_k-1         k >= 1
+    /// y_k = step_k - step_k-1   k >= 1
+    /// Direct:  stepSize = (s_k^T * s_k) / (y_k^T * s_k)
+    /// Inverse: stepSize = (y_k^T * s_k) / (y_k^T * y_k)
+    ///
+    /// The very first step is computed as a constant.
     struct BarzilaiBorwein
     {
         enum class Mode
@@ -337,29 +337,29 @@ namespace lsq
             init();
         }
 
-        /** Sets the BarzilaiBorwein operation mode.
-          * @param mode mode */
+        /// Sets the BarzilaiBorwein operation mode.
+        /// @param mode mode
         void setMode(const Mode mode)
         {
             _mode = mode;
         }
 
-        /** Returns the BarzilaiBorwein operation mode.
-          * @return mode */
+        /// Returns the BarzilaiBorwein operation mode.
+        /// @return mode
         Mode mode() const
         {
             return _mode;
         }
 
-        /** Sets the constant step size, which is used when the refiner was not initialized yet.
-          * @param stepSize constant step size */
+        /// Sets the constant step size, which is used when the refiner was not initialized yet.
+        /// @param stepSize constant step size
         void setConstantStepSize(const Scalar stepSize)
         {
             _constStep = stepSize;
         }
 
-        /** Returns he constant step size, which is used when the refiner was not initialized yet.
-          * @return constant step size */
+        /// Returns he constant step size, which is used when the refiner was not initialized yet.
+        /// @return constant step size
         Scalar constantStepSize() const
         {
             return _constStep;
@@ -440,15 +440,15 @@ namespace lsq
         }
     };
 
-    /** Step size functor to perform Armijo Linesearch with backtracking.
-      * The functor iteratively decreases the step size until the following
-      * conditions are met:
-      *
-      * Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
-      *
-      * If the condition does not hold the step size is decreased:
-      *
-      * stepSize = decrease * stepSize */
+    /// Step size functor to perform Armijo Linesearch with backtracking.
+    /// The functor iteratively decreases the step size until the following
+    /// conditions are met:
+    ///
+    /// Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
+    ///
+    /// If the condition does not hold the step size is decreased:
+    ///
+    /// stepSize = decrease * stepSize
     struct ArmijoBacktracking { };
 
     template<typename _Scalar, int _Inputs, int _Outputs>
@@ -484,9 +484,9 @@ namespace lsq
             assert(c1 < static_cast<Scalar>(0.5));
         }
 
-        /** Set the decreasing factor for backtracking.
-          * Assure that decrease in (0, 1).
-          * @param decrease decreasing factor */
+        /// Set the decreasing factor for backtracking.
+        /// Assure that decrease in (0, 1).
+        /// @param decrease decreasing factor
         void setBacktrackingDecrease(const Scalar decrease)
         {
             assert(decrease > static_cast<Scalar>(0));
@@ -494,18 +494,18 @@ namespace lsq
             _decrease = decrease;
         }
 
-        /** Returns the decreasing factor for backtracking.
-          * The value should always lie within (0, 1).
-          * @return backtracking decrease */
+        /// Returns the decreasing factor for backtracking.
+        /// The value should always lie within (0, 1).
+        /// @return backtracking decrease
         Scalar backtrackingDecrease() const
         {
             return _decrease;
         }
 
-        /** Set the relaxation constant for the Armijo condition (see class description).
-          * Typically c1 is chosen to be quite small, e.g. 1e-4.
-          * Assure that c1 in (0, 0.5).
-          * @param c1 armijo constant */
+        /// Set the relaxation constant for the Armijo condition (see class description).
+        /// Typically c1 is chosen to be quite small, e.g. 1e-4.
+        /// Assure that c1 in (0, 0.5).
+        /// @param c1 armijo constant
         void setArmijoConstant(const Scalar c1)
         {
             assert(c1 > static_cast<Scalar>(0));
@@ -513,18 +513,18 @@ namespace lsq
             _c1 = c1;
         }
 
-        /** Returns the the relaxation constant for the Armijo condition (see class description).
-          * The value should always lie within (0, 0.5).
-          * @return armijo constant */
+        /// Returns the the relaxation constant for the Armijo condition (see class description).
+        /// The value should always lie within (0, 0.5).
+        /// @return armijo constant
         Scalar armijoConstant() const
         {
             return _c1;
         }
 
-        /** Set the bounds for the step size during linesearch.
-          * The final step size is guaranteed to be in [minStep, maxStep].
-          * @param minStep minimum step size
-          * @param maxStep maximum step size */
+        /// Set the bounds for the step size during linesearch.
+        /// The final step size is guaranteed to be in [minStep, maxStep].
+        /// @param minStep minimum step size
+        /// @param maxStep maximum step size
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
         {
             assert(minStep >= 0);
@@ -533,31 +533,31 @@ namespace lsq
             _maxStep = maxStep;
         }
 
-        /** Returns the minimum bound for the step size during linesearch.
-          * @return minimum step size bound */
+        /// Returns the minimum bound for the step size during linesearch.
+        /// @return minimum step size bound
         Scalar minimumStepBound() const
         {
             return _minStep;
         }
 
-        /** Returns the maximum bound for the step size during linesearch.
-          * @return maximum step size bound */
+        /// Returns the maximum bound for the step size during linesearch.
+        /// @return maximum step size bound
         Scalar maximumStepBound() const
         {
             return _maxStep;
         }
 
-        /** Set the maximum number of iterations.
-          * Set to 0 or negative for infinite iterations.
-          * @param iterations maximum number of iterations */
+        /// Set the maximum number of iterations.
+        /// Set to 0 or negative for infinite iterations.
+        /// @param iterations maximum number of iterations
         void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
         }
 
-        /** Returns the maximum number of iterations.
-          * A value of 0 or negative means infinite iterations.
-          * @return maximum number of iterations */
+        /// Returns the maximum number of iterations.
+        /// A value of 0 or negative means infinite iterations.
+        /// @return maximum number of iterations
         Index maximumIterations() const
         {
             return _maxIt;
@@ -606,16 +606,16 @@ namespace lsq
         Index _maxIt = Index{0};
     };
 
-    /** Step size functor to perform Wolfe Linesearch with backtracking.
-      * The functor iteratively decreases the step size until the following
-      * conditions are met:
-      *
-      * Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
-      * Wolfe: grad(x)^T grad(x - stepSize * grad(x)) <= c2 * grad(x)^T * grad(x)
-      *
-      * If either condition does not hold the step size is decreased:
-      *
-      * stepSize = decrease * stepSize */
+    /// Step size functor to perform Wolfe Linesearch with backtracking.
+    /// The functor iteratively decreases the step size until the following
+    /// conditions are met:
+    ///
+    /// Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
+    /// Wolfe: grad(x)^T grad(x - stepSize * grad(x)) <= c2 * grad(x)^T * grad(x)
+    ///
+    /// If either condition does not hold the step size is decreased:
+    ///
+    /// stepSize = decrease * stepSize
     struct WolfeBacktracking { };
 
     template<typename _Scalar, int _Inputs, int _Outputs>
@@ -654,9 +654,9 @@ namespace lsq
             assert(c2 < static_cast<Scalar>(1));
         }
 
-        /** Set the decreasing factor for backtracking.
-          * Assure that decrease in (0, 1).
-          * @param decrease decreasing factor */
+        /// Set the decreasing factor for backtracking.
+        /// Assure that decrease in (0, 1).
+        /// @param decrease decreasing factor
         void setBacktrackingDecrease(const Scalar decrease)
         {
             assert(decrease > static_cast<Scalar>(0));
@@ -664,20 +664,20 @@ namespace lsq
             _decrease = decrease;
         }
 
-        /** Returns the decreasing factor for backtracking.
-          * The value should always lie within (0, 1).
-          * @return backtracking decrease */
+        /// Returns the decreasing factor for backtracking.
+        /// The value should always lie within (0, 1).
+        /// @return backtracking decrease
         Scalar backtrackingDecrease() const
         {
             return _decrease;
         }
 
-        /** Set the wolfe constants for Armijo and Wolfe condition (see class
-          * description).
-          * Assure that c1 < c2 < 1 and c1 in (0, 0.5).
-          * Typically c1 is chosen to be quite small, e.g. 1e-4.
-          * @param c1 armijo constant
-          * @param c2 wolfe constant */
+        /// Set the wolfe constants for Armijo and Wolfe condition (see class
+        /// description).
+        /// Assure that c1 < c2 < 1 and c1 in (0, 0.5).
+        /// Typically c1 is chosen to be quite small, e.g. 1e-4.
+        /// @param c1 armijo constant
+        /// @param c2 wolfe constant
         void setWolfeConstants(const Scalar c1, const Scalar c2)
         {
             assert(c1 > static_cast<Scalar>(0));
@@ -688,25 +688,25 @@ namespace lsq
             _c2 = c2;
         }
 
-        /** Returns the the relaxation constant for the Armijo condition (see class description).
-          * The value should always lie within (0, 0.5).
-          * @return armijo constant */
+        /// Returns the the relaxation constant for the Armijo condition (see class description).
+        /// The value should always lie within (0, 0.5).
+        /// @return armijo constant
         Scalar armijoConstant() const
         {
             return _c1;
         }
 
-        /** Returns the the relaxation constant for the Wolfe condition (see class description).
-          * @return wolfe constant */
+        /// Returns the the relaxation constant for the Wolfe condition (see class description).
+        /// @return wolfe constant
         Scalar wolfeConstant() const
         {
             return _c2;
         }
 
-        /** Set the bounds for the step size during linesearch.
-          * The final step size is guaranteed to be in [minStep, maxStep].
-          * @param minStep minimum step size
-          * @param maxStep maximum step size */
+        /// Set the bounds for the step size during linesearch.
+        /// The final step size is guaranteed to be in [minStep, maxStep].
+        /// @param minStep minimum step size
+        /// @param maxStep maximum step size
         void setStepBounds(const Scalar minStep, const Scalar maxStep)
         {
             assert(minStep >= Scalar{0});
@@ -715,31 +715,31 @@ namespace lsq
             _maxStep = maxStep;
         }
 
-        /** Returns the minimum bound for the step size during linesearch.
-          * @return minimum step size bound */
+        /// Returns the minimum bound for the step size during linesearch.
+        /// @return minimum step size bound
         Scalar minimumStepBound() const
         {
             return _minStep;
         }
 
-        /** Returns the maximum bound for the step size during linesearch.
-          * @return maximum step size bound */
+        /// Returns the maximum bound for the step size during linesearch.
+        /// @return maximum step size bound
         Scalar maximumStepBound() const
         {
             return _maxStep;
         }
 
-        /** Set the maximum number of iterations.
-          * Set to 0 or negative for infinite iterations.
-          * @param iterations maximum number of iterations */
+        /// Set the maximum number of iterations.
+        /// Set to 0 or negative for infinite iterations.
+        /// @param iterations maximum number of iterations
         void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
         }
 
-        /** Returns the maximum number of iterations.
-          * A value of 0 or negative means infinite iterations.
-          * @return maximum number of iterations */
+        /// Returns the maximum number of iterations.
+        /// A value of 0 or negative means infinite iterations.
+        /// @return maximum number of iterations
         Index maximumIterations() const
         {
             return _maxIt;
@@ -795,7 +795,7 @@ namespace lsq
 
     struct DoglegMethod { };
 
-    /** Implementation of Powell's Dogleg Method. */
+    /// Implementation of Powell's Dogleg Method.
     template<typename _Scalar, int _Inputs, int _Outputs>
     class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, DoglegMethod>
     {
@@ -825,76 +825,76 @@ namespace lsq
             _acceptFitness(acceptFitness), _maxIt(iterations)
         { }
 
-        /** Set maximum iterations of the trust region radius search.
-          * Set to 0 or negative for infinite iterations.
-          * @param iterations maximum iterations for radius search */
+        /// Set maximum iterations of the trust region radius search.
+        /// Set to 0 or negative for infinite iterations.
+        /// @param iterations maximum iterations for radius search
         void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
         }
 
-        /** Returns the maximum iterations of the trust region radius search.
-          * @return maximum iterations for radius search */
+        /// Returns the maximum iterations of the trust region radius search.
+        /// @return maximum iterations for radius search
         Index maximumIterations() const
         {
             return _maxIt;
         }
 
-        /** Set the minimum fitness value at which a model is accepted.
-          * The model fitness is computed as follows:
-          *
-          * fitness = f(xval) - f(xval + step) / m(0) - m(step)
-          *
-          * Where f(x) is the objective error function and m(x) is the
-          * model function describe by the trust region method.
-          *
-          * @param fitness minimum fitness for step acceptance */
+        /// Set the minimum fitness value at which a model is accepted.
+        /// The model fitness is computed as follows:
+        ///
+        /// fitness = f(xval) - f(xval + step) / m(0) - m(step)
+        ///
+        /// Where f(x) is the objective error function and m(x) is the
+        /// model function describe by the trust region method.
+        ///
+        /// @param fitness minimum fitness for step acceptance
         void setAcceptanceFitness(const Scalar fitness)
         {
             _acceptFitness = fitness;
         }
 
-        /** Returns the minimum fitness value at which a model is accepted.
-          * @return minimum fitness for step acceptance */
+        /// Returns the minimum fitness value at which a model is accepted.
+        /// @return minimum fitness for step acceptance
         Scalar acceptanceFitness() const
         {
             return _acceptFitness;
         }
 
-        /** Sets the comparison epsilon on how close the step should be
-          * to the trust region radius to trigger an increase of the radius.
-          * Should usually be picked low, e.g. 1e-8.
-          * @param eps comparison epsilon for radius increase */
+        /// Sets the comparison epsilon on how close the step should be
+        /// to the trust region radius to trigger an increase of the radius.
+        /// Should usually be picked low, e.g. 1e-8.
+        /// @param eps comparison epsilon for radius increase
         void setRadiusEpsilon(const Scalar eps)
         {
             _radiusEps = eps;
         }
 
-        /** Returns the comparison epsilon on how close the step should be
-          * to the trust region radius to trigger an increase of the radius.
-          * @return comparison epsilon for radius increase */
+        /// Returns the comparison epsilon on how close the step should be
+        /// to the trust region radius to trigger an increase of the radius.
+        /// @return comparison epsilon for radius increase
         Scalar radiusEpsilon() const
         {
             return _radiusEps;
         }
 
-        /** Sets the maximum radius that is used for trust region search.
-          * @param radius maximum trust region radius */
+        /// Sets the maximum radius that is used for trust region search.
+        /// @param radius maximum trust region radius
         void setMaximumRadius(const Scalar radius)
         {
             _maxRadius = radius;
             _radius = std::min(_radius, _maxRadius);
         }
 
-        /** Returns the maximum radius that is used for trust region search.
-          * @return maximum trust region radius */
+        /// Returns the maximum radius that is used for trust region search.
+        /// @return maximum trust region radius
         Scalar maximumRadius() const
         {
             return _maxRadius;
         }
 
-        /** Returns the current trust region radius.
-          * @return trust region radius. */
+        /// Returns the current trust region radius.
+        /// @return trust region radius.
         Scalar radius() const
         {
             return _radius;
@@ -1112,9 +1112,9 @@ namespace lsq
         };
     }
 
-    /** Base class for least squares algorithms.
-      * It implements the whole optimization strategy except the step
-      * calculation. Cannot be instantiated. */
+    /// Base class for least squares algorithms.
+    /// It implements the whole optimization strategy except the step
+    /// calculation. Cannot be instantiated.
     template<typename _Scalar,
              int _Inputs,
              int _Outputs,
@@ -1160,25 +1160,25 @@ namespace lsq
 
         LeastSquaresAlgorithm() = default;
 
-        /** Set the number of threads used to compute gradients.
-          * This only works if OpenMP is enabled.
-          * Set to 0 to allow automatic detection of thread number.
-          * @param threads number of threads to be used */
+        /// Set the number of threads used to compute gradients.
+        /// This only works if OpenMP is enabled.
+        /// Set to 0 to allow automatic detection of thread number.
+        /// @param threads number of threads to be used
         void setThreads(const Index threads)
         {
             _finiteDifferences.setThreads(threads);
         }
 
-        /** Set the difference for gradient estimation with finite differences.
-          * @param eps numerical epsilon */
+        /// Set the difference for gradient estimation with finite differences.
+        /// @param eps numerical epsilon
         void setNumericalEpsilon(const Scalar eps)
         {
             _finiteDifferences.setNumericalEpsilon(eps);
         }
 
-        /** Sets the instance values of the custom objective function.
-          * Should be used if the objective function requires custom data parameters.
-          * @param objective instance that should be copied */
+        /// Sets the instance values of the custom objective function.
+        /// Should be used if the objective function requires custom data parameters.
+        /// @param objective instance that should be copied
         void setObjective(const Objective &objective)
         {
             _objective = objective;
@@ -1189,49 +1189,49 @@ namespace lsq
             _callback = callback;
         }
 
-        /** Sets the instance values of the step refiner functor.
-          * @param refiner instance that should be copied */
+        /// Sets the instance values of the step refiner functor.
+        /// @param refiner instance that should be copied
         void setStepRefiner(const StepRefiner &refiner)
         {
             _stepRefiner = refiner;
         }
 
-        /** Set the maximum number of iterations.
-          * Set to 0 or negative for infinite iterations.
-          * @param iterations maximum number of iterations */
+        /// Set the maximum number of iterations.
+        /// Set to 0 or negative for infinite iterations.
+        /// @param iterations maximum number of iterations
         void setMaxIterations(const Index iterations)
         {
             _maxIt = iterations;
         }
 
-        /** Set the minimum step length between two iterations.
-          * If the step length falls below this value, the optimizer stops.
-          * @param steplen minimum step length */
+        /// Set the minimum step length between two iterations.
+        /// If the step length falls below this value, the optimizer stops.
+        /// @param steplen minimum step length
         void setMinStepLength(const Scalar steplen)
         {
             _minStepLen = steplen;
         }
 
-        /** Set the minimum gradient length.
-          * If the gradient length falls below this value, the optimizer stops.
-          * @param gradlen minimum gradient length */
+        /// Set the minimum gradient length.
+        /// If the gradient length falls below this value, the optimizer stops.
+        /// @param gradlen minimum gradient length
         void setMinGradientLength(const Scalar gradlen)
         {
             _minGradLen = gradlen;
         }
 
-        /** Set the minimum squared error.
-          * If the error falls below this value, the optimizer stops.
-          * @param error minimum error */
+        /// Set the minimum squared error.
+        /// If the error falls below this value, the optimizer stops.
+        /// @param error minimum error
         void setMinError(const Scalar error)
         {
             _minError = error;
         }
 
-        /** Set the level of verbosity to print status information after each
-          * iteration.
-          * Set to 0 to deacticate any output.
-          * @param verbosity level of verbosity */
+        /// Set the level of verbosity to print status information after each
+        /// iteration.
+        /// Set to 0 to deacticate any output.
+        /// @param verbosity level of verbosity
         void setVerbosity(const Index verbosity)
         {
             _verbosity = verbosity;
@@ -1380,33 +1380,33 @@ namespace lsq
     //             maxItLM_(0)
     //     { }
 
-    //     /** Set the initial gradient descent factor of levenberg marquardt.
-    //       * @param lambda gradient descent factor */
+    //     /// Set the initial gradient descent factor of levenberg marquardt.
+    //     /// @param lambda gradient descent factor
     //     void setLambda(const Scalar lambda)
     //     {
     //         lambda_ = lambda;
     //     }
 
-    //     /** Set maximum iterations of the levenberg marquardt optimization.
-    //       * Set to 0 or negative for infinite iterations.
-    //       * @param iterations maximum iterations for lambda search */
+    //     /// Set maximum iterations of the levenberg marquardt optimization.
+    //     /// Set to 0 or negative for infinite iterations.
+    //     /// @param iterations maximum iterations for lambda search
     //     void setMaxIterationsLM(const Index iterations)
     //     {
     //         maxItLM_ = iterations;
     //     }
 
-    //     /** Set the increase factor for the lambda damping.
-    //       * Make sure the value is greater than 1.
-    //       * @param increase factor for increasing lambda */
+    //     /// Set the increase factor for the lambda damping.
+    //     /// Make sure the value is greater than 1.
+    //     /// @param increase factor for increasing lambda
     //     void setLambdaIncrease(const Scalar increase)
     //     {
     //         assert(increase > static_cast<Scalar>(1));
     //         increase_ = increase;
     //     }
 
-    //     /** Set the decrease factor for the lambda damping.
-    //       * Make sure the value is in (0, 1).
-    //       * @param increase factor for increasing lambda */
+    //     /// Set the decrease factor for the lambda damping.
+    //     /// Make sure the value is in (0, 1).
+    //     /// @param increase factor for increasing lambda
     //     void setLambdaDecrease(const Scalar decrease)
     //     {
     //         assert(decrease < static_cast<Scalar>(1));

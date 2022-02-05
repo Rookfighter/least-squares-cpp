@@ -1,8 +1,8 @@
-/* dense_svd_solver.cpp
- *
- * Author: Fabian Meyer
- * Created On: 05 Aug 2019
- */
+/// dense_svd_solver.cpp
+///
+/// Author: Fabian Meyer
+/// Created On: 05 Aug 2019
+
 
 #include <lsqcpp.h>
 #include "eigen_require.h"

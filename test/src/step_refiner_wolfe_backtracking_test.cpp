@@ -1,8 +1,8 @@
-/* step_refiner_wolfe_backtracking_test.cpp
- *
- * Author: Fabian Meyer
- * Created On: 22 Jan 2021
- */
+/// step_refiner_wolfe_backtracking_test.cpp
+///
+/// Author: Fabian Meyer
+/// Created On: 22 Jan 2021
+
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -109,7 +109,7 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose() * fval;
+            GradientVector gradient = jacobian.transpose()/// fval;
             StepVector step = gradient;
 
             Refiner refiner;
@@ -143,7 +143,7 @@ TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, d
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose() * fval;
+            GradientVector gradient = jacobian.transpose()/// fval;
             StepVector step = gradient;
 
             Refiner refiner;
