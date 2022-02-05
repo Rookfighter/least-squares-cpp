@@ -1,7 +1,8 @@
-/// step_refiner_armijo_backtracking_test.cpp
+/// step_refiner_wolfe_backtracking.test.cpp
 ///
-/// Author: Fabian Meyer
+/// Author:     Fabian Meyer
 /// Created On: 22 Jan 2021
+/// License:    MIT
 
 
 #include <lsqcpp.h>
@@ -10,10 +11,10 @@
 
 using namespace lsq;
 
-TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, double)
+TEMPLATE_TEST_CASE("wolfe backtracking step refiner", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, ArmijoBacktracking>;
+    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, WolfeBacktracking>;
 
     SECTION("construction")
     {
@@ -22,6 +23,7 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             DynamicRefiner refiner;
             REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.8));
             REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
+            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.9));
             REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-10));
             REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1));
             REQUIRE(refiner.maximumIterations() == 0);
@@ -31,11 +33,13 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
         {
             DynamicRefiner refiner(static_cast<Scalar>(0.42),
                                    static_cast<Scalar>(1e-2),
+                                   static_cast<Scalar>(0.72),
                                    static_cast<Scalar>(1e-4),
                                    static_cast<Scalar>(1e-3),
                                    10);
             REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
             REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
+            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.72));
             REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-4));
             REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1e-3));
             REQUIRE(refiner.maximumIterations() == 10);
@@ -53,13 +57,15 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
         }
 
-        SECTION("armijo constant")
+        SECTION("wolfe constants")
         {
             DynamicRefiner refiner;
             REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
+            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.9));
 
-            refiner.setArmijoConstant(static_cast<Scalar>(1e-2));
+            refiner.setWolfeConstants(static_cast<Scalar>(1e-2), static_cast<Scalar>(0.72));
             REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
+            REQUIRE(refiner.wolfeConstant() == static_cast<Scalar>(0.72));
         }
 
         SECTION("step bounds")
@@ -94,7 +100,7 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
             using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, ArmijoBacktracking>;
+            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, WolfeBacktracking>;
             constexpr auto eps = static_cast<Scalar>(1e-6);
 
             ParabolicError objective;
@@ -104,15 +110,15 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose()/// fval;
+            GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
             Refiner refiner;
             StepVector expected(4);
-            expected << static_cast<Scalar>(1.67772),
-                        static_cast<Scalar>(3.35544),
-                        static_cast<Scalar>(1.67772),
-                        static_cast<Scalar>(3.35544);
+            expected << static_cast<Scalar>(0.0302232),
+                        static_cast<Scalar>(0.0604463),
+                        static_cast<Scalar>(0.0302232),
+                        static_cast<Scalar>(0.0604463);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 
@@ -128,7 +134,7 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
             using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
             using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, ArmijoBacktracking>;
+            using Refiner = NewtonStepRefiner<Scalar, Inputs, Outputs, WolfeBacktracking>;
             constexpr auto eps = static_cast<Scalar>(1e-6);
 
             ParabolicError objective;
@@ -138,15 +144,15 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             JacobiMatrix jacobian;
             objective(xval, fval, jacobian);
 
-            GradientVector gradient = jacobian.transpose()/// fval;
+            GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
             Refiner refiner;
             StepVector expected(4);
-            expected << static_cast<Scalar>(1.67772),
-                        static_cast<Scalar>(3.35544),
-                        static_cast<Scalar>(1.67772),
-                        static_cast<Scalar>(3.35544);
+            expected << static_cast<Scalar>(0.0302232),
+                        static_cast<Scalar>(0.0604463),
+                        static_cast<Scalar>(0.0302232),
+                        static_cast<Scalar>(0.0604463);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 

@@ -1,8 +1,8 @@
-/// step_refiner_barzilai_borwein_test.cpp
+/// step_refiner_barzilai_borwein.test.cpp
 ///
-/// Author: Fabian Meyer
+/// Author:     Fabian Meyer
 /// Created On: 22 Jan 2021
-
+/// License:    MIT
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -96,7 +96,7 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
             SECTION("direct")
             {
                 Refiner refiner(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
-                StepVector expected = step/// static_cast<Scalar>(2.5) / step.norm();
+                StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
                 REQUIRE_MATRIX_APPROX(expected, step, eps);
@@ -115,7 +115,7 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
             SECTION("inverse")
             {
                 Refiner refiner(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
-                StepVector expected = step/// static_cast<Scalar>(2.5) / step.norm();
+                StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
                 REQUIRE_MATRIX_APPROX(expected, step, eps);
@@ -159,7 +159,7 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
             SECTION("direct")
             {
                 Refiner refiner(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
-                StepVector expected = step/// static_cast<Scalar>(2.5) / step.norm();
+                StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
                 REQUIRE_MATRIX_APPROX(expected, step, eps);
@@ -178,7 +178,7 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
             SECTION("inverse")
             {
                 Refiner refiner(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
-                StepVector expected = step/// static_cast<Scalar>(2.5) / step.norm();
+                StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
                 REQUIRE_MATRIX_APPROX(expected, step, eps);

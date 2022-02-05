@@ -1,8 +1,8 @@
-/// finite_differences_forward_test.cpp
+/// finite_differences_central.test.cpp
 ///
-/// Author: Fabian Meyer
+/// Author:     Fabian Meyer
 /// Created On: 11 Nov 2020
-
+/// License:    MIT
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -10,7 +10,7 @@
 
 using namespace lsq;
 
-TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
+TEMPLATE_TEST_CASE("central differences", "[finite differences]", float, double)
 {
     using Scalar = TestType;
 
@@ -18,21 +18,21 @@ TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
     {
         SECTION("default")
         {
-            FiniteDifferences<Scalar, ForwardDifferences> differences;
+            FiniteDifferences<Scalar, CentralDifferences> differences;
             REQUIRE(differences.epsilon() == std::sqrt(Eigen::NumTraits<Scalar>::epsilon()));
             REQUIRE(differences.threads() == 1);
         }
 
         SECTION("parametrized A")
         {
-            FiniteDifferences<Scalar, ForwardDifferences> differences(13, 4);
+            FiniteDifferences<Scalar, CentralDifferences> differences(13, 4);
             REQUIRE(differences.epsilon() == static_cast<Scalar>(13));
             REQUIRE(differences.threads() == 4);
         }
 
         SECTION("parametrized B")
         {
-            FiniteDifferences<Scalar, ForwardDifferences> differences(21);
+            FiniteDifferences<Scalar, CentralDifferences> differences(21);
             REQUIRE(differences.epsilon() == static_cast<Scalar>(21));
             REQUIRE(differences.threads() == 1);
         }
@@ -42,7 +42,7 @@ TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
     {
         SECTION("epsilon")
         {
-            FiniteDifferences<Scalar, ForwardDifferences> differences;
+            FiniteDifferences<Scalar, CentralDifferences> differences;
             REQUIRE(differences.epsilon() == std::sqrt(Eigen::NumTraits<Scalar>::epsilon()));
 
             differences.setEpsilon(4);
@@ -51,7 +51,7 @@ TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
 
         SECTION("threads")
         {
-            FiniteDifferences<Scalar, ForwardDifferences> differences;
+            FiniteDifferences<Scalar, CentralDifferences> differences;
             REQUIRE(differences.threads() == 1);
 
             differences.setThreads(11);
@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
                 static_cast<Scalar>(3.5),
                 static_cast<Scalar>(5.9);
             OutputVector fval;
-            FiniteDifferences<Scalar, ForwardDifferences> differences;
+            FiniteDifferences<Scalar, CentralDifferences> differences;
 
             const auto parabError = ParabolicError{};
             parabError(xval, fval, expected);
@@ -106,7 +106,7 @@ TEMPLATE_TEST_CASE("forward differences", "[finite differences]", float, double)
                 static_cast<Scalar>(3.5),
                 static_cast<Scalar>(5.9);
             OutputVector fval;
-            FiniteDifferences<Scalar, ForwardDifferences> differences;
+            FiniteDifferences<Scalar, CentralDifferences> differences;
 
             const auto parabError = ParabolicError{};
             parabError(xval, fval, expected);

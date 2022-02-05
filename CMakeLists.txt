@@ -41,7 +41,7 @@ install(FILES "include/lsqcpp.h"
 if(${BUILD_TESTS})
     # Compile tests
     include_directories(${CATCH2_INCLUDE_DIR})
-    add_subdirectory(test)
+    add_subdirectory(tests)
 endif(${BUILD_TESTS})
 
 if(${BUILD_EXAMPLES})

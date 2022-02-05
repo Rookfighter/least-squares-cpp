@@ -440,8 +440,8 @@ namespace lsq
         }
     };
 
-    /// Step size functor to perform Armijo Linesearch with backtracking.
-    /// The functor iteratively decreases the step size until the following
+    /// Step refinement method performs Armijo Linesearch with backtracking.
+    /// The line search iteratively decreases the step size until the following
     /// conditions are met:
     ///
     /// Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
@@ -606,8 +606,8 @@ namespace lsq
         Index _maxIt = Index{0};
     };
 
-    /// Step size functor to perform Wolfe Linesearch with backtracking.
-    /// The functor iteratively decreases the step size until the following
+    /// Step refinement method which performs Wolfe Linesearch with backtracking.
+    /// The line search iteratively decreases the step size until the following
     /// conditions are met:
     ///
     /// Armijo: f(x - stepSize * grad(x)) <= f(x) - c1 * stepSize * grad(x)^T * grad(x)
@@ -793,6 +793,7 @@ namespace lsq
         Index _maxIt = 0;
     };
 
+    /// Step refinement method which implements Powell' Dogleg Method.
     struct DoglegMethod { };
 
     /// Implementation of Powell's Dogleg Method.
@@ -1015,24 +1016,39 @@ namespace lsq
         }
     };
 
+    /// Solves for dense linear equation systems using the Jacobi SVD method.
     struct DenseSVDSolver
     {
+        /// Solves the linear equation system Ax = b and stores the result in x.
+        /// @param A linear equation system matrix
+        /// @param b linear equation system vector
+        /// @param x computed result
+        /// @return true if successful, false otherwise
         template<typename Scalar, int Size>
-        Eigen::Matrix<Scalar, Size, 1> operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                                                  const Eigen::Matrix<Scalar, Size, 1> &b) const
+        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                        const Eigen::Matrix<Scalar, Size, 1> &b,
+                        Eigen::Matrix<Scalar, Size, 1> &x) const
         {
             using Matrix = Eigen::Matrix<Scalar, Size, Size>;
             using Solver = Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>;
             auto solver = Solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            return solver.solve(b);
+            x = solver.solve(b);
+            return true;
         }
     };
 
+    /// Solver for dense linear equation systems, which a positive semi-definite, using the Cholesky decomposition.
     struct DenseCholeskySolver
     {
+        /// Solves the linear equation system Ax = b and stores the result in x.
+        /// @param A linear equation system matrix
+        /// @param b linear equation system vector
+        /// @param x computed result
+        /// @return true if successful, false otherwise
         template<typename Scalar, int Size>
-        Eigen::Matrix<Scalar, Size, 1> operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                                                  const Eigen::Matrix<Scalar, Size, 1> &b) const
+        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                        const Eigen::Matrix<Scalar, Size, 1> &b,
+                        Eigen::Matrix<Scalar, Size, 1> &x) const
         {
             using Matrix = Eigen::Matrix<Scalar, Size, Size>;
             using Solver = Eigen::LDLT<Matrix>;
@@ -1041,9 +1057,10 @@ namespace lsq
             decomp.compute(A);
 
             if(!decomp.isPositive())
-                throw std::runtime_error("DenseCholeskySolver: matrix is not positive semi-definite");
+                return false;
 
-            return decomp.solve(b);
+            x = decomp.solve(b);
+            return true;
         }
     };
 
@@ -1077,7 +1094,7 @@ namespace lsq
         }
     };
 
-    namespace internal
+    namespace details
     {
         template<bool ComputesJacobian>
         struct ObjectiveEvaluator { };
@@ -1250,7 +1267,7 @@ namespace lsq
             auto stepLen = _minStepLen + 1;
             bool callbackResult = true;
 
-            const auto objective = internal::ObjectiveEvaluator<ComputesJacobian>();
+            const auto objective = details::ObjectiveEvaluator<ComputesJacobian>();
 
             Index iterations = 0;
             while((_maxIt <= 0 || iterations < _maxIt) &&

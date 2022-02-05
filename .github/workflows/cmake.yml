@@ -9,38 +9,54 @@ jobs:
     strategy:
       matrix:
         config:
-          - os: ubuntu-18.04
-            name: Ubuntu 18.04 Debug
+          - name: Ubuntu 20.04 Debug
+            os: ubuntu-20.04
             build_type: Debug
-            test_exec: ./test/run_tests
-          - os: ubuntu-18.04
-            name: Ubuntu 18.04 Release
+            test_exec: tests/unittests
+          - name: Ubuntu 20.04 Release
+            os: ubuntu-20.04
             build_type: Release
-            test_exec: ./test/run_tests
-          - os: ubuntu-16.04
-            name: Ubuntu 16.04 Debug
+            test_exec: tests/unittests
+          - name: Ubuntu 18.04 Debug
+            os: ubuntu-18.04
             build_type: Debug
-            test_exec: ./test/run_tests
-          - os: ubuntu-16.04
-            name: Ubuntu 16.04 Release
+            test_exec: tests/unittests
+          - name: Ubuntu 18.04 Release
+            os: ubuntu-18.04
             build_type: Release
-            test_exec: ./test/run_tests
-          - os: windows-latest
-            name: Windows Debug
+            test_exec: tests/unittests
+          - name: Ubuntu 16.04 Debug
+            os: ubuntu-16.04
             build_type: Debug
-            test_exec: ./test/Debug/run_tests.exe
-          - os: windows-latest
-            name: Windows Release
+            test_exec: tests/unittests
+          - name: Ubuntu 16.04 Release
+            os: ubuntu-16.04
             build_type: Release
-            test_exec: ./test/Release/run_tests.exe
-          - os: macos-latest
-            name: Mac OS Debug
+            test_exec: tests/unittests
+          - name: macOS 11 Debug
+            os: macos-11
             build_type: Debug
-            test_exec: ./test/run_tests
-          - os: macos-latest
-            name: Mac OS Release
+            test_exec: tests/unittests
+          - name: macOS 11 Release
+            os: macos-11
             build_type: Release
-            test_exec: ./test/run_tests
+            test_exec: tests/unittests
+          - name: macOS 10.15 Debug
+            os: macos-10.15
+            build_type: Debug
+            test_exec: tests/unittests
+          - name: macOS 10.15 Release
+            os: macos-10.15
+            build_type: Release
+            test_exec: tests/unittests
+          # - os: windows-latest
+          #   name: Windows Debug
+          #   build_type: Debug
+          #   test_exec: tests/Debug/unittests.exe
+          # - os: windows-latest
+          #   name: Windows Release
+          #   build_type: Release
+          #   test_exec: tests/Release/unittests.exe
     steps:
     - uses: actions/checkout@v2
 
@@ -72,5 +88,5 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ${{matrix.config.test_exec}}
+      # See https://cmake.org/cmake/help/latests/manual/ctest.1.html for more detail
+      run: ${{runner.workspace}}/build/${{matrix.config.test_exec}}

@@ -1,14 +1,13 @@
-/// dense_svd_solver.cpp
+/// dense_cholesky_solver.test.cpp
 ///
-/// Author: Fabian Meyer
+/// Author:     Fabian Meyer
 /// Created On: 05 Aug 2019
-
+/// License:    MIT
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
 
 using namespace lsq;
-
 
 TEMPLATE_TEST_CASE("dense cholesky solver", "[dense solver]", float, double)
 {
@@ -37,8 +36,9 @@ TEMPLATE_TEST_CASE("dense cholesky solver", "[dense solver]", float, double)
                 static_cast<Scalar>(0.4375),
                 static_cast<Scalar>(-0.25);
 
+            Vector actual;
             DenseCholeskySolver solver;
-            REQUIRE_THROWS(solver(A, b));
+            REQUIRE(!solver(A, b, actual));
         }
 
         SECTION("solve positive semi-definite")
@@ -54,9 +54,9 @@ TEMPLATE_TEST_CASE("dense cholesky solver", "[dense solver]", float, double)
             Vector expected(4);
             expected << 2, 1, 4, 5;
 
+            Vector actual;
             DenseCholeskySolver solver;
-            Vector actual = solver(A, b);
-
+            REQUIRE(solver(A, b, actual));
             REQUIRE_MATRIX_APPROX(expected, actual, eps);
         }
     }
@@ -83,8 +83,9 @@ TEMPLATE_TEST_CASE("dense cholesky solver", "[dense solver]", float, double)
                 static_cast<Scalar>(0.4375),
                 static_cast<Scalar>(-0.25);
 
+            Vector actual;
             DenseCholeskySolver solver;
-            REQUIRE_THROWS(solver(A, b));
+            REQUIRE(!solver(A, b, actual));
         }
 
         SECTION("solve positive semi-definite")
@@ -100,9 +101,9 @@ TEMPLATE_TEST_CASE("dense cholesky solver", "[dense solver]", float, double)
             Vector expected;
             expected << 2, 1, 4, 5;
 
+            Vector actual;
             DenseCholeskySolver solver;
-            Vector actual = solver(A, b);
-
+            REQUIRE(solver(A, b, actual));
             REQUIRE_MATRIX_APPROX(expected, actual, eps);
         }
     }

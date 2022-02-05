@@ -1,8 +1,8 @@
-/// dense_svd_solver.cpp
+/// dense_svd_solver.test.cpp
 ///
-/// Author: Fabian Meyer
+/// Author:     Fabian Meyer
 /// Created On: 05 Aug 2019
-
+/// License:    MIT
 
 #include <lsqcpp.h>
 #include "eigen_require.h"
@@ -36,9 +36,9 @@ TEMPLATE_TEST_CASE("dense SVD solver", "[dense solver]", float, double)
             static_cast<Scalar>(0.4375),
             static_cast<Scalar>(-0.25);
 
+        Vector actual;
         DenseSVDSolver solver;
-        Vector actual = solver(A, b);
-
+        REQUIRE(solver(A, b, actual));
         REQUIRE_MATRIX_APPROX(expected, actual, eps);
     }
 
@@ -63,9 +63,9 @@ TEMPLATE_TEST_CASE("dense SVD solver", "[dense solver]", float, double)
             static_cast<Scalar>(0.4375),
             static_cast<Scalar>(-0.25);
 
+        Vector actual;
         DenseSVDSolver solver;
-        Vector actual = solver(A, b);
-
+        REQUIRE(solver(A, b, actual));
         REQUIRE_MATRIX_APPROX(expected, actual, eps);
     }
 }
