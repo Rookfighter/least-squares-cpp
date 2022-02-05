@@ -18,6 +18,7 @@ set(TEST_SRC
     "src/step_refiner_armijo_backtracking.test.cpp"
     "src/step_refiner_wolfe_backtracking.test.cpp"
     "src/step_refiner_dogleg_method.test.cpp"
+    "src/step_refiner_levenberg_marquardt.test.cpp"
 
     "src/dense_cholesky_solver.test.cpp"
     "src/dense_svd_solver.test.cpp"

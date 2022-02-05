@@ -4,7 +4,6 @@
 /// Created On: 22 Jul 2019
 /// License:    MIT
 
-
 #ifndef LSQCPP_LSQCPP_H_
 #define LSQCPP_LSQCPP_H_
 
@@ -1016,6 +1015,162 @@ namespace lsq
         }
     };
 
+    /// Step refinement method which implements the Levenberg Marquardt method.
+    struct LevenbergMarquardtMethod
+    { };
+
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, LevenbergMarquardtMethod>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ArmijoBacktracking;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using SystemMatrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
+        using SystemVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using Solver = std::function<bool(const SystemMatrix&, const SystemVector&, StepVector&)>;
+
+        NewtonStepRefiner() = default;
+
+        NewtonStepRefiner(const Scalar lambda,
+                          const Scalar increase,
+                          const Scalar decrease,
+                          const Index iterations)
+            : _lambda(lambda), _increase(increase), _decrease(decrease), _maxIt(iterations)
+        {
+            assert(decrease < Scalar{1});
+            assert(decrease > Scalar{0});
+            assert(increase > Scalar{1});
+        }
+
+        /// Sets the initial gradient descent factor of levenberg marquardt.
+        /// @param lambda gradient descent factor
+        void setLambda(const Scalar lambda)
+        {
+            _lambda = lambda;
+        }
+
+        /// Rezurns the initial gradient descent factor of levenberg marquardt.
+        /// @return lambda gradient descent factor
+        Scalar lambda() const
+        {
+            return _lambda;
+        }
+
+        /// Sets the maximum iterations of the levenberg marquardt optimization.
+        /// Set to 0 or negative for infinite iterations.
+        /// @param iterations maximum iterations for lambda search
+        void setMaximumIterations(const Index iterations)
+        {
+            _maxIt = iterations;
+        }
+
+        /// Returns the maximum iterations of the levenberg marquardt optimization.
+        /// @return maximum iterations for lambda search
+        Index maximumIterations() const
+        {
+            return _maxIt;
+        }
+
+        /// Sets the increase factor for the lambda damping.
+        /// The value has to be greater than 1.
+        /// @param increase factor for increasing lambda
+        void setIncrease(const Scalar increase)
+        {
+            assert(increase > Scalar{1});
+            _increase = increase;
+        }
+
+        /// Returns the increase factor for the lambda damping.
+        /// @return increase factor for increasing lambda
+        Scalar increase() const
+        {
+            return _increase;
+        }
+
+        /// Sets the decrease factor for the lambda damping.
+        /// The value has to be in (0, 1).
+        /// @param decrease factor for decreasing lambda
+        void setDecrease(const Scalar decrease)
+        {
+            assert(decrease < Scalar{1});
+            assert(decrease > Scalar{0});
+            _decrease = decrease;
+        }
+
+        /// Returns the decrease factor for the lambda damping.
+        /// @return factor for increasing lambda
+        Scalar decrease() const
+        {
+            return _decrease;
+        }
+
+        template<typename S>
+        void setSolver(const S &solver)
+        {
+            _solver = Solver(solver);
+        }
+
+        template<typename Objective>
+        void operator()(const InputVector &xval,
+                        const OutputVector &fval,
+                        const JacobiMatrix &jacobian,
+                        const GradientVector &gradient,
+                        const Objective &objective,
+                        StepVector &step)
+        {
+            assert(_solver);
+
+            const auto error = fval.squaredNorm() / 2;
+            const SystemMatrix jacobianSq = jacobian.transpose() * jacobian;
+
+            Scalar errorN = error + 1;
+            SystemMatrix A;
+            InputVector xvalN;
+            OutputVector fvalN;
+            JacobiMatrix jacobianN;
+
+            Index iterations = 0;
+            while((_maxIt <= 0 || iterations < _maxIt) &&
+                errorN > error)
+            {
+                A = jacobianSq;
+                // add identity matrix
+                for(Index i = 0; i < A.rows(); ++i)
+                    A(i, i) += _lambda;
+
+                _solver(A, gradient, step);
+
+                xvalN = xval - step;
+                objective(xvalN, fvalN, jacobianN);
+                errorN = fvalN.squaredNorm() / 2;
+
+                if(errorN > error)
+                    _lambda *= _increase;
+                else
+                    _lambda *= _decrease;
+
+                ++iterations;
+            }
+        }
+
+    private:
+        Scalar _lambda = Scalar{1};
+        Scalar _increase = static_cast<Scalar>(2);
+        Scalar _decrease = static_cast<Scalar>(0.5);
+        Index _maxIt = 0;
+        Solver _solver = {};
+    };
+
     /// Solves for dense linear equation systems using the Jacobi SVD method.
     struct DenseSVDSolver
     {
@@ -1064,38 +1219,52 @@ namespace lsq
         }
     };
 
+    /// Functor which implements the gradient descent method.
     struct GradientDescentMethod
     {
+        /// Computes the newton step as the gradient of the objective function.
+        /// @param gradient gradient of the objective function
+        /// @param step computed newton step
+        /// @return true on success, otherwise false
         template<typename Scalar, int Inputs, int Outputs>
-        auto operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
+        bool operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
                         const Eigen::Matrix<Scalar, Outputs, 1> &,
                         const Eigen::Matrix<Scalar, Outputs, Inputs> &,
-                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient) const
+                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient,
+                        Eigen::Matrix<Scalar, Inputs, 1>& step) const
         {
-            return gradient;
+            step = gradient;
+            return true;
         }
     };
 
+    /// Functor which implements the Gauss Newton method.
     template<typename Solver=DenseSVDSolver>
     struct GaussNewtonMethod
     {
+        /// Computes the newton step from a linearized approximation of the objective function.
+        /// @param gradient gradient of the objective function
+        /// @param step computed newton step
+        /// @return true on success, otherwise false
         template<typename Scalar, int Inputs, int Outputs>
-        auto operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
+        bool operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
                         const Eigen::Matrix<Scalar, Outputs, 1> &,
                         const Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian,
-                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient) const
+                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient,
+                        Eigen::Matrix<Scalar, Inputs, 1>& step) const
         {
             using Matrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
 
             Solver solver;
-
             Matrix A = jacobian.transpose() * jacobian;
-            return solver(A, gradient);
+            return solver(A, gradient, step);
         }
     };
 
     namespace details
     {
+
+
         template<bool ComputesJacobian>
         struct ObjectiveEvaluator { };
 
