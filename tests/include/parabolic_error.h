@@ -4,6 +4,8 @@
 
 struct ParabolicError
 {
+    constexpr static bool ComputesJacobian = true;
+
     template<typename Scalar, int Inputs, int Outputs>
     void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
                     Eigen::Matrix<Scalar, Outputs, 1> &fval,
@@ -28,6 +30,8 @@ struct ParabolicError
 
 struct ParabolicErrorNoJacobian
 {
+    constexpr static bool ComputesJacobian = false;
+
     template<typename Scalar, int Inputs, int Outputs>
     void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
                     Eigen::Matrix<Scalar, Outputs, 1> &fval) const
@@ -38,18 +42,19 @@ struct ParabolicErrorNoJacobian
     }
 };
 
-// template<typename Scalar>
-// struct ParabolicErrorInverseJacobian
-// {
-//     ParabolicError<Scalar> error_;
-//     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-//     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+struct ParabolicErrorInverseJacobian
+{
+    constexpr static bool ComputesJacobian = true;
 
-//     void operator()(const Vector &xval, Vector &fval, Matrix &jacobian)
-//     {
-//         error_(xval, fval, jacobian);
-//         jacobian *= -1;
-//     }
-// };
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval,
+                    Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
+    {
+        ParabolicError error;
+        error(xval, fval, jacobian);
+        jacobian *= -1;
+    }
+};
 
 #endif

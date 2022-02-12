@@ -22,6 +22,8 @@ set(TEST_SRC
 
     "src/dense_cholesky_solver.test.cpp"
     "src/dense_svd_solver.test.cpp"
+
+    "src/gauss_newton.test.cpp"
 )
 
 add_executable(unittests ${TEST_SRC})

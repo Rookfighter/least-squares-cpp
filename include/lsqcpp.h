@@ -7,13 +7,12 @@
 #ifndef LSQCPP_LSQCPP_H_
 #define LSQCPP_LSQCPP_H_
 
-#include <Eigen/Geometry>
-#include <vector>
-#include <limits>
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#include <Eigen/Cholesky>
 #include <iostream>
 #include <iomanip>
 #include <functional>
-#include <type_traits>
 
 namespace lsq
 {
@@ -1261,19 +1260,30 @@ namespace lsq
         }
     };
 
-    namespace details
+    namespace internal
     {
+        template <typename R, typename... Args>
+        struct FunctionArgumentCount
+        {
+            static constexpr int value = sizeof...(Args);
+        };
 
+        template <typename R, typename... Args>
+        constexpr int countFunctionArguments(R (Args...))
+        {
+            return FunctionArgumentCount<R, Args...>::value;
+        }
 
         template<bool ComputesJacobian>
-        struct ObjectiveEvaluator { };
+        struct ObjectiveEvaluator
+        { };
 
         template<>
         struct ObjectiveEvaluator<true>
         {
             template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
-                            const Objective& objective,
+                            const Objective &objective,
                             const FiniteDifferencesCalculator&,
                             OutputVector &fval,
                             JacobiMatrix &jacobian) const
@@ -1287,20 +1297,20 @@ namespace lsq
         {
             template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
-                            const Objective& objective,
-                            const FiniteDifferencesCalculator& finiteDifferences,
+                            const Objective &objective,
+                            const FiniteDifferencesCalculator &finiteDifferences,
                             OutputVector &fval,
                             JacobiMatrix &jacobian) const
             {
                 objective(xval, fval);
-                finiteDifferences(xval, fval, jacobian);
+                finiteDifferences(xval, fval, objective, jacobian);
             }
         };
     }
 
-    /// Base class for least squares algorithms.
+    /// Core class for least squares algorithms.
     /// It implements the whole optimization strategy except the step
-    /// calculation. Cannot be instantiated.
+    /// calculation and its refinement.
     template<typename _Scalar,
              int _Inputs,
              int _Outputs,
@@ -1324,8 +1334,6 @@ namespace lsq
         using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
 
-        constexpr static auto ComputesJacobian = std::is_invocable<void(), const InputVector&, OutputVector&, JacobiMatrix&>::value;
-
         using FiniteDifferencesCalculator = FiniteDifferences<Scalar, _FiniteDifferencesMethod>;
         using StepRefiner = NewtonStepRefiner<Scalar, Inputs, Outputs, _RefineMethod>;
         using Callback = std::function<bool(const Index,
@@ -1335,13 +1343,15 @@ namespace lsq
                                             const GradientVector&,
                                             const StepVector&)>;
 
+        /// Result data returned after optimization.
         struct Result
         {
-            InputVector xval;
-            OutputVector fval;
-            Scalar error;
-            Index iterations;
-            bool converged;
+            InputVector xval = {};
+            OutputVector fval = {};
+            Scalar error = Scalar{-1};
+            Index iterations = -1;
+            bool converged = false;
+            bool succeeded = false;
         };
 
         LeastSquaresAlgorithm() = default;
@@ -1370,6 +1380,8 @@ namespace lsq
             _objective = objective;
         }
 
+        /// Sets the instance functor for iteration callbacks.
+        /// @param refiner instance that should be copied
         void setCallback(const Callback &callback)
         {
             _callback = callback;
@@ -1382,10 +1394,10 @@ namespace lsq
             _stepRefiner = refiner;
         }
 
-        /// Set the maximum number of iterations.
+        /// Sets the maximum number of iterations.
         /// Set to 0 or negative for infinite iterations.
         /// @param iterations maximum number of iterations
-        void setMaxIterations(const Index iterations)
+        void setMaximumIterations(const Index iterations)
         {
             _maxIt = iterations;
         }
@@ -1393,7 +1405,7 @@ namespace lsq
         /// Set the minimum step length between two iterations.
         /// If the step length falls below this value, the optimizer stops.
         /// @param steplen minimum step length
-        void setMinStepLength(const Scalar steplen)
+        void setMinimumStepLength(const Scalar steplen)
         {
             _minStepLen = steplen;
         }
@@ -1401,7 +1413,7 @@ namespace lsq
         /// Set the minimum gradient length.
         /// If the gradient length falls below this value, the optimizer stops.
         /// @param gradlen minimum gradient length
-        void setMinGradientLength(const Scalar gradlen)
+        void setMinimumGradientLength(const Scalar gradlen)
         {
             _minGradLen = gradlen;
         }
@@ -1423,6 +1435,7 @@ namespace lsq
             _verbosity = verbosity;
         }
 
+        /// Minimizes the configured objective starting at the given initial guess.
         Result minimize(const InputVector &initialGuess)
         {
             InputVector xval = initialGuess;
@@ -1435,8 +1448,13 @@ namespace lsq
             auto error = _minError + 1;
             auto stepLen = _minStepLen + 1;
             bool callbackResult = true;
+            bool succeeded = true;
 
-            const auto objective = details::ObjectiveEvaluator<ComputesJacobian>();
+            const auto evaluator = internal::ObjectiveEvaluator<Objective::ComputesJacobian>();
+            const auto objective = [&evaluator, this](const InputVector &xval, OutputVector &fval, JacobiMatrix &jacobian)
+            {
+                evaluator(xval, this->_objective, this->_finiteDifferences, fval, jacobian);
+            };
 
             Index iterations = 0;
             while((_maxIt <= 0 || iterations < _maxIt) &&
@@ -1453,7 +1471,11 @@ namespace lsq
                 gradLen = gradient.norm();
 
                 // compute the full newton step according to the current method
-                step = _stepMethod(xval, fval, jacobian, gradient);
+                if(!_stepMethod(xval, fval, jacobian, gradient, step))
+                {
+                    succeeded = false;
+                    break;
+                }
 
                 // refine the step according to the current refiner
                 _stepRefiner(xval, fval, jacobian, gradient, objective, step);
@@ -1496,6 +1518,7 @@ namespace lsq
             result.fval = fval;
             result.error = error;
             result.iterations = iterations;
+            result.succeeded = succeeded;
             result.converged = stepLen < _minStepLen ||
                 gradLen < _minGradLen ||
                 error < _minError;
@@ -1539,108 +1562,35 @@ namespace lsq
         }
     };
 
-    // template<typename Scalar,
-    //     typename ErrorFunction,
-    //     typename Callback=NoCallback<Scalar>,
-    //     typename FiniteDifferences=CentralDifferences<Scalar>,
-    //     typename Solver=DenseSVDSolver<Scalar>>
-    // class LevenbergMarquardt : public LeastSquaresAlgorithm<Scalar, ErrorFunction,
-    //     ConstantStepSize<Scalar>, Callback, FiniteDifferences>
-    // {
-    // public:
-    //     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
-    //     typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-    // private:
-    //     Scalar increase_;
-    //     Scalar decrease_;
-    //     Scalar lambda_;
-    //     Index maxItLM_;
+    /// General Gauss Newton algorithm.
+    template<typename Scalar,
+             int Inputs,
+             int Outputs,
+             typename Objective,
+             typename RefineMethod=ConstantStepFactor,
+             typename Solver=DenseSVDSolver,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using GaussNewton = LeastSquaresAlgorithm<Scalar,
+                                              Inputs,
+                                              Outputs,
+                                              Objective,
+                                              GaussNewtonMethod<Solver>,
+                                              RefineMethod,
+                                              FiniteDifferencesMethod>;
 
-    // public:
-    //     LevenbergMarquardt()
-    //         : LeastSquaresAlgorithm<Scalar, ErrorFunction,
-    //             ConstantStepSize<Scalar>, Callback, FiniteDifferences>(),
-    //             increase_(static_cast<Scalar>(2)),
-    //             decrease_(static_cast<Scalar>(0.5)),
-    //             lambda_(static_cast<Scalar>(1)),
-    //             maxItLM_(0)
-    //     { }
-
-    //     /// Set the initial gradient descent factor of levenberg marquardt.
-    //     /// @param lambda gradient descent factor
-    //     void setLambda(const Scalar lambda)
-    //     {
-    //         lambda_ = lambda;
-    //     }
-
-    //     /// Set maximum iterations of the levenberg marquardt optimization.
-    //     /// Set to 0 or negative for infinite iterations.
-    //     /// @param iterations maximum iterations for lambda search
-    //     void setMaxIterationsLM(const Index iterations)
-    //     {
-    //         maxItLM_ = iterations;
-    //     }
-
-    //     /// Set the increase factor for the lambda damping.
-    //     /// Make sure the value is greater than 1.
-    //     /// @param increase factor for increasing lambda
-    //     void setLambdaIncrease(const Scalar increase)
-    //     {
-    //         assert(increase > static_cast<Scalar>(1));
-    //         increase_ = increase;
-    //     }
-
-    //     /// Set the decrease factor for the lambda damping.
-    //     /// Make sure the value is in (0, 1).
-    //     /// @param increase factor for increasing lambda
-    //     void setLambdaDecrease(const Scalar decrease)
-    //     {
-    //         assert(decrease < static_cast<Scalar>(1));
-    //         assert(decrease > static_cast<Scalar>(0));
-    //         decrease_ = decrease;
-    //     }
-
-    //     void calculateStep(const Vector &xval,
-    //         const Vector &fval,
-    //         const Matrix &jacobian,
-    //         const Vector &gradient,
-    //         Vector &step) override
-    //     {
-    //         Solver solver;
-    //         Scalar error = fval.squaredNorm() / 2;
-    //         Scalar errorN = error + 1;
-
-    //         Vector xvalN;
-    //         Vector fvalN;
-    //         Matrix jacobianN;
-
-    //         Matrix jacobianSq = jacobian.transpose() * jacobian;
-    //         Matrix A;
-
-    //         Index iterations = 0;
-    //         while((maxItLM_ <= 0 || iterations < maxItLM_) &&
-    //             errorN > error)
-    //         {
-    //             A = jacobianSq;
-    //             // add identity matrix
-    //             for(Index i = 0; i < A.rows(); ++i)
-    //                 A(i, i) += lambda_;
-
-    //             solver(A, gradient, step);
-
-    //             xvalN = xval - step;
-    //             this->errorFunction_(xvalN, fvalN, jacobianN);
-    //             errorN = fvalN.squaredNorm() / 2;
-
-    //             if(errorN > error)
-    //                 lambda_ *= increase_;
-    //             else
-    //                 lambda_ *= decrease_;
-
-    //             ++iterations;
-    //         }
-    //     }
-    // };
+    /// Gauss Newton algorithm with dynamic problem size.
+    template<typename Scalar,
+             typename Objective,
+             typename RefineMethod=ConstantStepFactor,
+             typename Solver=DenseSVDSolver,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using GaussNewtonX = GaussNewton<Scalar,
+                                     Eigen::Dynamic,
+                                     Eigen::Dynamic,
+                                     Objective,
+                                     RefineMethod,
+                                     Solver,
+                                     FiniteDifferencesMethod>;
 }
 
 #endif
