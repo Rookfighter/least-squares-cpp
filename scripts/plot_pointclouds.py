@@ -31,6 +31,7 @@ def process_pointcloud(path_a, path_b, no_gui):
 
     ax.set_xlim(-2, 17)
     ax.set_ylim(-2.5, 5)
+    ax.set_zlim(0, 15)
     ax.view_init(54, -17)
 
     path = f'{path_a}_{path_b}.png'
