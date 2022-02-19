@@ -1306,6 +1306,12 @@ namespace lsq
                 finiteDifferences(xval, fval, objective, jacobian);
             }
         };
+
+        template <typename T>
+        bool almostZero(T x)
+        {
+            return std::abs(x) < std::numeric_limits<T>::epsilon();
+        }
     }
 
     /// Core class for least squares algorithms.
@@ -1382,7 +1388,8 @@ namespace lsq
 
         /// Sets the instance functor for iteration callbacks.
         /// @param refiner instance that should be copied
-        void setCallback(const Callback &callback)
+        template<typename T>
+        void setCallback(const T &callback)
         {
             _callback = callback;
         }
@@ -1421,7 +1428,7 @@ namespace lsq
         /// Set the minimum squared error.
         /// If the error falls below this value, the optimizer stops.
         /// @param error minimum error
-        void setMinError(const Scalar error)
+        void setMinimumError(const Scalar error)
         {
             _minError = error;
         }
@@ -1433,6 +1440,13 @@ namespace lsq
         void setVerbosity(const Index verbosity)
         {
             _verbosity = verbosity;
+        }
+
+        /// Sets the output stream that is used to print the optimization progress.
+        /// @param output the output stream
+        void setOutputStream(std::ostream &output)
+        {
+            _output = &output;
         }
 
         /// Minimizes the configured objective starting at the given initial guess.
@@ -1502,12 +1516,12 @@ namespace lsq
                     ss << "    error=" << error;
 
                     if(_verbosity > 2)
-                        ss << "    fval=" << vector2str(fval);
-                    if(_verbosity > 3)
                         ss << "    xval=" << vector2str(xval);
-                    if(_verbosity > 4)
+                    if(_verbosity > 3)
                         ss << "    step=" << vector2str(step);
-                    std::cout << ss.str() << std::endl;
+                    if(_verbosity > 4)
+                        ss << "    fval=" << vector2str(fval);
+                    (*_output) << ss.str() << std::endl;
                 }
 
                 ++iterations;
@@ -1538,6 +1552,7 @@ namespace lsq
         Scalar _minGradLen = static_cast<Scalar>(1e-9);
         Scalar _minError = Scalar{0};
         Index _verbosity = 0;
+        std::ostream *_output = &std::cout;
 
         template<typename Derived>
         std::string vector2str(const Eigen::MatrixBase<Derived> &vec) const
@@ -1591,6 +1606,75 @@ namespace lsq
                                      RefineMethod,
                                      Solver,
                                      FiniteDifferencesMethod>;
+
+    namespace parameter
+    {
+        /// Encodes a 3x3 rotation matrix into a 3-vector in angle axis representation using the rodrigues' formula.
+        /// This parametrization is minimal, free of singularities and gimbal lock.
+        /// @note https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
+        template<typename Derived>
+        Eigen::Matrix<typename Eigen::MatrixBase<Derived>::Scalar, 3, 1> encodeRotation(const Eigen::MatrixBase<Derived> &rotation)
+        {
+            using Scalar = typename Eigen::MatrixBase<Derived>::Scalar;
+            using Vector3 = Eigen::Matrix<Scalar, 3, 1>;
+            assert(rotation.rows() == 3);
+            assert(rotation.cols() == 3);
+
+            const auto theta = std::acos((rotation.trace() - Scalar{1}) / Scalar{2});
+
+            if(internal::almostZero(theta))
+            {
+                return Vector3::Zero();
+            }
+            else
+            {
+                const auto fac = theta / (Scalar{2} * std::sin(theta));
+
+                return fac * Vector3(rotation(2, 1) - rotation(1, 2),
+                                     rotation(0, 2) - rotation(2, 0),
+                                     rotation(1, 0) - rotation(0, 1));
+            }
+
+        }
+
+        /// Decodes a 3-vector in angle axis representation into a 3x3 rotation matrix using the rodrigues' formula.
+        /// @note https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
+        template<typename Derived>
+        Eigen::Matrix<typename Eigen::MatrixBase<Derived>::Scalar, 3, 3> decodeRotation(const Eigen::MatrixBase<Derived> &rotation)
+        {
+            using Scalar = typename Eigen::MatrixBase<Derived>::Scalar;
+            using Matrix3 = Eigen::Matrix<Scalar, 3, 3>;
+            using Vector3 = Eigen::Matrix<Scalar, 3, 1>;
+
+            assert(rotation.rows() == 3);
+            assert(rotation.cols() == 1);
+
+            const auto theta = rotation.norm();
+            if(internal::almostZero(theta))
+            {
+                return Matrix3::Identity();
+            }
+            else
+            {
+                const Vector3 w = rotation / theta;
+
+                const auto s = std::sin(theta);
+                const auto c = std::cos(theta);
+
+                Matrix3 K;
+                K << 0, -w.z(), w.y(),
+                    w.z(), 0,  -w.x(),
+                    -w.y(), w.x(), 0;
+
+                // Matrix3 result;
+                // result << c + wx * wx * (1 - c),      wx * wy * (1 - c) - wz * s, wy * s + wx * wz * (1 - c),
+                //           wz * s + wx * wy * (1 - c), c + wy * wy * (1 - c), -wx * s + wy * wz * (1 - c),
+                //           -wy * s + wx * wz * (1 - c), wx * s + wy * wz * (1 - c), c + wz * wz * (1 - c);
+
+                return Matrix3::Identity() + s * K + (1 - c) * (w * w.transpose() - Matrix3::Identity());
+            }
+        }
+    }
 }
 
 #endif
