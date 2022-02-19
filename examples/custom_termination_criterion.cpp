@@ -18,7 +18,7 @@ struct ParabolicError
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
@@ -27,7 +27,7 @@ struct ParabolicError
 struct MyTerminationCondition
 {
     // if this operator returns false, the optimization process is stopped.
-    bool operator()(const lsq::Index iteration,
+    bool operator()(const lsqcpp::Index iteration,
                     const Eigen::VectorXd &xval,
                     const Eigen::VectorXd &fval,
                     const Eigen::MatrixXd &jacobian,
@@ -60,7 +60,7 @@ struct MyTerminationCondition
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::GaussNewtonX<double, ParabolicError> optimizer;
+    lsqcpp::GaussNewtonX<double, ParabolicError> optimizer;
 
     // set the termination criterion
     optimizer.setCallback(MyTerminationCondition());

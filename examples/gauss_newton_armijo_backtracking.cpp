@@ -18,7 +18,7 @@ struct ParabolicError
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
@@ -41,7 +41,7 @@ int main()
     // For GaussNewton and LevenbergMarquardt you can additionally specify a
     // linear equation system solver.
     // There are DenseSVDSolver and DenseCholeskySolver available.
-    lsq::GaussNewtonX<double, ParabolicError, lsq::ArmijoBacktracking> optimizer;
+    lsqcpp::GaussNewtonX<double, ParabolicError, lsqcpp::ArmijoBacktracking> optimizer;
 
     // Set number of iterations as stop criterion.
     // Set it to 0 or negative for infinite iterations (default is 0).

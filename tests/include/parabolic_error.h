@@ -15,12 +15,12 @@ struct ParabolicError
 
         // calculate the error vector
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
 
         // calculate the jacobian explicitly
         jacobian.setZero(fval.size(), xval.size());
-        for(lsq::Index i = 0; i < jacobian.rows(); ++i)
+        for(lsqcpp::Index i = 0; i < jacobian.rows(); ++i)
         {
             jacobian(i, i*2) = 2* xval(i*2);
             jacobian(i, i*2+1) = 2* xval(i*2+1);

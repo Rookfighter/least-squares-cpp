@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <functional>
 
-namespace lsq
+namespace lsqcpp
 {
     using Index = Eigen::MatrixXd::Index;
 

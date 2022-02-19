@@ -7,7 +7,7 @@
 #include <lsqcpp/lsqcpp.h>
 #include "eigen_require.h"
 
-using namespace lsq;
+using namespace lsqcpp;
 
 
 TEMPLATE_TEST_CASE("dense SVD solver", "[dense solver]", float, double)

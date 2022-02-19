@@ -18,7 +18,7 @@ struct ParabolicError
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
@@ -26,7 +26,7 @@ struct ParabolicError
 int main()
 {
     // Create GaussNewton optimizer with dogleg method
-    lsq::GaussNewtonX<double, ParabolicError, lsq::DoglegMethod> optimizer;
+    lsqcpp::GaussNewtonX<double, ParabolicError, lsqcpp::DoglegMethod> optimizer;
 
     // Set number of iterations as stop criterion.
     optimizer.setMaximumIterations(100);

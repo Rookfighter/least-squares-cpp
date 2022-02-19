@@ -8,7 +8,7 @@
 #include "eigen_require.h"
 #include "parabolic_error.h"
 
-using namespace lsq;
+using namespace lsqcpp;
 
 TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, double)
 {

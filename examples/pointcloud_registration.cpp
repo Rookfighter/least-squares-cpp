@@ -42,7 +42,7 @@ static Pointcloud loadPointcloud(const std::string &path)
     }
 
     Pointcloud result(3, points.size());
-    for(lsq::Index i = 0; i < result.cols(); ++i)
+    for(lsqcpp::Index i = 0; i < result.cols(); ++i)
     {
         result.col(i) = points[i];
     }
@@ -54,7 +54,7 @@ static void savePointcloud(const std::string &path, const Pointcloud &pointcloud
 {
     std::ofstream os(path);
 
-    for(lsq::Index i = 0; i < pointcloud.cols(); ++i)
+    for(lsqcpp::Index i = 0; i < pointcloud.cols(); ++i)
     {
         os << pointcloud(0, i) << ',' <<  pointcloud(1, i) << ','  <<  pointcloud(2, i) << std::endl;
     }
@@ -70,7 +70,7 @@ struct Callback
     Pointcloud *pointcloudA = nullptr;
     Pointcloud *pointcloudB = nullptr;
 
-    bool operator()(const lsq::Index iteration,
+    bool operator()(const lsqcpp::Index iteration,
                     const Vector6& xval,
                     const VectorX&,
                     const JacobiMatrix&,
@@ -78,10 +78,10 @@ struct Callback
                     const Vector6&)
     {
         Vector3 trans = xval.segment(0, 3);
-        Matrix3 rot = lsq::parameter::decodeRotation(xval.segment(3, 3));
+        Matrix3 rot = lsqcpp::parameter::decodeRotation(xval.segment(3, 3));
 
         Pointcloud cloud(pointcloudB->rows(), pointcloudB->cols());
-        for(lsq::Index i = 0; i < pointcloudB->cols(); ++i)
+        for(lsqcpp::Index i = 0; i < pointcloudB->cols(); ++i)
         {
             cloud.col(i) = rot * pointcloudB->col(i) + trans;
         }
@@ -116,10 +116,10 @@ struct Objective
                     Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
         Vector3 translation = xval.segment(0, 3);
-        Matrix3 rotation = lsq::parameter::decodeRotation(xval.segment(3, 3));
+        Matrix3 rotation = lsqcpp::parameter::decodeRotation(xval.segment(3, 3));
 
         fval.resize(pointcloudA->cols());
-        for(lsq::Index i = 0; i < pointcloudA->cols(); ++i)
+        for(lsqcpp::Index i = 0; i < pointcloudA->cols(); ++i)
         {
             fval(i) = (pointcloudA->col(i) - (rotation * pointcloudB->col(i) + translation)).norm();
         }
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 
     auto callback = Callback(pointcloudA, pointcloudB);
 
-    lsq::GaussNewton<float, 6, Eigen::Dynamic, Objective, lsq::ArmijoBacktracking, lsq::DenseCholeskySolver> optimizer;
+    lsqcpp::GaussNewton<float, 6, Eigen::Dynamic, Objective, lsqcpp::ArmijoBacktracking, lsqcpp::DenseCholeskySolver> optimizer;
     optimizer.setMinimumGradientLength(1e-3);
     optimizer.setMinimumStepLength(1e-3);
     optimizer.setObjective({pointcloudA, pointcloudB});
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 
     Vector6 xval(6);
     xval.setZero();
-    xval.segment(3, 3) = lsq::parameter::encodeRotation(Matrix3::Identity());
+    xval.segment(3, 3) = lsqcpp::parameter::encodeRotation(Matrix3::Identity());
 
     optimizer.minimize(xval);
 

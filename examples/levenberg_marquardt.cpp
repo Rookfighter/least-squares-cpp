@@ -16,7 +16,7 @@ struct ParabolicError
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
@@ -24,7 +24,7 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::LevenbergMarquardt<double, ParabolicError> optimizer;
+    lsqcpp::LevenbergMarquardt<double, ParabolicError> optimizer;
 
     // Set number of iterations for levenberg-marquardt.
     optimizer.setMaxIterationsLM(100);

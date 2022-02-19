@@ -8,7 +8,7 @@
 #include "eigen_require.h"
 #include "parabolic_error.h"
 
-using namespace lsq;
+using namespace lsqcpp;
 
 
 TEST_CASE("gradient descent")

@@ -18,7 +18,7 @@ struct ParabolicError
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
         fval.resize(xval.size() / 2);
-        for(lsq::Index i = 0; i < fval.size(); ++i)
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
@@ -26,7 +26,7 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::GradientDescentX<double, ParabolicError, lsq::BarzilaiBorwein> optimizer;
+    lsqcpp::GradientDescentX<double, ParabolicError, lsqcpp::BarzilaiBorwein> optimizer;
 
     // Set number of iterations as stop criterion.
     optimizer.setMaximumIterations(100);
@@ -41,7 +41,7 @@ int main()
     optimizer.setMinimumError(0);
 
     // Set the parameters of the step refiner (BArzilai Borwein).
-    optimizer.setStepRefiner({lsq::BarzilaiBorwein::Mode::Inverse, 1e-2});
+    optimizer.setStepRefiner({lsqcpp::BarzilaiBorwein::Mode::Inverse, 1e-2});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.
