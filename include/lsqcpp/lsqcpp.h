@@ -1197,6 +1197,8 @@ namespace lsqcpp
                     A(i, i) += _lambda;
 
                 const auto ret = _solver(A, gradient, step);
+                // mark unused for release mode
+                (void)ret;
                 assert(ret);
 
                 xvalN = xval - step;
