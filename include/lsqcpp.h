@@ -623,7 +623,7 @@ namespace lsq
         using Scalar = _Scalar;
         static constexpr int Inputs = _Inputs;
         static constexpr int Outputs = _Outputs;
-        using Method = ArmijoBacktracking;
+        using Method = WolfeBacktracking;
 
         static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
 
@@ -802,7 +802,7 @@ namespace lsq
         using Scalar = _Scalar;
         static constexpr int Inputs = _Inputs;
         static constexpr int Outputs = _Outputs;
-        using Method = ArmijoBacktracking;
+        using Method = DoglegMethod;
 
         static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
 
@@ -1025,7 +1025,7 @@ namespace lsq
         using Scalar = _Scalar;
         static constexpr int Inputs = _Inputs;
         static constexpr int Outputs = _Outputs;
-        using Method = ArmijoBacktracking;
+        using Method = LevenbergMarquardtMethod;
 
         static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
 
@@ -1147,7 +1147,8 @@ namespace lsq
                 for(Index i = 0; i < A.rows(); ++i)
                     A(i, i) += _lambda;
 
-                _solver(A, gradient, step);
+                const auto ret = _solver(A, gradient, step);
+                assert(ret);
 
                 xvalN = xval - step;
                 objective(xvalN, fvalN, jacobianN);
@@ -1604,6 +1605,59 @@ namespace lsq
                                      Eigen::Dynamic,
                                      Objective,
                                      RefineMethod,
+                                     Solver,
+                                     FiniteDifferencesMethod>;
+
+    /// General Gradient Descent algorithm.
+    template<typename Scalar,
+             int Inputs,
+             int Outputs,
+             typename Objective,
+             typename RefineMethod=ConstantStepFactor,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using GradientDescent = LeastSquaresAlgorithm<Scalar,
+                                                  Inputs,
+                                                  Outputs,
+                                                  Objective,
+                                                  GradientDescentMethod,
+                                                  RefineMethod,
+                                                  FiniteDifferencesMethod>;
+
+    /// Gradient Descent algorithm with dynamic problem size.
+    template<typename Scalar,
+             typename Objective,
+             typename RefineMethod=ConstantStepFactor,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using GradientDescentX = GradientDescent<Scalar,
+                                             Eigen::Dynamic,
+                                             Eigen::Dynamic,
+                                             Objective,
+                                             RefineMethod,
+                                             FiniteDifferencesMethod>;
+
+    /// General Levenberg Marquardt algorithm.
+    template<typename Scalar,
+             int Inputs,
+             int Outputs,
+             typename Objective,
+             typename Solver=DenseSVDSolver,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using LevenbergMarquardt = GaussNewton<Scalar,
+                                           Inputs,
+                                           Outputs,
+                                           Objective,
+                                           LevenbergMarquardtMethod,
+                                           Solver,
+                                           FiniteDifferencesMethod>;
+
+    template<typename Scalar,
+             typename Objective,
+             typename Solver=DenseSVDSolver,
+             typename FiniteDifferencesMethod=CentralDifferences>
+    using LevenbergMarquardtX = LevenbergMarquardt<Scalar,
+                                     Eigen::Dynamic,
+                                     Eigen::Dynamic,
+                                     Objective,
                                      Solver,
                                      FiniteDifferencesMethod>;
 

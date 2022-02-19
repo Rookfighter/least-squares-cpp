@@ -9,9 +9,11 @@
 // Implement an objective functor.
 struct ParabolicError
 {
-    void operator()(const Eigen::VectorXd &xval,
-        Eigen::VectorXd &fval,
-        Eigen::MatrixXd &) const
+    static constexpr bool ComputesJacobian = false;
+
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
@@ -24,22 +26,22 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::GradientDescent<double, ParabolicError, lsq::BarzilaiBorwein<double>> optimizer;
+    lsq::GradientDescentX<double, ParabolicError, lsq::BarzilaiBorwein> optimizer;
 
     // Set number of iterations as stop criterion.
-    optimizer.setMaxIterations(100);
+    optimizer.setMaximumIterations(100);
 
     // Set the minimum length of the gradient.
-    optimizer.setMinGradientLength(1e-6);
+    optimizer.setMinimumGradientLength(1e-6);
 
     // Set the minimum length of the step.
-    optimizer.setMinStepLength(1e-6);
+    optimizer.setMinimumStepLength(1e-6);
 
     // Set the minimum least squares error.
-    optimizer.setMinError(0);
+    optimizer.setMinimumError(0);
 
-    // Set the parameters of the step size functor.
-    optimizer.setStepSize(lsq::BarzilaiBorwein<double>(lsq::BarzilaiBorwein<double>::Method::Inverse, 1e-2));
+    // Set the parameters of the step refiner (BArzilai Borwein).
+    optimizer.setStepRefiner({lsq::BarzilaiBorwein::Mode::Inverse, 1e-2});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

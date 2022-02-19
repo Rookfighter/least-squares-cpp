@@ -9,9 +9,11 @@
 // Implement an objective functor.
 struct ParabolicError
 {
-    void operator()(const Eigen::VectorXd &xval,
-        Eigen::VectorXd &fval,
-        Eigen::MatrixXd &) const
+    static constexpr bool ComputesJacobian = false;
+
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
@@ -39,32 +41,32 @@ int main()
     // For GaussNewton and LevenbergMarquardt you can additionally specify a
     // linear equation system solver.
     // There are DenseSVDSolver and DenseCholeskySolver available.
-    lsq::GaussNewton<double, ParabolicError, lsq::ArmijoBacktracking<double>> optimizer;
+    lsq::GaussNewtonX<double, ParabolicError, lsq::ArmijoBacktracking> optimizer;
 
     // Set number of iterations as stop criterion.
     // Set it to 0 or negative for infinite iterations (default is 0).
-    optimizer.setMaxIterations(100);
+    optimizer.setMaximumIterations(100);
 
     // Set the minimum length of the gradient.
     // The optimizer stops minimizing if the gradient length falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 1e-9).
-    optimizer.setMinGradientLength(1e-6);
+    optimizer.setMinimumGradientLength(1e-6);
 
     // Set the minimum length of the step.
     // The optimizer stops minimizing if the step length falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 1e-9).
-    optimizer.setMinStepLength(1e-6);
+    optimizer.setMinimumStepLength(1e-6);
 
     // Set the minimum least squares error.
     // The optimizer stops minimizing if the error falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 0).
-    optimizer.setMinError(0);
+    optimizer.setMinimumError(0);
 
-    // Set the the parametrized StepSize functor used for the step calculation.
-    optimizer.setStepSize(lsq::ArmijoBacktracking<double>(0.8, 1e-4, 1e-10, 1.0, 0));
+    // Set the parameters of the step refiner (Armijo Backtracking).
+    optimizer.setStepRefiner({0.8, 1e-4, 1e-10, 1.0, 0});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

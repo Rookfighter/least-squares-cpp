@@ -9,10 +9,15 @@
 // Implement an objective functor.
 struct ParabolicError
 {
-    void operator()(const Eigen::VectorXd &xval,
-        Eigen::VectorXd &fval,
-        Eigen::MatrixXd &jacobian) const
+    constexpr static bool ComputesJacobian = true;
+
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval,
+                    Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
     {
+        assert(xval.size() % 2 == 0);
+
         // calculate the error vector
         fval.resize(xval.size() / 2);
         for(lsq::Index i = 0; i < fval.size(); ++i)
@@ -31,19 +36,19 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsq::LevenbergMarquardt<double, ParabolicError> optimizer;
+    lsq::GaussNewtonX<double, ParabolicError, lsq::ArmijoBacktracking> optimizer;
 
     // Set number of iterations as stop criterion.
-    optimizer.setMaxIterations(100);
+    optimizer.setMaximumIterations(100);
 
     // Set the minimum length of the gradient.
-    optimizer.setMinGradientLength(1e-6);
+    optimizer.setMinimumGradientLength(1e-6);
 
     // Set the minimum length of the step.
-    optimizer.setMinStepLength(1e-6);
+    optimizer.setMinimumStepLength(1e-6);
 
     // Set the minimum least squares error.
-    optimizer.setMinError(0);
+    optimizer.setMinimumError(0);
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.
