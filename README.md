@@ -56,7 +56,7 @@ There are three major steps to use ```least-squares-cpp```:
 
 
 ```cpp
-#include <lsqcpp.h>
+#include <lsqcpp/lsqcpp.h>
 
 // Implement an objective functor.
 struct ParabolicError

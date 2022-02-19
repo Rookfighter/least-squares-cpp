@@ -4,7 +4,7 @@
 /// Created On: 22 Jan 2021
 /// License:    MIT
 
-#include <lsqcpp.h>
+#include <lsqcpp/lsqcpp.h>
 #include "eigen_require.h"
 #include "parabolic_error.h"
 

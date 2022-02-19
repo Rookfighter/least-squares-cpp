@@ -1,4 +1,4 @@
-/// lsqcpp.h
+/// lsqcpp/lsqcpp.h
 ///
 /// Author:     Fabian Meyer
 /// Created On: 22 Jul 2019

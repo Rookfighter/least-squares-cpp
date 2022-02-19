@@ -4,7 +4,7 @@
 /// Created On: 22 Jul 2019
 /// License:    MIT
 
-#include <lsqcpp.h>
+#include <lsqcpp/lsqcpp.h>
 #include <fstream>
 
 using Pointcloud = Eigen::Matrix<float, 3, Eigen::Dynamic>;

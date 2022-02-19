@@ -4,7 +4,7 @@
 /// Created On: 05 Aug 2019
 
 
-#include <lsqcpp.h>
+#include <lsqcpp/lsqcpp.h>
 #include "eigen_require.h"
 #include "parabolic_error.h"
 

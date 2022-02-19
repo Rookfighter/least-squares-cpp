@@ -4,7 +4,7 @@
  *      Author: Fabian Meyer
  */
 
-#include <lsqcpp.h>
+#include <lsqcpp/lsqcpp.h>
 
 // Implement an objective functor.
 struct ParabolicError
