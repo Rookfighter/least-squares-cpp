@@ -1,8 +1,8 @@
-/* dogleg_method.cpp
- *
- *  Created on: 11 Nov 2020
- *      Author: Fabian Meyer
- */
+/// gauss_newton_dogleg_method.cpp
+///
+/// Created on: 11 Nov 2020
+/// Author:     Fabian Meyer
+/// License:    MIT
 
 #include <lsqcpp/lsqcpp.h>
 

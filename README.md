@@ -7,18 +7,24 @@
 ```least-squares-cpp``` is a header-only C++ library for unconstrained non-linear
 least squares optimization using the ```Eigen3``` library.
 
-It provides the following newton type optimization algorithms:
+It provides convenient and configurable access to the following fitting algorithms:
 
 * Gradient Descent
 * Gauss Newton
 * Levenberg Marquardt
 
-The library also includes the following step size calculation methods:
+Convergence and runtime behaviour can be parametrized using advanced newton step refinement
+operators such as line searching or trust region methods.
 
-* Constant Step Size
 * Barzilai-Borwein Method
 * Armijo Backtracking
 * Wolfe Backtracking
+* Powell's Dogleg Method
+
+The following animation shows a pointcloud registration using Gauss Newton and Armijo Backtracking in five
+iterations without initial guess.
+
+![pointcloud_registration_armijo](doc/img/pointcloud_registration_armijo.gif)
 
 ## Install
 
@@ -52,7 +58,7 @@ There are three major steps to use ```least-squares-cpp```:
 
 * Implement your error function as functor
 * Instantiate the optimization algorithm of your choice
-* Pick the line search algorithm and parameters of your choice
+* Pick the step refinement method and parameters of your choice
 
 
 ```cpp
@@ -61,9 +67,11 @@ There are three major steps to use ```least-squares-cpp```:
 // Implement an objective functor.
 struct ParabolicError
 {
-    void operator()(const Eigen::VectorXd &xval,
-        Eigen::VectorXd &fval,
-        Eigen::MatrixXd &) const
+    static constexpr bool ComputesJacobian = false;
+
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
@@ -91,32 +99,32 @@ int main()
     // For GaussNewton and LevenbergMarquardt you can additionally specify a
     // linear equation system solver.
     // There are DenseSVDSolver and DenseCholeskySolver available.
-    lsqcpp::GaussNewton<double, ParabolicError, lsqcpp::ArmijoBacktracking<double>> optimizer;
+    lsqcpp::GaussNewtonX<double, ParabolicError, lsqcpp::ArmijoBacktracking> optimizer;
 
     // Set number of iterations as stop criterion.
     // Set it to 0 or negative for infinite iterations (default is 0).
-    optimizer.setMaxIterations(100);
+    optimizer.setMaximumIterations(100);
 
     // Set the minimum length of the gradient.
     // The optimizer stops minimizing if the gradient length falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 1e-9).
-    optimizer.setMinGradientLength(1e-6);
+    optimizer.setMinimumGradientLength(1e-6);
 
     // Set the minimum length of the step.
     // The optimizer stops minimizing if the step length falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 1e-9).
-    optimizer.setMinStepLength(1e-6);
+    optimizer.setMinimumStepLength(1e-6);
 
     // Set the minimum least squares error.
     // The optimizer stops minimizing if the error falls below this
     // value.
     // Set it to 0 or negative to disable this stop criterion (default is 0).
-    optimizer.setMinError(0);
+    optimizer.setMinimumError(0);
 
-    // Set the the parametrized StepSize functor used for the step calculation.
-    optimizer.setStepSize(lsqcpp::ArmijoBacktracking<double>(0.8, 1e-4, 1e-10, 1.0, 0));
+    // Set the parameters of the step refiner (Armijo Backtracking).
+    optimizer.setStepRefiner({0.8, 1e-4, 1e-10, 1.0, 0});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

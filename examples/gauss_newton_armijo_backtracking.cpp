@@ -1,8 +1,8 @@
-/* gauss_newton_wolfe_backtracking.cpp
- *
- *  Created on: 03 Aug 2019
- *      Author: Fabian Meyer
- */
+/// gauss_newton_armijo_backtracking.cpp
+///
+/// Created on: 03 Aug 2019
+/// Author:     Fabian Meyer
+/// License:    MIT
 
 #include <lsqcpp/lsqcpp.h>
 

@@ -1,17 +1,19 @@
-/* levenberg_marquardt.cpp
- *
- *  Created on: 11 Nov 2020
- *      Author: Fabian Meyer
- */
+/// levenberg_marquardt.cpp
+///
+/// Created on: 11 Nov 2020
+/// Author:     Fabian Meyer
+/// License:    MIT
 
 #include <lsqcpp/lsqcpp.h>
 
 // Implement an objective functor.
 struct ParabolicError
 {
-    void operator()(const Eigen::VectorXd &xval,
-        Eigen::VectorXd &fval,
-        Eigen::MatrixXd &) const
+    static constexpr bool ComputesJacobian = false;
+
+    template<typename Scalar, int Inputs, int Outputs>
+    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
+                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
     {
         // omit calculation of jacobian, so finite differences will be used
         // to estimate jacobian numerically
@@ -24,22 +26,25 @@ struct ParabolicError
 int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
-    lsqcpp::LevenbergMarquardt<double, ParabolicError> optimizer;
-
-    // Set number of iterations for levenberg-marquardt.
-    optimizer.setMaxIterationsLM(100);
+    lsqcpp::LevenbergMarquardtX<double, ParabolicError> optimizer;
+    using Solver = lsqcpp::LevenbergMarquardtX<double, ParabolicError>::StepMethod::Solver;
 
     // Set number of iterations as stop criterion.
-    optimizer.setMaxIterations(100);
+    optimizer.setMaximumIterations(100);
 
     // Set the minimum length of the gradient.
-    optimizer.setMinGradientLength(1e-6);
+    optimizer.setMinimumGradientLength(1e-6);
 
     // Set the minimum length of the step.
-    optimizer.setMinStepLength(1e-6);
+    optimizer.setMinimumStepLength(1e-6);
 
     // Set the minimum least squares error.
-    optimizer.setMinError(0);
+    optimizer.setMinimumError(0);
+
+    // Set the parameters of the step refiner (Levenberg Marquardt).
+    // Note that you have to set solver for LM explicitly.
+    // The default is the SVD solver.
+    optimizer.setStepRefiner({1.0, 2.0, 0.5, 100, Solver()});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

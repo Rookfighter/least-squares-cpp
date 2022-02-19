@@ -31,7 +31,8 @@ TEMPLATE_TEST_CASE("levenberg marquardt step refiner", "[step refiner]", float, 
             DynamicRefiner refiner(static_cast<Scalar>(0.42),
                                    static_cast<Scalar>(2.25),
                                    static_cast<Scalar>(0.72),
-                                   10);
+                                   10,
+                                   DenseSVDSolver());
             REQUIRE(refiner.lambda() == static_cast<Scalar>(0.42));
             REQUIRE(refiner.increase() == static_cast<Scalar>(2.25));
             REQUIRE(refiner.decrease() == static_cast<Scalar>(0.72));
@@ -103,7 +104,6 @@ TEMPLATE_TEST_CASE("levenberg marquardt step refiner", "[step refiner]", float, 
             StepVector step = gradient;
 
             Refiner refiner;
-            refiner.setSolver(DenseSVDSolver());
             StepVector expected(4);
             expected << static_cast<Scalar>(0.4761904),
                         static_cast<Scalar>(0.9523809),

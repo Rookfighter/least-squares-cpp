@@ -213,6 +213,54 @@ namespace lsqcpp
         Method _method = {};
     };
 
+    /// Solves for dense linear equation systems using the Jacobi SVD method.
+    struct DenseSVDSolver
+    {
+        /// Solves the linear equation system Ax = b and stores the result in x.
+        /// @param A linear equation system matrix
+        /// @param b linear equation system vector
+        /// @param x computed result
+        /// @return true if successful, false otherwise
+        template<typename Scalar, int Size>
+        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                        const Eigen::Matrix<Scalar, Size, 1> &b,
+                        Eigen::Matrix<Scalar, Size, 1> &x) const
+        {
+            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
+            using Solver = Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>;
+            auto solver = Solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+            x = solver.solve(b);
+            return true;
+        }
+    };
+
+    /// Solver for dense linear equation systems, which a positive semi-definite, using the Cholesky decomposition.
+    struct DenseCholeskySolver
+    {
+        /// Solves the linear equation system Ax = b and stores the result in x.
+        /// @param A linear equation system matrix
+        /// @param b linear equation system vector
+        /// @param x computed result
+        /// @return true if successful, false otherwise
+        template<typename Scalar, int Size>
+        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
+                        const Eigen::Matrix<Scalar, Size, 1> &b,
+                        Eigen::Matrix<Scalar, Size, 1> &x) const
+        {
+            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
+            using Solver = Eigen::LDLT<Matrix>;
+
+            Solver decomp;
+            decomp.compute(A);
+
+            if(!decomp.isPositive())
+                return false;
+
+            x = decomp.solve(b);
+            return true;
+        }
+    };
+
     /// Generic class for refining a computed newton step.
     /// The method parameter determines how the step is actually refined, e.g
     /// ArmijoBacktracking, DoglegMethod or WolfeBacktracking.
@@ -1043,8 +1091,9 @@ namespace lsqcpp
         NewtonStepRefiner(const Scalar lambda,
                           const Scalar increase,
                           const Scalar decrease,
-                          const Index iterations)
-            : _lambda(lambda), _increase(increase), _decrease(decrease), _maxIt(iterations)
+                          const Index iterations,
+                          const Solver &solver)
+            : _lambda(lambda), _increase(increase), _decrease(decrease), _maxIt(iterations), _solver(solver)
         {
             assert(decrease < Scalar{1});
             assert(decrease > Scalar{0});
@@ -1168,60 +1217,14 @@ namespace lsqcpp
         Scalar _increase = static_cast<Scalar>(2);
         Scalar _decrease = static_cast<Scalar>(0.5);
         Index _maxIt = 0;
-        Solver _solver = {};
-    };
-
-    /// Solves for dense linear equation systems using the Jacobi SVD method.
-    struct DenseSVDSolver
-    {
-        /// Solves the linear equation system Ax = b and stores the result in x.
-        /// @param A linear equation system matrix
-        /// @param b linear equation system vector
-        /// @param x computed result
-        /// @return true if successful, false otherwise
-        template<typename Scalar, int Size>
-        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                        const Eigen::Matrix<Scalar, Size, 1> &b,
-                        Eigen::Matrix<Scalar, Size, 1> &x) const
-        {
-            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
-            using Solver = Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>;
-            auto solver = Solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
-            x = solver.solve(b);
-            return true;
-        }
-    };
-
-    /// Solver for dense linear equation systems, which a positive semi-definite, using the Cholesky decomposition.
-    struct DenseCholeskySolver
-    {
-        /// Solves the linear equation system Ax = b and stores the result in x.
-        /// @param A linear equation system matrix
-        /// @param b linear equation system vector
-        /// @param x computed result
-        /// @return true if successful, false otherwise
-        template<typename Scalar, int Size>
-        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                        const Eigen::Matrix<Scalar, Size, 1> &b,
-                        Eigen::Matrix<Scalar, Size, 1> &x) const
-        {
-            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
-            using Solver = Eigen::LDLT<Matrix>;
-
-            Solver decomp;
-            decomp.compute(A);
-
-            if(!decomp.isPositive())
-                return false;
-
-            x = decomp.solve(b);
-            return true;
-        }
+        Solver _solver = DenseSVDSolver();
     };
 
     /// Functor which implements the gradient descent method.
     struct GradientDescentMethod
     {
+        using Solver = void;
+
         /// Computes the newton step as the gradient of the objective function.
         /// @param gradient gradient of the objective function
         /// @param step computed newton step
@@ -1239,9 +1242,11 @@ namespace lsqcpp
     };
 
     /// Functor which implements the Gauss Newton method.
-    template<typename Solver=DenseSVDSolver>
+    template<typename _Solver=DenseSVDSolver>
     struct GaussNewtonMethod
     {
+        using Solver = _Solver;
+
         /// Computes the newton step from a linearized approximation of the objective function.
         /// @param gradient gradient of the objective function
         /// @param step computed newton step

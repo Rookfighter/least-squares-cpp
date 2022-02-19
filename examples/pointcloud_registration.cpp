@@ -1,4 +1,4 @@
-/// solve_icp.h
+/// pointcloud_registration.h
 ///
 /// Author:     Fabian Meyer
 /// Created On: 22 Jul 2019

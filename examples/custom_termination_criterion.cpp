@@ -1,8 +1,8 @@
-/* gradient_descent_barzilai_borwein.cpp
- *
- *  Created on: 11 Nov 2020
- *      Author: Fabian Meyer
- */
+/// custom_termination_criterion.cpp
+///
+/// Created on: 11 Nov 2020
+/// Author:     Fabian Meyer
+/// License:    MIT
 
 #include <lsqcpp/lsqcpp.h>
 
