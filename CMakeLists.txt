@@ -14,7 +14,7 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
     # warning level 4 and all warnings as errors
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4 /WX /wd4127 /wd26495 /wd26451 /wd26812)
 else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
