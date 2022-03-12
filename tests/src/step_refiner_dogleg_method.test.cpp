@@ -13,73 +13,76 @@ using namespace lsqcpp;
 TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, DoglegMethod>;
+    using Parameter = DoglegMethodParameter<Scalar>;
 
-    SECTION("construction")
+    SECTION("parameter")
     {
-        SECTION("default")
+        SECTION("construction")
         {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.radius() == static_cast<Scalar>(1));
-            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(2));
-            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-6));
-            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.25));
-            REQUIRE(refiner.maximumIterations() == 0);
+            SECTION("default")
+            {
+                Parameter param;
+                REQUIRE(param.initialRadius() == static_cast<Scalar>(1));
+                REQUIRE(param.maximumRadius() == static_cast<Scalar>(2));
+                REQUIRE(param.radiusEpsilon() == static_cast<Scalar>(1e-6));
+                REQUIRE(param.acceptanceFitness() == static_cast<Scalar>(0.25));
+                REQUIRE(param.maximumIterations() == 0);
+            }
+
+            SECTION("parametrized A")
+            {
+                Parameter param(static_cast<Scalar>(0.42),
+                                static_cast<Scalar>(0.78),
+                                static_cast<Scalar>(1e-2),
+                                static_cast<Scalar>(0.11),
+                                10);
+                REQUIRE(param.initialRadius() == static_cast<Scalar>(0.42));
+                REQUIRE(param.maximumRadius() == static_cast<Scalar>(0.78));
+                REQUIRE(param.radiusEpsilon() == static_cast<Scalar>(1e-2));
+                REQUIRE(param.acceptanceFitness() == static_cast<Scalar>(0.11));
+                REQUIRE(param.maximumIterations() == 10);
+            }
         }
 
-        SECTION("parametrized A")
+        SECTION("setter")
         {
-            DynamicRefiner refiner(static_cast<Scalar>(0.42),
-                                   static_cast<Scalar>(0.78),
-                                   static_cast<Scalar>(1e-2),
-                                   static_cast<Scalar>(0.11),
-                                   10);
-            REQUIRE(refiner.radius() == static_cast<Scalar>(0.42));
-            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(0.78));
-            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.11));
-            REQUIRE(refiner.maximumIterations() == 10);
-        }
-    }
+            SECTION("maximum radius")
+            {
+                Parameter param;
+                REQUIRE(param.initialRadius() == static_cast<Scalar>(1));
+                REQUIRE(param.maximumRadius() == static_cast<Scalar>(2));
 
-    SECTION("setter")
-    {
-        SECTION("maximum radius")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.radius() == static_cast<Scalar>(1));
-            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(2));
+                param.setMaximumRadius(static_cast<Scalar>(0.78));
+                REQUIRE(param.initialRadius() == static_cast<Scalar>(0.78));
+                REQUIRE(param.maximumRadius() == static_cast<Scalar>(0.78));
+            }
 
-            refiner.setMaximumRadius(static_cast<Scalar>(0.78));
-            REQUIRE(refiner.radius() == static_cast<Scalar>(0.78));
-            REQUIRE(refiner.maximumRadius() == static_cast<Scalar>(0.78));
-        }
+            SECTION("radius epsilon")
+            {
+                Parameter param;
+                REQUIRE(param.radiusEpsilon() == static_cast<Scalar>(1e-6));
 
-        SECTION("radius epsilon")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-6));
+                param.setRadiusEpsilon(static_cast<Scalar>(1e-2));
+                REQUIRE(param.radiusEpsilon() == static_cast<Scalar>(1e-2));
+            }
 
-            refiner.setRadiusEpsilon(static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.radiusEpsilon() == static_cast<Scalar>(1e-2));
-        }
+            SECTION("acceptance fitness")
+            {
+                Parameter param;
+                REQUIRE(param.acceptanceFitness() == static_cast<Scalar>(0.25));
 
-        SECTION("acceptance fitness")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.25));
+                param.setAcceptanceFitness(static_cast<Scalar>(0.11));
+                REQUIRE(param.acceptanceFitness() == static_cast<Scalar>(0.11));
+            }
 
-            refiner.setAcceptanceFitness(static_cast<Scalar>(0.11));
-            REQUIRE(refiner.acceptanceFitness() == static_cast<Scalar>(0.11));
-        }
+            SECTION("maximum iterations")
+            {
+                Parameter param;
+                REQUIRE(param.maximumIterations() == 0);
 
-        SECTION("maximum iterations")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.maximumIterations() == 0);
-
-            refiner.setMaximumIterations(10);
-            REQUIRE(refiner.maximumIterations() == 10);
+                param.setMaximumIterations(10);
+                REQUIRE(param.maximumIterations() == 10);
+            }
         }
     }
 
@@ -107,7 +110,8 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
-            Refiner refiner;
+            Parameter param;
+            Refiner refiner(param);
             StepVector expected(4);
             expected << static_cast<Scalar>(-0.316228),
                         static_cast<Scalar>(-0.632456),
@@ -141,7 +145,8 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
-            Refiner refiner;
+            Parameter param;
+            Refiner refiner(param);
             StepVector expected(4);
             expected << static_cast<Scalar>(-0.316228),
                         static_cast<Scalar>(-0.632456),

@@ -66,7 +66,7 @@ int main()
     optimizer.setMinimumError(0);
 
     // Set the parameters of the step refiner (Armijo Backtracking).
-    optimizer.setStepRefiner({0.8, 1e-4, 1e-10, 1.0, 0});
+    optimizer.setRefinementParameters({0.8, 1e-4, 1e-10, 1.0, 0});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

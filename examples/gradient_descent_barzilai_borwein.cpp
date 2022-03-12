@@ -41,7 +41,7 @@ int main()
     optimizer.setMinimumError(0);
 
     // Set the parameters of the step refiner (BArzilai Borwein).
-    optimizer.setStepRefiner({lsqcpp::BarzilaiBorwein::Mode::Inverse, 1e-2});
+    optimizer.setRefinementParameters({lsqcpp::BarzilaiBorwein::Mode::Inverse, 1e-2});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

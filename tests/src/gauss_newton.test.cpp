@@ -24,7 +24,7 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicError, ConstantStepFactor> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.5)});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.5)});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -49,11 +49,11 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicError, ArmijoBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      50});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               50});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -78,12 +78,12 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicError, WolfeBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(0.1),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      100});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(0.1),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               100});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -108,7 +108,7 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             // GaussNewtonX<Scalar, ParabolicError, DoglegMethod> optimizer;
 
-            // optimizer.setStepRefiner({static_cast<Scalar>(1),
+            // optimizer.setRefinementParameters({static_cast<Scalar>(1),
             //                           static_cast<Scalar>(2),
             //                           static_cast<Scalar>(1e-9),
             //                           static_cast<Scalar>(0.25),
@@ -140,7 +140,7 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorNoJacobian, ConstantStepFactor> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.5)});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.5)});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -165,11 +165,11 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorNoJacobian, ArmijoBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      50});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               50});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -194,12 +194,12 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorNoJacobian, WolfeBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(0.1),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      100});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(0.1),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               100});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -227,7 +227,7 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorInverseJacobian, ConstantStepFactor> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.5)});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.5)});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -252,11 +252,11 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorInverseJacobian, ArmijoBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      50});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               50});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);
@@ -281,12 +281,12 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
         {
             GaussNewtonX<Scalar, ParabolicErrorInverseJacobian, WolfeBacktracking> optimizer;
 
-            optimizer.setStepRefiner({static_cast<Scalar>(0.8),
-                                      static_cast<Scalar>(1e-4),
-                                      static_cast<Scalar>(0.1),
-                                      static_cast<Scalar>(1e-10),
-                                      static_cast<Scalar>(1.0),
-                                      100});
+            optimizer.setRefinementParameters({static_cast<Scalar>(0.8),
+                                               static_cast<Scalar>(1e-4),
+                                               static_cast<Scalar>(0.1),
+                                               static_cast<Scalar>(1e-10),
+                                               static_cast<Scalar>(1.0),
+                                               100});
             optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
             optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
             optimizer.setMaximumIterations(100);

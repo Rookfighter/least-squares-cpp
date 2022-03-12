@@ -13,32 +13,35 @@ using namespace lsqcpp;
 TEMPLATE_TEST_CASE("constant factor step refiner", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, ConstantStepFactor>;
+    using Parameter = ConstantStepFactorParameter<Scalar>;
 
-    SECTION("construction")
+    SECTION("parameter")
     {
-        SECTION("default")
+        SECTION("construction")
         {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.factor() == static_cast<Scalar>(1));
+            SECTION("default")
+            {
+                Parameter param;
+                REQUIRE(param.factor() == static_cast<Scalar>(1));
+            }
+
+            SECTION("parametrized A")
+            {
+                Parameter param(14);
+                REQUIRE(param.factor() == static_cast<Scalar>(14));
+            }
         }
 
-        SECTION("parametrized A")
+        SECTION("setter")
         {
-            DynamicRefiner refiner(14);
-            REQUIRE(refiner.factor() == static_cast<Scalar>(14));
-        }
-    }
+            SECTION("factor")
+            {
+                Parameter param;
+                REQUIRE(param.factor() == static_cast<Scalar>(1));
 
-    SECTION("setter")
-    {
-        SECTION("factor")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.factor() == static_cast<Scalar>(1));
-
-            refiner.setFactor(7);
-            REQUIRE(refiner.factor() == static_cast<Scalar>(7));
+                param.setFactor(7);
+                REQUIRE(param.factor() == static_cast<Scalar>(7));
+            }
         }
     }
 
@@ -67,7 +70,8 @@ TEMPLATE_TEST_CASE("constant factor step refiner", "[step refiner]", float, doub
                     static_cast<Scalar>(-5.25),
                     static_cast<Scalar>(21.4);
 
-            Refiner refiner(static_cast<Scalar>(2.5));
+            Parameter param(static_cast<Scalar>(2.5));
+            Refiner refiner(param);
             StepVector expected = step * static_cast<Scalar>(2.5);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
@@ -98,7 +102,8 @@ TEMPLATE_TEST_CASE("constant factor step refiner", "[step refiner]", float, doub
                     static_cast<Scalar>(-5.25),
                     static_cast<Scalar>(21.4);
 
-            Refiner refiner(static_cast<Scalar>(2.5));
+            Parameter param(static_cast<Scalar>(2.5));
+            Refiner refiner(param);
             StepVector expected = step * static_cast<Scalar>(2.5);
 
             refiner(xval, fval, jacobian, gradient, objective, step);

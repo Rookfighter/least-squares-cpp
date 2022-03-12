@@ -18,149 +18,24 @@ namespace lsqcpp
 {
     using Index = Eigen::MatrixXd::Index;
 
-    /// Functor to compute forward differences.
-    /// Computes the gradient of the objective f(x) as follows:
-    ///
-    /// grad(x) = (f(x + eps) - f(x)) / eps
-    ///
-    /// The computation requires len(x) evaluations of the objective.
-    struct ForwardDifferences
-    {
-        template<typename Scalar, int Inputs, int Outputs, typename Objective>
-        void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                          const Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                          const Objective &objective,
-                          const Scalar eps,
-                          const int threads,
-                          Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
-        {
-            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
-            // mark to be used, otherwise get warning unused if no OMP is enabled
-            (void) threads;
-
-            using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-
-            // noop in fixed size problems
-            jacobian.resize(fval.size(), xval.size());
-
-            #pragma omp parallel for num_threads(threads)
-            for(Index i = 0; i < xval.size(); ++i)
-            {
-                InputVector xvalNext = xval;
-                OutputVector fvalNext;
-                xvalNext(i) += eps;
-                objective(xvalNext, fvalNext);
-
-                jacobian.col(i) = (fvalNext - fval) / eps;
-            }
-        }
-    };
-
-    /// Functor to compute backward differences.
-    /// Computes the gradient of the objective f(x) as follows:
-    ///
-    /// grad(x) = (f(x) - f(x - eps)) / eps
-    ///
-    /// The computation requires len(x) evaluations of the objective.
-    struct BackwardDifferences
-    {
-        template<typename Scalar, int Inputs, int Outputs, typename Objective>
-        void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                          const Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                          const Objective &objective,
-                          const Scalar eps,
-                          const int threads,
-                          Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
-        {
-            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
-            // mark to be used, otherwise get warning unused if no OMP is enabled
-            (void) threads;
-
-            using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-
-            // noop in fixed size problems
-            jacobian.resize(fval.size(), xval.size());
-
-            #pragma omp parallel for num_threads(threads)
-            for(Index i = 0; i < xval.size(); ++i)
-            {
-                InputVector xvalNext = xval;
-                OutputVector fvalNext;
-                xvalNext(i) -= eps;
-                objective(xvalNext, fvalNext);
-
-                jacobian.col(i) = (fval - fvalNext) / eps;
-            }
-        }
-    };
-
-    /// Functor to compute central differences.
-    /// Computes the gradient of the objective f(x) as follows:
-    ///
-    /// grad(x) = (f(x + 0.5 eps) - f(x - 0.5 eps)) / eps
-    ///
-    /// The computation requires 2 * len(x) evaluations of the objective.
-    struct CentralDifferences
-    {
-        template<typename Scalar, int Inputs, int Outputs, typename Objective>
-        void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                          const Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                          const Objective &objective,
-                          const Scalar eps,
-                          const int threads,
-                          Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
-        {
-            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
-            // mark to be used, otherwise get warning unused if no OMP is enabled
-            (void) threads;
-
-            using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-            using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-
-            // noop in fixed size problems
-            jacobian.resize(fval.size(), xval.size());
-
-            #pragma omp parallel for num_threads(threads)
-            for(Index i = 0; i < xval.size(); ++i)
-            {
-                InputVector xvalNext = xval;
-                OutputVector fvalA;
-                OutputVector fvalB;
-
-                xvalNext(i) = xval(i) - eps / Scalar{2};
-                objective(xvalNext, fvalA);
-
-                xvalNext(i) = xval(i) + eps / Scalar{2};
-                objective(xvalNext, fvalB);
-
-                jacobian.col(i) = (fvalB - fvalA) / eps;
-            }
-        }
-    };
-
     /// Parametrization container for jacobian estimation using finite differences.
-    /// The method parameter determines the actual finite differences method, which is used
-    /// for computation.
     /// This class holds parameters for the finite differences operation, such as the
     /// number of threads to be used and the numerical espilon.
-    template<typename _Scalar, typename _Method>
-    struct FiniteDifferences
+    template<typename _Scalar>
+    struct FiniteDifferencesParameter
     {
     public:
         using Scalar = _Scalar;
-        using Method = _Method;
 
         static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
 
-        FiniteDifferences() = default;
+        FiniteDifferencesParameter() = default;
 
-        FiniteDifferences(const Scalar eps)
+        FiniteDifferencesParameter(const Scalar eps)
             : _eps(eps)
         { }
 
-        FiniteDifferences(const Scalar eps, const int threads)
+        FiniteDifferencesParameter(const Scalar eps, const int threads)
             : _eps(eps), _threads(threads)
         { }
 
@@ -188,29 +63,130 @@ namespace lsqcpp
             _threads = threads;
         }
 
+        /// Returns the number of threads which should be used to compute finite differences
+        /// (OMP only).
+        /// @return threads number of threads
         int threads() const
         {
             return _threads;
         }
 
-        /// Executes the chosen finite differences method with the configured parameters.
-        /// @param xval current state vector of estimation problem.
-        /// @param fval evaluated residual of the objective at the current state vector.
-        /// @param objective objective function of the estimation problem
-        /// @param jacobian jacobian that will be computed by finit differenes
-        template<typename Scalar, int Inputs, int Outputs, typename Objective>
-        void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                        const Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                        const Objective &objective,
-                        Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
-        {
-            _method(xval, fval, objective, _eps, _threads, jacobian);
-        }
-
     private:
         Scalar _eps = std::sqrt(Eigen::NumTraits<Scalar>::epsilon());
         int _threads = int{1};
-        Method _method = {};
+    };
+
+    /// Functor to compute forward differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x + eps) - f(x)) / eps
+    ///
+    /// The computation requires len(x) evaluations of the objective.
+    struct ForwardDifferences
+    {
+        template<typename Scalar, typename Objective, typename I, typename O, typename J>
+        void operator()(const Eigen::MatrixBase<I> &xval,
+                        const Eigen::MatrixBase<O> &fval,
+                        const Objective &objective,
+                        const FiniteDifferencesParameter<Scalar>& param,
+                        Eigen::MatrixBase<J> &jacobian) const
+        {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
+            using InputVector = typename Eigen::MatrixBase<I>::PlainMatrix;
+            using OutputVector = typename Eigen::MatrixBase<O>::PlainMatrix;
+
+            // noop in fixed size problems
+            jacobian.derived().resize(fval.size(), xval.size());
+
+            #pragma omp parallel for num_threads(param.threads())
+            for(Index i = 0; i < xval.size(); ++i)
+            {
+                InputVector xvalNext = xval;
+                OutputVector fvalNext;
+                xvalNext(i) += param.epsilon();
+                objective(xvalNext, fvalNext);
+
+                jacobian.col(i) = (fvalNext - fval) / param.epsilon();
+            }
+        }
+    };
+
+    /// Functor to compute backward differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x) - f(x - eps)) / eps
+    ///
+    /// The computation requires len(x) evaluations of the objective.
+    struct BackwardDifferences
+    {
+        template<typename Scalar, typename Objective, typename I, typename O, typename J>
+        void operator()(const Eigen::MatrixBase<I> &xval,
+                        const Eigen::MatrixBase<O> &fval,
+                        const Objective &objective,
+                        const FiniteDifferencesParameter<Scalar>& param,
+                        Eigen::MatrixBase<J> &jacobian) const
+        {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
+            using InputVector = typename Eigen::MatrixBase<I>::PlainMatrix;
+            using OutputVector = typename Eigen::MatrixBase<O>::PlainMatrix;
+
+            // noop in fixed size problems
+            jacobian.derived().resize(fval.size(), xval.size());
+
+            #pragma omp parallel for num_threads(param.threads())
+            for(Index i = 0; i < xval.size(); ++i)
+            {
+                InputVector xvalNext = xval;
+                OutputVector fvalNext;
+                xvalNext(i) -= param.epsilon();
+                objective(xvalNext, fvalNext);
+
+                jacobian.col(i) = (fval - fvalNext) / param.epsilon();
+            }
+        }
+    };
+
+    /// Functor to compute central differences.
+    /// Computes the gradient of the objective f(x) as follows:
+    ///
+    /// grad(x) = (f(x + 0.5 eps) - f(x - 0.5 eps)) / eps
+    ///
+    /// The computation requires 2 * len(x) evaluations of the objective.
+    struct CentralDifferences
+    {
+        template<typename Scalar, typename Objective, typename I, typename O, typename J>
+        void operator()(const Eigen::MatrixBase<I> &xval,
+                        const Eigen::MatrixBase<O> &fval,
+                        const Objective &objective,
+                        const FiniteDifferencesParameter<Scalar>& param,
+                        Eigen::MatrixBase<J> &jacobian) const
+        {
+            static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Finite differences only supports non-integer scalars.");
+
+            using InputVector = typename Eigen::MatrixBase<I>::PlainMatrix;
+            using OutputVector = typename Eigen::MatrixBase<O>::PlainMatrix;
+
+            // noop in fixed size problems
+            jacobian.derived().resize(fval.size(), xval.size());
+
+            #pragma omp parallel for num_threads(param.threads())
+            for(Index i = 0; i < xval.size(); ++i)
+            {
+                InputVector xvalNext = xval;
+                OutputVector fvalA;
+                OutputVector fvalB;
+
+                xvalNext(i) = xval(i) - param.epsilon() / Scalar{2};
+                objective(xvalNext, fvalA);
+
+                xvalNext(i) = xval(i) + param.epsilon() / Scalar{2};
+                objective(xvalNext, fvalB);
+
+                jacobian.col(i) = (fvalB - fvalA) / param.epsilon();
+            }
+        }
     };
 
     /// Solves for dense linear equation systems using the Jacobi SVD method.
@@ -221,13 +197,12 @@ namespace lsqcpp
         /// @param b linear equation system vector
         /// @param x computed result
         /// @return true if successful, false otherwise
-        template<typename Scalar, int Size>
-        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                        const Eigen::Matrix<Scalar, Size, 1> &b,
-                        Eigen::Matrix<Scalar, Size, 1> &x) const
+        template<typename M, typename B, typename X>
+        bool operator()(const Eigen::MatrixBase<M> &A,
+                        const Eigen::MatrixBase<B> &b,
+                        Eigen::MatrixBase<X> &x) const
         {
-            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
-            using Solver = Eigen::JacobiSVD<Matrix, Eigen::FullPivHouseholderQRPreconditioner>;
+            using Solver = Eigen::JacobiSVD<M, Eigen::FullPivHouseholderQRPreconditioner>;
             auto solver = Solver(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
             x = solver.solve(b);
             return true;
@@ -242,13 +217,12 @@ namespace lsqcpp
         /// @param b linear equation system vector
         /// @param x computed result
         /// @return true if successful, false otherwise
-        template<typename Scalar, int Size>
-        bool operator()(const Eigen::Matrix<Scalar, Size, Size> &A,
-                        const Eigen::Matrix<Scalar, Size, 1> &b,
-                        Eigen::Matrix<Scalar, Size, 1> &x) const
+        template<typename M, typename B, typename X>
+        bool operator()(const Eigen::MatrixBase<M> &A,
+                        const Eigen::MatrixBase<B> &b,
+                        Eigen::MatrixBase<X> &x) const
         {
-            using Matrix = Eigen::Matrix<Scalar, Size, Size>;
-            using Solver = Eigen::LDLT<Matrix>;
+            using Solver = Eigen::LDLT<M>;
 
             Solver decomp;
             decomp.compute(A);
@@ -270,29 +244,18 @@ namespace lsqcpp
     /// Newton step refinement method which applies a constant scaling factor to the newton step.
     struct ConstantStepFactor { };
 
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ConstantStepFactor>
+    /// Parametrization class for the ConstantStepFactor refinement method.
+    template<typename _Scalar>
+    class ConstantStepFactorParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = ConstantStepFactor;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        ConstantStepFactorParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-
-        NewtonStepRefiner() = default;
-
-        NewtonStepRefiner(const Scalar factor)
+        ConstantStepFactorParameter(const Scalar factor)
             : _factor(factor)
         { }
-
         /// Sets the constant scaling factor which is applied to the newton step.
         /// @param factor constant newton step scaling factor
         void setFactor(const Scalar factor)
@@ -306,6 +269,31 @@ namespace lsqcpp
         {
             return _factor;
         }
+    private:
+        Scalar _factor = Scalar{1};
+    };
+
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ConstantStepFactor>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ConstantStepFactor;
+        using Parameter = ConstantStepFactorParameter<Scalar>;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
+        NewtonStepRefiner(const Parameter &param)
+            : _param(param)
+        { }
 
         /// Refines the given newton step and scales it by a constant factor.
         /// @param step newton step which is scaled.
@@ -317,10 +305,10 @@ namespace lsqcpp
                         const Objective &,
                         StepVector &step) const
         {
-            step *= _factor;
+            step *= _param.factor();
         }
     private:
-        Scalar _factor = Scalar{1};
+        const Parameter &_param;
     };
 
     /// Applies Barzilai-Borwein (BB) refinemnt to the newton step.
@@ -342,57 +330,37 @@ namespace lsqcpp
         };
     };
 
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, BarzilaiBorwein>
+    /// Parametrization class for the BarzilaiBorwein refinement method.
+    template<typename _Scalar>
+    class BarzilaiBorweinParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = BarzilaiBorwein;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        BarzilaiBorweinParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using Mode = BarzilaiBorwein::Mode;
-
-        NewtonStepRefiner()
-        {
-            init();
-        }
-
-        NewtonStepRefiner(const Mode mode)
+        BarzilaiBorweinParameter(const BarzilaiBorwein::Mode mode)
             : _mode(mode)
-        {
-            init();
-        }
+        { }
 
-        NewtonStepRefiner(const Scalar constStep)
+        BarzilaiBorweinParameter(const Scalar constStep)
             : _constStep(constStep)
-        {
-            init();
-        }
+        { }
 
-        NewtonStepRefiner(const Mode mode, const Scalar constStep)
+        BarzilaiBorweinParameter(const BarzilaiBorwein::Mode mode, const Scalar constStep)
             : _mode(mode), _constStep(constStep)
-        {
-            init();
-        }
+        { }
 
         /// Sets the BarzilaiBorwein operation mode.
         /// @param mode mode
-        void setMode(const Mode mode)
+        void setMode(const BarzilaiBorwein::Mode mode)
         {
             _mode = mode;
         }
 
         /// Returns the BarzilaiBorwein operation mode.
         /// @return mode
-        Mode mode() const
+        BarzilaiBorwein::Mode mode() const
         {
             return _mode;
         }
@@ -410,6 +378,35 @@ namespace lsqcpp
         {
             return _constStep;
         }
+    private:
+        BarzilaiBorwein::Mode _mode = BarzilaiBorwein::Mode::Direct;
+        Scalar _constStep = static_cast<Scalar>(1e-2);
+    };
+
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, BarzilaiBorwein>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = BarzilaiBorwein;
+        using Parameter = BarzilaiBorweinParameter<Scalar>;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
+        NewtonStepRefiner(const Parameter &param)
+            : _param(param)
+        {
+            _lastXval.setZero();
+            _lastStep.setZero();
+        }
 
         template<typename Objective>
         void operator()(const InputVector &xval,
@@ -422,16 +419,16 @@ namespace lsqcpp
             auto stepSize = Scalar{0};
             if(_lastXval.sum() == Scalar{0})
             {
-                stepSize = (Scalar{1} / step.norm()) * _constStep;
+                stepSize = (Scalar{1} / step.norm()) * _param.constantStepSize();
             }
             else
             {
-                switch(_mode)
+                switch(_param.mode())
                 {
-                case Mode::Direct:
+                case BarzilaiBorwein::Mode::Direct:
                     stepSize = directStep(xval, step);
                     break;
-                case Mode::Inverse:
+                case BarzilaiBorwein::Mode::Inverse:
                     stepSize = inverseStep(xval, step);
                     break;
                 default:
@@ -446,16 +443,9 @@ namespace lsqcpp
             step *= stepSize;
         }
     private:
+        const Parameter &_param;
         InputVector _lastXval = {};
         StepVector _lastStep = {};
-        Mode _mode = Mode::Direct;
-        Scalar _constStep = static_cast<Scalar>(1e-2);
-
-        void init()
-        {
-            _lastXval.setZero();
-            _lastStep.setZero();
-        }
 
         Scalar directStep(const InputVector &xval,
                           const StepVector &step) const
@@ -497,30 +487,20 @@ namespace lsqcpp
     /// stepSize = decrease * stepSize
     struct ArmijoBacktracking { };
 
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ArmijoBacktracking>
+    /// Parametrization class for the ArmijoBacktracking refinement method.
+    template<typename _Scalar>
+    class ArmijoBacktrackingParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = ArmijoBacktracking;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        ArmijoBacktrackingParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-
-        NewtonStepRefiner() = default;
-
-        NewtonStepRefiner(const Scalar decrease,
-                          const Scalar c1,
-                          const Scalar minStep,
-                          const Scalar maxStep,
-                          const Index iterations)
+        ArmijoBacktrackingParameter(const Scalar decrease,
+                                    const Scalar c1,
+                                    const Scalar minStep,
+                                    const Scalar maxStep,
+                                    const Index iterations)
             : _decrease(decrease), _c1(c1), _minStep(minStep),
             _maxStep(maxStep), _maxIt(iterations)
         {
@@ -608,6 +588,35 @@ namespace lsqcpp
         {
             return _maxIt;
         }
+    private:
+        Scalar _decrease = static_cast<Scalar>(0.8);
+        Scalar _c1 = static_cast<Scalar>(1e-4);
+        Scalar _minStep = static_cast<Scalar>(1e-10);
+        Scalar _maxStep = static_cast<Scalar>(1);
+        Index _maxIt = Index{0};
+    };
+
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, ArmijoBacktracking>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = ArmijoBacktracking;
+        using Parameter = ArmijoBacktrackingParameter<Scalar>;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
+        NewtonStepRefiner(const Parameter &param)
+            : _param(param)
+        { }
 
         template<typename Objective>
         void operator()(const InputVector &xval,
@@ -624,20 +633,20 @@ namespace lsqcpp
             const auto error = static_cast<Scalar>(0.5) * fval.squaredNorm();
             const auto stepGrad = gradient.dot(step);
             bool armijoCondition = false;
-            auto stepSize = _maxStep / _decrease;
+            auto stepSize = _param.maximumStepBound() / _param.backtrackingDecrease();
 
             auto iterations = Index{0};
-            while((_maxIt <= Index{0} || iterations < _maxIt) &&
-                   stepSize * _decrease >= _minStep &&
+            while((_param.maximumIterations() <= Index{0} || iterations < _param.maximumIterations()) &&
+                   stepSize * _param.backtrackingDecrease() >= _param.minimumStepBound() &&
                    !armijoCondition)
             {
-                stepSize = _decrease * stepSize;
+                stepSize = _param.backtrackingDecrease() * stepSize;
                 xvalN = xval - stepSize * step;
                 objective(xvalN, fvalN, jacobianN);
 
                 const auto errorN = static_cast<Scalar>(0.5) * fvalN.squaredNorm();
 
-                armijoCondition = errorN <= error + _c1 * stepSize * stepGrad;
+                armijoCondition = errorN <= error + _param.armijoConstant() * stepSize * stepGrad;
 
                 ++iterations;
             }
@@ -645,11 +654,7 @@ namespace lsqcpp
             step *= stepSize;
         }
     private:
-        Scalar _decrease = static_cast<Scalar>(0.8);
-        Scalar _c1 = static_cast<Scalar>(1e-4);
-        Scalar _minStep = static_cast<Scalar>(1e-10);
-        Scalar _maxStep = static_cast<Scalar>(1);
-        Index _maxIt = Index{0};
+        const Parameter &_param;
     };
 
     /// Step refinement method which performs Wolfe Linesearch with backtracking.
@@ -664,31 +669,21 @@ namespace lsqcpp
     /// stepSize = decrease * stepSize
     struct WolfeBacktracking { };
 
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, WolfeBacktracking>
+    /// Parametrization class for the WolfeBacktracking refinement method.
+    template<typename _Scalar>
+    class WolfeBacktrackingParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = WolfeBacktracking;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        WolfeBacktrackingParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-
-        NewtonStepRefiner() = default;
-
-        NewtonStepRefiner(const Scalar decrease,
-            const Scalar c1,
-            const Scalar c2,
-            const Scalar minStep,
-            const Scalar maxStep,
-            const Index iterations)
+        WolfeBacktrackingParameter(const Scalar decrease,
+                                   const Scalar c1,
+                                   const Scalar c2,
+                                   const Scalar minStep,
+                                   const Scalar maxStep,
+                                   const Index iterations)
             : _decrease(decrease), _c1(c1), _c2(c2), _minStep(minStep),
             _maxStep(maxStep), _maxIt(iterations)
         {
@@ -790,6 +785,36 @@ namespace lsqcpp
         {
             return _maxIt;
         }
+    private:
+        Scalar _decrease = static_cast<Scalar>(0.8);
+        Scalar _c1 = static_cast<Scalar>(1e-4);
+        Scalar _c2 = static_cast<Scalar>(0.9);
+        Scalar _minStep = static_cast<Scalar>(1e-10);
+        Scalar _maxStep = static_cast<Scalar>(1.0);
+        Index _maxIt = 0;
+    };
+
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, WolfeBacktracking>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = WolfeBacktracking;
+        using Parameter = WolfeBacktrackingParameter<Scalar>;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
+        NewtonStepRefiner(const Parameter &param)
+            : _param(param)
+        {}
 
         template<typename Objective>
         void operator()(const InputVector &xval,
@@ -799,8 +824,7 @@ namespace lsqcpp
                         const Objective &objective,
                         StepVector &step) const
         {
-
-            auto stepSize = _maxStep / _decrease;
+            auto stepSize = _param.maximumStepBound() / _param.backtrackingDecrease();
             JacobiMatrix jacobianN;
             GradientVector gradientN;
             InputVector xvalN;
@@ -812,18 +836,18 @@ namespace lsqcpp
             bool wolfeCondition = false;
 
             Index iterations = 0;
-            while((_maxIt <= 0 || iterations < _maxIt) &&
-                   stepSize * _decrease >= _minStep &&
+            while((_param.maximumIterations() <= 0 || iterations < _param.maximumIterations()) &&
+                   stepSize * _param.backtrackingDecrease() >= _param.minimumStepBound() &&
                    !(armijoCondition && wolfeCondition))
             {
-                stepSize = _decrease * stepSize;
+                stepSize = _param.backtrackingDecrease() * stepSize;
                 xvalN = xval - stepSize * step;
                 objective(xvalN, fvalN, jacobianN);
                 Scalar errorN = fvalN.squaredNorm() / 2;
                 gradientN = jacobianN.transpose() * fvalN;
 
-                armijoCondition = errorN <= error + _c1 * stepSize * stepGrad;
-                wolfeCondition = gradientN.dot(step) >= _c2 * stepGrad;
+                armijoCondition = errorN <= error + _param.armijoConstant() * stepSize * stepGrad;
+                wolfeCondition = gradientN.dot(step) >= _param.wolfeConstant() * stepGrad;
 
                 ++iterations;
             }
@@ -831,44 +855,27 @@ namespace lsqcpp
             step *= stepSize;
         }
     private:
-        Scalar _decrease = static_cast<Scalar>(0.8);
-        Scalar _c1 = static_cast<Scalar>(1e-4);
-        Scalar _c2 = static_cast<Scalar>(0.9);
-        Scalar _minStep = static_cast<Scalar>(1e-10);
-        Scalar _maxStep = static_cast<Scalar>(1.0);
-        Index _maxIt = 0;
+        const Parameter &_param;
     };
 
     /// Step refinement method which implements Powell' Dogleg Method.
     struct DoglegMethod { };
 
-    /// Implementation of Powell's Dogleg Method.
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, DoglegMethod>
+    /// Parametrization class for the DoglegMethod refinement method.
+    template<typename _Scalar>
+    class DoglegMethodParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = DoglegMethod;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        DoglegMethodParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using HessianMatrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-
-        NewtonStepRefiner() = default;
-
-        NewtonStepRefiner(const Scalar radius,
-                          const Scalar maxRadius,
-                          const Scalar radiusEps,
-                          const Scalar acceptFitness,
-                          const Index iterations)
-            : _radius (radius), _maxRadius(maxRadius), _radiusEps(radiusEps),
+        DoglegMethodParameter(const Scalar initRadius,
+                              const Scalar maxRadius,
+                              const Scalar radiusEps,
+                              const Scalar acceptFitness,
+                              const Index iterations)
+            : _initialRadius(initRadius), _maxRadius(maxRadius), _radiusEps(radiusEps),
             _acceptFitness(acceptFitness), _maxIt(iterations)
         { }
 
@@ -929,8 +936,8 @@ namespace lsqcpp
         /// @param radius maximum trust region radius
         void setMaximumRadius(const Scalar radius)
         {
+            _initialRadius = std::min(_initialRadius, radius);
             _maxRadius = radius;
-            _radius = std::min(_radius, _maxRadius);
         }
 
         /// Returns the maximum radius that is used for trust region search.
@@ -940,12 +947,53 @@ namespace lsqcpp
             return _maxRadius;
         }
 
-        /// Returns the current trust region radius.
-        /// @return trust region radius.
-        Scalar radius() const
+        /// Sets the radius that is initially used by the dogleg method.
+        /// The radius must be greater than zero.
+        /// @param radius the initial radius that should be used.
+        void setInitialRadius(const Scalar radius)
         {
-            return _radius;
+            assert(radius > 0);
+            _initialRadius = radius;
         }
+
+        /// Returns the radius that is initially used by the dogleg method.
+        /// @return the initial radius
+        Scalar initialRadius() const
+        {
+            return _initialRadius;
+        }
+
+    private:
+        Scalar _initialRadius = {1};
+        Scalar _maxRadius = Scalar{2};
+        Scalar _radiusEps = static_cast<Scalar>(1e-6);
+        Scalar _acceptFitness = static_cast<Scalar>(0.25);
+        Index _maxIt = 0;
+    };
+
+    /// Implementation of Powell's Dogleg Method.
+    template<typename _Scalar, int _Inputs, int _Outputs>
+    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, DoglegMethod>
+    {
+    public:
+        using Scalar = _Scalar;
+        static constexpr int Inputs = _Inputs;
+        static constexpr int Outputs = _Outputs;
+        using Method = DoglegMethod;
+        using Parameter = DoglegMethodParameter<Scalar>;
+
+        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+
+        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
+        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
+        using HessianMatrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
+        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
+        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
+
+        NewtonStepRefiner(const Parameter &param)
+            : _param(param), _radius(param.initialRadius())
+        { }
 
         template<typename Objective>
         void operator()(const InputVector &xval,
@@ -973,12 +1021,12 @@ namespace lsqcpp
             const auto diffLenSq = diffStep.squaredNorm();
             const Scalar diffFac = cauchyStep.dot(diffStep) / diffLenSq;
 
-            auto modelFitness = _acceptFitness - Scalar{1};
+            auto modelFitness = _param.acceptanceFitness() - Scalar{1};
             Index iteration = 0;
 
             // keep computing while the model fitness is bad
-            while(modelFitness < _acceptFitness &&
-                  (_maxIt <= 0 || iteration < _maxIt))
+            while(modelFitness < _param.acceptanceFitness() &&
+                  (_param.maximumIterations() <= Index{0} || iteration < _param.maximumIterations()))
             {
                 const auto radiusSq = _radius * _radius;
 
@@ -1018,13 +1066,13 @@ namespace lsqcpp
                     _radius = static_cast<Scalar>(0.25) * stepLen;
                 }
                 // if the model fitness is very good then increase it
-                else if(modelFitness > static_cast<Scalar>(0.75) && std::abs(stepLen - _radius) < _radiusEps)
+                else if(modelFitness > static_cast<Scalar>(0.75) && std::abs(stepLen - _radius) < _param.radiusEpsilon())
                 {
                     // use the double radius
                     _radius = 2 * _radius;
                     // maintain radius border if configured
-                    if(_maxRadius > 0 && _radius > _maxRadius)
-                        _radius = _maxRadius;
+                    if(_param.maximumRadius() > 0 && _radius > _param.maximumRadius())
+                        _radius = _param.maximumRadius();
                 }
 
                 ++iteration;
@@ -1032,11 +1080,8 @@ namespace lsqcpp
         }
 
     private:
+        const Parameter &_param;
         Scalar _radius = Scalar{1};
-        Scalar _maxRadius = Scalar{2};
-        Scalar _radiusEps = static_cast<Scalar>(1e-6);
-        Scalar _acceptFitness = static_cast<Scalar>(0.25);
-        Index _maxIt = 0;
 
         template<typename Objective>
         Scalar calulateModelFitness(const InputVector &xval,
@@ -1062,39 +1107,82 @@ namespace lsqcpp
         }
     };
 
-    /// Step refinement method which implements the Levenberg Marquardt method.
-    struct LevenbergMarquardtMethod
-    { };
+    /// Parameterization class for the GradientDescent step calculation method.
+    struct GradientDescentParameter {};
 
-    template<typename _Scalar, int _Inputs, int _Outputs>
-    class NewtonStepRefiner<_Scalar, _Inputs, _Outputs, LevenbergMarquardtMethod>
+    /// Gradient descent step calculation method.
+    struct GradientDescentMethod
+    {
+        using Parameter = GradientDescentParameter;
+
+        GradientDescentMethod(const Parameter &)
+        { }
+
+        /// Computes the newton step as the gradient of the objective function.
+        /// @param gradient gradient of the objective function
+        /// @param step computed newton step
+        /// @return true on success, otherwise false
+        template<typename I, typename O, typename J, typename G, typename Objective, typename S>
+        bool operator()(const Eigen::MatrixBase<I>&,
+                        const Eigen::MatrixBase<O> &,
+                        const Eigen::MatrixBase<J> &,
+                        const Eigen::MatrixBase<G> &gradient,
+                        const Objective &,
+                        Eigen::MatrixBase<S>& step) const
+        {
+            step = gradient;
+            return true;
+        }
+    };
+
+    /// Parameterization class for the GaussNewton step calculation method.
+    struct GaussNewtonParameter {};
+
+    /// Gradient descent step calculation method.
+    template<typename _Solver=DenseSVDSolver>
+    struct GaussNewtonMethod
+    {
+        using Parameter = GaussNewtonParameter;
+        using Solver = _Solver;
+
+        GaussNewtonMethod(const Parameter &)
+        { }
+
+        /// Computes the newton step from a linearized approximation of the objective function.
+        /// @param gradient gradient of the objective function
+        /// @param step computed newton step
+        /// @return true on success, otherwise false
+        template<typename I, typename O, typename J, typename G, typename Objective, typename S>
+        bool operator()(const Eigen::MatrixBase<I> &,
+                        const Eigen::MatrixBase<O> &,
+                        const Eigen::MatrixBase<J> &jacobian,
+                        const Eigen::MatrixBase<G> &gradient,
+                        const Objective &,
+                        Eigen::MatrixBase<S>& step) const
+        {
+            Solver solver;
+            const auto A = jacobian.transpose() * jacobian;
+            using Matrix = typename decltype(A)::PlainMatrix;
+            return solver(Matrix(A), gradient, step);
+        }
+    };
+
+    /// Parameterization class for the LevenbergMarquardt step calculation method.
+    template<typename _Scalar>
+    class LevenbergMarquardtParameter
     {
     public:
         using Scalar = _Scalar;
-        static constexpr int Inputs = _Inputs;
-        static constexpr int Outputs = _Outputs;
-        using Method = LevenbergMarquardtMethod;
 
-        static_assert(Eigen::NumTraits<Scalar>::IsInteger == 0, "Step refinement only supports non-integer scalars");
+        LevenbergMarquardtParameter() = default;
 
-        using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
-        using JacobiMatrix = Eigen::Matrix<Scalar, Outputs, Inputs>;
-        using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using SystemMatrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
-        using SystemVector = Eigen::Matrix<Scalar, Inputs, 1>;
-        using Solver = std::function<bool(const SystemMatrix&, const SystemVector&, StepVector&)>;
-
-        NewtonStepRefiner() = default;
-
-        NewtonStepRefiner(const Scalar lambda,
-                          const Scalar increase,
-                          const Scalar decrease,
-                          const Index iterations,
-                          const Solver &solver)
-            : _lambda(lambda), _increase(increase), _decrease(decrease), _maxIt(iterations), _solver(solver)
+        LevenbergMarquardtParameter(const Scalar initialLambda,
+                                    const Scalar increase,
+                                    const Scalar decrease,
+                                    const Index iterations)
+            : _initialLambda(initialLambda), _increase(increase), _decrease(decrease), _maxIt(iterations)
         {
+            assert(initialLambda > Scalar{0});
             assert(decrease < Scalar{1});
             assert(decrease > Scalar{0});
             assert(increase > Scalar{1});
@@ -1102,16 +1190,17 @@ namespace lsqcpp
 
         /// Sets the initial gradient descent factor of levenberg marquardt.
         /// @param lambda gradient descent factor
-        void setLambda(const Scalar lambda)
+        void setInitialLambda(const Scalar lambda)
         {
-            _lambda = lambda;
+            assert(lambda > Scalar{0});
+            _initialLambda = lambda;
         }
 
-        /// Rezurns the initial gradient descent factor of levenberg marquardt.
+        /// Returns the initial gradient descent factor of levenberg marquardt.
         /// @return lambda gradient descent factor
-        Scalar lambda() const
+        Scalar initialLambda() const
         {
-            return _lambda;
+            return _initialLambda;
         }
 
         /// Sets the maximum iterations of the levenberg marquardt optimization.
@@ -1161,22 +1250,42 @@ namespace lsqcpp
         {
             return _decrease;
         }
+    private:
+        Scalar _initialLambda = Scalar{1};
+        Scalar _increase = static_cast<Scalar>(2);
+        Scalar _decrease = static_cast<Scalar>(0.5);
+        Index _maxIt = 0;
+    };
 
-        template<typename S>
-        void setSolver(const S &solver)
-        {
-            _solver = Solver(solver);
-        }
+    /// Step refinement method which implements the Levenberg Marquardt method.
+    template<typename _Scalar, typename _Solver=DenseSVDSolver>
+    class LevenbergMarquardtMethod
+    {
+    public:
+        using Scalar = _Scalar;
+        using Solver = _Solver;
+        using Parameter = LevenbergMarquardtParameter<Scalar>;
 
-        template<typename Objective>
-        void operator()(const InputVector &xval,
-                        const OutputVector &fval,
-                        const JacobiMatrix &jacobian,
-                        const GradientVector &gradient,
+        LevenbergMarquardtMethod(const Parameter &param)
+            : _param(param), _lambda(param.initialLambda())
+        { }
+
+        /// Computes the newton step from a linearized approximation of the objective function.
+        /// @param gradient gradient of the objective function
+        /// @param step computed newton step
+        /// @return true on success, otherwise false
+        template<typename I, typename O, typename J, typename G, typename Objective, typename S>
+        bool operator()(const Eigen::MatrixBase<I> &xval,
+                        const Eigen::MatrixBase<O> &fval,
+                        const Eigen::MatrixBase<J> &jacobian,
+                        const Eigen::MatrixBase<G> &gradient,
                         const Objective &objective,
-                        StepVector &step)
+                        Eigen::MatrixBase<S>& step)
         {
-            assert(_solver);
+            using InputVector = typename Eigen::MatrixBase<I>::PlainMatrix;
+            using OutputVector = typename Eigen::MatrixBase<O>::PlainMatrix;
+            using JacobiMatrix = typename Eigen::MatrixBase<J>::PlainMatrix;
+            using SystemMatrix = typename decltype(jacobian.transpose() * jacobian)::PlainMatrix;
 
             const auto error = fval.squaredNorm() / 2;
             const SystemMatrix jacobianSq = jacobian.transpose() * jacobian;
@@ -1186,9 +1295,10 @@ namespace lsqcpp
             InputVector xvalN;
             OutputVector fvalN;
             JacobiMatrix jacobianN;
+            Solver solver;
 
             Index iterations = 0;
-            while((_maxIt <= 0 || iterations < _maxIt) &&
+            while((_param.maximumIterations() <= 0 || iterations < _param.maximumIterations()) &&
                 errorN > error)
             {
                 A = jacobianSq;
@@ -1196,92 +1306,32 @@ namespace lsqcpp
                 for(Index i = 0; i < A.rows(); ++i)
                     A(i, i) += _lambda;
 
-                const auto ret = _solver(A, gradient, step);
-                // mark unused for release mode
-                (void)ret;
-                assert(ret);
+                const auto ret = solver(A, gradient, step);
+                if(!ret)
+                    return false;
 
                 xvalN = xval - step;
                 objective(xvalN, fvalN, jacobianN);
                 errorN = fvalN.squaredNorm() / 2;
 
                 if(errorN > error)
-                    _lambda *= _increase;
+                    _lambda *= _param.increase();
                 else
-                    _lambda *= _decrease;
+                    _lambda *= _param.decrease();
 
                 ++iterations;
             }
+
+            return true;
         }
 
     private:
+        Parameter _param = {};
         Scalar _lambda = Scalar{1};
-        Scalar _increase = static_cast<Scalar>(2);
-        Scalar _decrease = static_cast<Scalar>(0.5);
-        Index _maxIt = 0;
-        Solver _solver = DenseSVDSolver();
-    };
-
-    /// Functor which implements the gradient descent method.
-    struct GradientDescentMethod
-    {
-        using Solver = void;
-
-        /// Computes the newton step as the gradient of the objective function.
-        /// @param gradient gradient of the objective function
-        /// @param step computed newton step
-        /// @return true on success, otherwise false
-        template<typename Scalar, int Inputs, int Outputs>
-        bool operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
-                        const Eigen::Matrix<Scalar, Outputs, 1> &,
-                        const Eigen::Matrix<Scalar, Outputs, Inputs> &,
-                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient,
-                        Eigen::Matrix<Scalar, Inputs, 1>& step) const
-        {
-            step = gradient;
-            return true;
-        }
-    };
-
-    /// Functor which implements the Gauss Newton method.
-    template<typename _Solver=DenseSVDSolver>
-    struct GaussNewtonMethod
-    {
-        using Solver = _Solver;
-
-        /// Computes the newton step from a linearized approximation of the objective function.
-        /// @param gradient gradient of the objective function
-        /// @param step computed newton step
-        /// @return true on success, otherwise false
-        template<typename Scalar, int Inputs, int Outputs>
-        bool operator()(const Eigen::Matrix<Scalar, Inputs, 1>&,
-                        const Eigen::Matrix<Scalar, Outputs, 1> &,
-                        const Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian,
-                        const Eigen::Matrix<Scalar, Inputs, 1> &gradient,
-                        Eigen::Matrix<Scalar, Inputs, 1>& step) const
-        {
-            using Matrix = Eigen::Matrix<Scalar, Inputs, Inputs>;
-
-            Solver solver;
-            Matrix A = jacobian.transpose() * jacobian;
-            return solver(A, gradient, step);
-        }
     };
 
     namespace internal
     {
-        template <typename R, typename... Args>
-        struct FunctionArgumentCount
-        {
-            static constexpr int value = sizeof...(Args);
-        };
-
-        template <typename R, typename... Args>
-        constexpr int countFunctionArguments(R (Args...))
-        {
-            return FunctionArgumentCount<R, Args...>::value;
-        }
-
         template<bool ComputesJacobian>
         struct ObjectiveEvaluator
         { };
@@ -1289,10 +1339,11 @@ namespace lsqcpp
         template<>
         struct ObjectiveEvaluator<true>
         {
-            template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
+            template<typename InputVector, typename Objective, typename FiniteDifferences, typename Params, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
                             const Objective &objective,
-                            const FiniteDifferencesCalculator&,
+                            const FiniteDifferences&,
+                            const Params &,
                             OutputVector &fval,
                             JacobiMatrix &jacobian) const
             {
@@ -1303,15 +1354,16 @@ namespace lsqcpp
         template<>
         struct ObjectiveEvaluator<false>
         {
-            template<typename InputVector, typename Objective, typename FiniteDifferencesCalculator, typename OutputVector, typename JacobiMatrix>
+            template<typename InputVector, typename Objective, typename FiniteDifferences, typename Params, typename OutputVector, typename JacobiMatrix>
             void operator()(const InputVector &xval,
                             const Objective &objective,
-                            const FiniteDifferencesCalculator &finiteDifferences,
+                            const FiniteDifferences &finiteDifferences,
+                            const Params &param,
                             OutputVector &fval,
                             JacobiMatrix &jacobian) const
             {
                 objective(xval, fval);
-                finiteDifferences(xval, fval, objective, jacobian);
+                finiteDifferences(xval, fval, objective, param, jacobian);
             }
         };
 
@@ -1319,6 +1371,28 @@ namespace lsqcpp
         bool almostZero(T x)
         {
             return std::abs(x) < std::numeric_limits<T>::epsilon();
+        }
+
+        template<typename Derived>
+        std::string makePrettyVector(const Eigen::MatrixBase<Derived> &vec)
+        {
+            assert(vec.cols() == 1);
+
+            std::stringstream ss1;
+            ss1 << std::fixed << std::showpoint << std::setprecision(6);
+            std::stringstream ss2;
+            ss2 << '[';
+            for(Index i = 0; i < vec.rows(); ++i)
+            {
+                ss1 << vec(i, 0);
+                ss2 << std::setfill(' ') << std::setw(10) << ss1.str();
+                if(i != vec.rows() - 1)
+                    ss2 << ' ';
+                ss1.str("");
+            }
+            ss2 << ']';
+
+            return ss2.str();
         }
     }
 
@@ -1339,7 +1413,14 @@ namespace lsqcpp
         constexpr static auto Inputs = _Inputs;
         constexpr static auto Outputs = _Outputs;
         using Objective = _Objective;
+
         using StepMethod = _StepMethod;
+        using StepMethodParameter = typename StepMethod::Parameter;
+
+        using StepRefiner = NewtonStepRefiner<Scalar, Inputs, Outputs, _RefineMethod>;
+        using StepRefinerParameter = typename StepRefiner::Parameter;
+
+        using FiniteDifferencesMethod = _FiniteDifferencesMethod;
 
         using InputVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using OutputVector = Eigen::Matrix<Scalar, Outputs, 1>;
@@ -1348,8 +1429,8 @@ namespace lsqcpp
         using GradientVector = Eigen::Matrix<Scalar, Inputs, 1>;
         using StepVector = Eigen::Matrix<Scalar, Inputs, 1>;
 
-        using FiniteDifferencesCalculator = FiniteDifferences<Scalar, _FiniteDifferencesMethod>;
-        using StepRefiner = NewtonStepRefiner<Scalar, Inputs, Outputs, _RefineMethod>;
+
+
         using Callback = std::function<bool(const Index,
                                             const InputVector&,
                                             const OutputVector&,
@@ -1376,14 +1457,42 @@ namespace lsqcpp
         /// @param threads number of threads to be used
         void setThreads(const Index threads)
         {
-            _finiteDifferences.setThreads(threads);
+            _finiteDifferencesParam.setThreads(threads);
         }
 
         /// Set the difference for gradient estimation with finite differences.
         /// @param eps numerical epsilon
         void setNumericalEpsilon(const Scalar eps)
         {
-            _finiteDifferences.setNumericalEpsilon(eps);
+            _finiteDifferencesParam.setNumericalEpsilon(eps);
+        }
+
+        /// Sets the parameters for the newton step calculation method, e.g. GaussNewton, LevenbergMarquardt, etc.
+        /// @param param parameters that should be set.
+        void setMethodParameters(const StepMethodParameter &param)
+        {
+            _methodParam = param;
+        }
+
+        /// Returns the parameters for the newton step calculation method.
+        /// @return step calculation parameters
+        const StepMethodParameter &methodParameters() const
+        {
+            return _methodParam;
+        }
+
+        /// Sets the parameters for the newton step refinement method, e.g. ArmijoBacktracking, DoglegMethod, etc.
+        /// @param param parameters that should be set.
+        void setRefinementParameters(const StepRefinerParameter &param)
+        {
+            _refinerParam = param;
+        }
+
+        /// Returns the parameters for the newton step refinement method.
+        /// @return step calculation parameters
+        const StepRefinerParameter &refinementParameters() const
+        {
+            return _refinerParam;
         }
 
         /// Sets the instance values of the custom objective function.
@@ -1400,13 +1509,6 @@ namespace lsqcpp
         void setCallback(const T &callback)
         {
             _callback = callback;
-        }
-
-        /// Sets the instance values of the step refiner functor.
-        /// @param refiner instance that should be copied
-        void setStepRefiner(const StepRefiner &refiner)
-        {
-            _stepRefiner = refiner;
         }
 
         /// Sets the maximum number of iterations.
@@ -1472,11 +1574,16 @@ namespace lsqcpp
             bool callbackResult = true;
             bool succeeded = true;
 
-            const auto evaluator = internal::ObjectiveEvaluator<Objective::ComputesJacobian>();
-            const auto objective = [&evaluator, this](const InputVector &xval, OutputVector &fval, JacobiMatrix &jacobian)
+            // create objective lambda function which performs automatically numerical estimation
+            // of the gradient if necessary.
+            const auto objective = [this](const InputVector &xval, OutputVector &fval, JacobiMatrix &jacobian)
             {
-                evaluator(xval, this->_objective, this->_finiteDifferences, fval, jacobian);
+                const auto evaluator = internal::ObjectiveEvaluator<Objective::ComputesJacobian>();
+                evaluator(xval, this->_objective, FiniteDifferencesMethod(), this->_finiteDifferencesParam, fval, jacobian);
             };
+
+            auto stepMethod = StepMethod(_methodParam);
+            auto stepRefiner = StepRefiner(_refinerParam);
 
             Index iterations = 0;
             while((_maxIt <= 0 || iterations < _maxIt) &&
@@ -1493,14 +1600,14 @@ namespace lsqcpp
                 gradLen = gradient.norm();
 
                 // compute the full newton step according to the current method
-                if(!_stepMethod(xval, fval, jacobian, gradient, step))
+                if(!stepMethod(xval, fval, jacobian, gradient, objective, step))
                 {
                     succeeded = false;
                     break;
                 }
 
                 // refine the step according to the current refiner
-                _stepRefiner(xval, fval, jacobian, gradient, objective, step);
+                stepRefiner(xval, fval, jacobian, gradient, objective, step);
                 stepLen = step.norm();
 
                 // evaluate callback if available
@@ -1511,6 +1618,8 @@ namespace lsqcpp
 
                 if(_verbosity > 0)
                 {
+                    using internal::makePrettyVector;
+
                     std::stringstream ss;
                     ss << "it=" << std::setfill('0')
                         << std::setw(4) << iterations
@@ -1524,11 +1633,11 @@ namespace lsqcpp
                     ss << "    error=" << error;
 
                     if(_verbosity > 2)
-                        ss << "    xval=" << vector2str(xval);
+                        ss << "    xval=" << makePrettyVector(xval);
                     if(_verbosity > 3)
-                        ss << "    step=" << vector2str(step);
+                        ss << "    step=" << makePrettyVector(step);
                     if(_verbosity > 4)
-                        ss << "    fval=" << vector2str(fval);
+                        ss << "    fval=" << makePrettyVector(fval);
                     (*_output) << ss.str() << std::endl;
                 }
 
@@ -1550,10 +1659,11 @@ namespace lsqcpp
 
     private:
         Objective _objective = {};
-        StepMethod _stepMethod = {};
         Callback _callback = {};
-        FiniteDifferencesCalculator _finiteDifferences = {};
-        StepRefiner _stepRefiner = {};
+
+        StepMethodParameter _methodParam = {};
+        StepRefinerParameter _refinerParam = {};
+        FiniteDifferencesParameter<Scalar> _finiteDifferencesParam = {};
 
         Index _maxIt = 0;
         Scalar _minStepLen = static_cast<Scalar>(1e-9);
@@ -1561,28 +1671,6 @@ namespace lsqcpp
         Scalar _minError = Scalar{0};
         Index _verbosity = 0;
         std::ostream *_output = &std::cout;
-
-        template<typename Derived>
-        std::string vector2str(const Eigen::MatrixBase<Derived> &vec) const
-        {
-            assert(vec.cols() == 1);
-
-            std::stringstream ss1;
-            ss1 << std::fixed << std::showpoint << std::setprecision(6);
-            std::stringstream ss2;
-            ss2 << '[';
-            for(Index i = 0; i < vec.rows(); ++i)
-            {
-                ss1 << vec(i, 0);
-                ss2 << std::setfill(' ') << std::setw(10) << ss1.str();
-                if(i != vec.rows() - 1)
-                    ss2 << ' ';
-                ss1.str("");
-            }
-            ss2 << ']';
-
-            return ss2.str();
-        }
     };
 
     /// General Gauss Newton algorithm.
@@ -1649,13 +1737,13 @@ namespace lsqcpp
              typename Objective,
              typename Solver=DenseSVDSolver,
              typename FiniteDifferencesMethod=CentralDifferences>
-    using LevenbergMarquardt = GaussNewton<Scalar,
-                                           Inputs,
-                                           Outputs,
-                                           Objective,
-                                           LevenbergMarquardtMethod,
-                                           Solver,
-                                           FiniteDifferencesMethod>;
+    using LevenbergMarquardt = LeastSquaresAlgorithm<Scalar,
+                                              Inputs,
+                                              Outputs,
+                                              Objective,
+                                              LevenbergMarquardtMethod<Scalar, Solver>,
+                                              ConstantStepFactor,
+                                              FiniteDifferencesMethod>;
 
     template<typename Scalar,
              typename Objective,

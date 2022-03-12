@@ -27,7 +27,6 @@ int main()
 {
     // Create GradienDescent optimizer with Barzilai Borwein method
     lsqcpp::LevenbergMarquardtX<double, ParabolicError> optimizer;
-    using Solver = lsqcpp::LevenbergMarquardtX<double, ParabolicError>::StepMethod::Solver;
 
     // Set number of iterations as stop criterion.
     optimizer.setMaximumIterations(100);
@@ -41,10 +40,8 @@ int main()
     // Set the minimum least squares error.
     optimizer.setMinimumError(0);
 
-    // Set the parameters of the step refiner (Levenberg Marquardt).
-    // Note that you have to set solver for LM explicitly.
-    // The default is the SVD solver.
-    optimizer.setStepRefiner({1.0, 2.0, 0.5, 100, Solver()});
+    // Set the parameters of the step method (Levenberg Marquardt).
+    optimizer.setMethodParameters({1.0, 2.0, 0.5, 100});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

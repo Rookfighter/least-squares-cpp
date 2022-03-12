@@ -13,73 +13,76 @@ using namespace lsqcpp;
 TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, ArmijoBacktracking>;
+    using Parameter = ArmijoBacktrackingParameter<Scalar>;
 
-    SECTION("construction")
+    SECTION("parameter")
     {
-        SECTION("default")
+        SECTION("construction")
         {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.8));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-10));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1));
-            REQUIRE(refiner.maximumIterations() == 0);
+            SECTION("default")
+            {
+                Parameter param;
+                REQUIRE(param.backtrackingDecrease() == static_cast<Scalar>(0.8));
+                REQUIRE(param.armijoConstant() == static_cast<Scalar>(1e-4));
+                REQUIRE(param.minimumStepBound() == static_cast<Scalar>(1e-10));
+                REQUIRE(param.maximumStepBound() == static_cast<Scalar>(1));
+                REQUIRE(param.maximumIterations() == 0);
+            }
+
+            SECTION("parametrized A")
+            {
+                Parameter param(static_cast<Scalar>(0.42),
+                                       static_cast<Scalar>(1e-2),
+                                       static_cast<Scalar>(1e-4),
+                                       static_cast<Scalar>(1e-3),
+                                       10);
+                REQUIRE(param.backtrackingDecrease() == static_cast<Scalar>(0.42));
+                REQUIRE(param.armijoConstant() == static_cast<Scalar>(1e-2));
+                REQUIRE(param.minimumStepBound() == static_cast<Scalar>(1e-4));
+                REQUIRE(param.maximumStepBound() == static_cast<Scalar>(1e-3));
+                REQUIRE(param.maximumIterations() == 10);
+            }
         }
 
-        SECTION("parametrized A")
+        SECTION("setter")
         {
-            DynamicRefiner refiner(static_cast<Scalar>(0.42),
-                                   static_cast<Scalar>(1e-2),
-                                   static_cast<Scalar>(1e-4),
-                                   static_cast<Scalar>(1e-3),
-                                   10);
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1e-3));
-            REQUIRE(refiner.maximumIterations() == 10);
-        }
-    }
+            SECTION("backtracking decrease")
+            {
+                Parameter param;
+                REQUIRE(param.backtrackingDecrease() == static_cast<Scalar>(0.8));
 
-    SECTION("setter")
-    {
-        SECTION("backtracking decrease")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.8));
+                param.setBacktrackingDecrease(static_cast<Scalar>(0.42));
+                REQUIRE(param.backtrackingDecrease() == static_cast<Scalar>(0.42));
+            }
 
-            refiner.setBacktrackingDecrease(static_cast<Scalar>(0.42));
-            REQUIRE(refiner.backtrackingDecrease() == static_cast<Scalar>(0.42));
-        }
+            SECTION("armijo constant")
+            {
+                Parameter param;
+                REQUIRE(param.armijoConstant() == static_cast<Scalar>(1e-4));
 
-        SECTION("armijo constant")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-4));
+                param.setArmijoConstant(static_cast<Scalar>(1e-2));
+                REQUIRE(param.armijoConstant() == static_cast<Scalar>(1e-2));
+            }
 
-            refiner.setArmijoConstant(static_cast<Scalar>(1e-2));
-            REQUIRE(refiner.armijoConstant() == static_cast<Scalar>(1e-2));
-        }
+            SECTION("step bounds")
+            {
+                Parameter param;
+                REQUIRE(param.minimumStepBound() == static_cast<Scalar>(1e-10));
+                REQUIRE(param.maximumStepBound() == static_cast<Scalar>(1));
 
-        SECTION("step bounds")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-10));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1));
+                param.setStepBounds(static_cast<Scalar>(1e-4), static_cast<Scalar>(1e-3));
+                REQUIRE(param.minimumStepBound() == static_cast<Scalar>(1e-4));
+                REQUIRE(param.maximumStepBound() == static_cast<Scalar>(1e-3));
+            }
 
-            refiner.setStepBounds(static_cast<Scalar>(1e-4), static_cast<Scalar>(1e-3));
-            REQUIRE(refiner.minimumStepBound() == static_cast<Scalar>(1e-4));
-            REQUIRE(refiner.maximumStepBound() == static_cast<Scalar>(1e-3));
-        }
+            SECTION("maximum iterations")
+            {
+                Parameter param;
+                REQUIRE(param.maximumIterations() == 0);
 
-        SECTION("maximum iterations")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.maximumIterations() == 0);
-
-            refiner.setMaximumIterations(10);
-            REQUIRE(refiner.maximumIterations() == 10);
+                param.setMaximumIterations(10);
+                REQUIRE(param.maximumIterations() == 10);
+            }
         }
     }
 
@@ -107,7 +110,8 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
-            Refiner refiner;
+            Parameter param;
+            Refiner refiner(param);
             StepVector expected(4);
             expected << static_cast<Scalar>(1.67772),
                         static_cast<Scalar>(3.35544),
@@ -141,7 +145,8 @@ TEMPLATE_TEST_CASE("armijo backtracking step refiner", "[step refiner]", float, 
             GradientVector gradient = jacobian.transpose() * fval;
             StepVector step = gradient;
 
-            Refiner refiner;
+            Parameter param;
+            Refiner refiner(param);
             StepVector expected(4);
             expected << static_cast<Scalar>(1.67772),
                         static_cast<Scalar>(3.35544),

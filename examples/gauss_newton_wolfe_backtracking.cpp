@@ -41,7 +41,7 @@ int main()
     optimizer.setMinimumError(0);
 
     // Set the parameters of the step refiner (Wolfe Backtracking).
-    optimizer.setStepRefiner({0.8, 1e-4, 0.1, 1e-10, 1.0, 100});
+    optimizer.setRefinementParameters({0.8, 1e-4, 0.1, 1e-10, 1.0, 100});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

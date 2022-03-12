@@ -12,18 +12,19 @@ set(TEST_SRC
     "src/finite_differences_backward.test.cpp"
     "src/finite_differences_central.test.cpp"
     "src/finite_differences_forward.test.cpp"
+    "src/finite_differences_parameter.test.cpp"
 
     "src/step_refiner_constant_factor.test.cpp"
     "src/step_refiner_barzilai_borwein.test.cpp"
     "src/step_refiner_armijo_backtracking.test.cpp"
     "src/step_refiner_wolfe_backtracking.test.cpp"
     "src/step_refiner_dogleg_method.test.cpp"
-    "src/step_refiner_levenberg_marquardt.test.cpp"
 
     "src/dense_cholesky_solver.test.cpp"
     "src/dense_svd_solver.test.cpp"
 
     "src/gauss_newton.test.cpp"
+    "src/levenberg_marquardt.test.cpp"
 )
 
 add_executable(unittests ${TEST_SRC})

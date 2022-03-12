@@ -41,7 +41,7 @@ int main()
     optimizer.setMinimumError(0);
 
     // Set the parameters of the step refiner (Dogleg Method).
-    optimizer.setStepRefiner({1.0, 2.0, 1e-6, 0.25, 100});
+    optimizer.setRefinementParameters({1.0, 2.0, 1e-6, 0.25, 100});
 
     // Turn verbosity on, so the optimizer prints status updates after each
     // iteration.

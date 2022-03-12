@@ -13,57 +13,60 @@ using namespace lsqcpp;
 TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, double)
 {
     using Scalar = TestType;
-    using DynamicRefiner = NewtonStepRefiner<Scalar, Eigen::Dynamic, Eigen::Dynamic, BarzilaiBorwein>;
+    using Parameter = BarzilaiBorweinParameter<Scalar>;
 
-    SECTION("construction")
+    SECTION("parameter")
     {
-        SECTION("default")
+        SECTION("construction")
         {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Direct);
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(1e-2));
+            SECTION("default")
+            {
+                Parameter param;
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Direct);
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(1e-2));
+            }
+
+            SECTION("parametrized A")
+            {
+                Parameter param(BarzilaiBorwein::Mode::Inverse);
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Inverse);
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(1e-2));
+            }
+
+            SECTION("parametrized B")
+            {
+                Parameter param(3);
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Direct);
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(3));
+            }
+
+            SECTION("parametrized C")
+            {
+                Parameter param(BarzilaiBorwein::Mode::Inverse, 14);
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Inverse);
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(14));
+            }
         }
 
-        SECTION("parametrized A")
+        SECTION("setter")
         {
-            DynamicRefiner refiner(BarzilaiBorwein::Mode::Inverse);
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Inverse);
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(1e-2));
-        }
+            SECTION("mode")
+            {
+                Parameter param;
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Direct);
 
-        SECTION("parametrized B")
-        {
-            DynamicRefiner refiner(3);
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Direct);
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(3));
-        }
+                param.setMode(BarzilaiBorwein::Mode::Inverse);
+                REQUIRE(param.mode() == BarzilaiBorwein::Mode::Inverse);
+            }
 
-        SECTION("parametrized C")
-        {
-            DynamicRefiner refiner(BarzilaiBorwein::Mode::Inverse, 14);
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Inverse);
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(14));
-        }
-    }
+            SECTION("constant step size")
+            {
+                Parameter param;
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(1e-2));
 
-    SECTION("setter")
-    {
-        SECTION("mode")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Direct);
-
-            refiner.setMode(BarzilaiBorwein::Mode::Inverse);
-            REQUIRE(refiner.mode() == BarzilaiBorwein::Mode::Inverse);
-        }
-
-        SECTION("constant step size")
-        {
-            DynamicRefiner refiner;
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(1e-2));
-
-            refiner.setConstantStepSize(5);
-            REQUIRE(refiner.constantStepSize() == static_cast<Scalar>(5));
+                param.setConstantStepSize(5);
+                REQUIRE(param.constantStepSize() == static_cast<Scalar>(5));
+            }
         }
     }
 
@@ -95,7 +98,8 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
 
             SECTION("direct")
             {
-                Refiner refiner(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
+                Parameter param(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
+                Refiner refiner(param);
                 StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
@@ -114,7 +118,8 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
 
             SECTION("inverse")
             {
-                Refiner refiner(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
+                Parameter param(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
+                Refiner refiner(param);
                 StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
@@ -158,7 +163,8 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
 
             SECTION("direct")
             {
-                Refiner refiner(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
+                Parameter param(BarzilaiBorwein::Mode::Direct, static_cast<Scalar>(2.5));
+                Refiner refiner(param);
                 StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
@@ -177,7 +183,8 @@ TEMPLATE_TEST_CASE("barzilai borwein step refiner", "[step refiner]", float, dou
 
             SECTION("inverse")
             {
-                Refiner refiner(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
+                Parameter param(BarzilaiBorwein::Mode::Inverse, static_cast<Scalar>(2.5));
+                Refiner refiner(param);
                 StepVector expected = step * static_cast<Scalar>(2.5) / step.norm();
 
                 refiner(xval, fval, jacobian, gradient, objective, step);
