@@ -6,6 +6,7 @@
 
 #include <lsqcpp/lsqcpp.h>
 #include <fstream>
+#include <vector>
 
 using Pointcloud = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 using Vector6 = Eigen::Matrix<float, 6, 1>;

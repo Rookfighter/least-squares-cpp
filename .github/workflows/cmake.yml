@@ -3,52 +3,125 @@ name: CMake
 on: [push]
 
 jobs:
-  build:
+
+  # Job for building on Ubuntu
+  Ubuntu:
     name: ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}
     strategy:
       matrix:
         config:
-          - name: Ubuntu 20.04 Debug
+          - name: Ubuntu 20.04 gcc Debug
             os: ubuntu-20.04
             build_type: Debug
-            test_exec: tests/unittests
-          - name: Ubuntu 20.04 Release
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu 20.04 gcc Release
             os: ubuntu-20.04
             build_type: Release
-            test_exec: tests/unittests
-          - name: Ubuntu 18.04 Debug
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu 20.04 clang Debug
+            os: ubuntu-20.04
+            build_type: Debug
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+          - name: Ubuntu 20.04 clang Release
+            os: ubuntu-20.04
+            build_type: Release
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+
+          - name: Ubuntu 18.04 gcc Debug
             os: ubuntu-18.04
             build_type: Debug
-            test_exec: tests/unittests
-          - name: Ubuntu 18.04 Release
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu 18.04 gcc Release
             os: ubuntu-18.04
             build_type: Release
-            test_exec: tests/unittests
-          - name: macOS 11 Debug
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu 18.04 clang Debug
+            os: ubuntu-18.04
+            build_type: Debug
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+          - name: Ubuntu 18.04 clang Release
+            os: ubuntu-18.04
+            build_type: Release
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.config.build_type}} -DBUILD_TESTS=ON -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      run: ${{github.workspace}}/build/tests/unittests
+
+  # Job for building on macOS
+  macOS:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - name: macOS 11 clang Debug
             os: macos-11
             build_type: Debug
-            test_exec: tests/unittests
-          - name: macOS 11 Release
+          - name: macOS 11 clang Release
             os: macos-11
             build_type: Release
-            test_exec: tests/unittests
-          - name: macOS 10.15 Debug
+          - name: macOS 10.15 clang Debug
             os: macos-10.15
             build_type: Debug
-            test_exec: tests/unittests
-          - name: macOS 10.15 Release
+          - name: macOS 10.15 clang Release
             os: macos-10.15
             build_type: Release
-            test_exec: tests/unittests
-          # - os: windows-latest
-          #   name: Windows Debug
-          #   build_type: Debug
-          #   test_exec: tests/Debug/unittests.exe
-          # - os: windows-latest
-          #   name: Windows Release
-          #   build_type: Release
-          #   test_exec: tests/Release/unittests.exe
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.config.build_type}} -DBUILD_TESTS=ON -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      run: ${{github.workspace}}/build/tests/unittests
+
+  # Job for building on Windows
+  Windows:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+            - name: Windows vc++ Debug
+              os: windows-latest
+              build_type: Debug
+            - name: Windows vc++ Release
+              os: windows-latest
+              build_type: Release
+
     steps:
     - uses: actions/checkout@v2
 
@@ -65,4 +138,4 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{matrix.config.build_type}}
 
     - name: Test
-      run: ${{github.workspace}}/build/${{matrix.config.test_exec}}
+      run: ${{github.workspace}}/build/tests/${{matrix.config.build_type}}/unittests.exe
