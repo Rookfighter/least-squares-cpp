@@ -111,14 +111,14 @@ struct Objective
     Pointcloud *pointcloudA = nullptr;
     Pointcloud *pointcloudB = nullptr;
 
-    template<typename Scalar, int Inputs, int Outputs>
-    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
+    template<typename I, typename O>
+    void operator()(const Eigen::MatrixBase<I> &xval,
+                    Eigen::MatrixBase<O> &fval) const
     {
         Vector3 translation = xval.segment(0, 3);
         Matrix3 rotation = lsqcpp::parameter::decodeRotation(xval.segment(3, 3));
 
-        fval.resize(pointcloudA->cols());
+        fval.derived().resize(pointcloudA->cols());
         for(lsqcpp::Index i = 0; i < pointcloudA->cols(); ++i)
         {
             fval(i) = (pointcloudA->col(i) - (rotation * pointcloudB->col(i) + translation)).norm();
@@ -141,8 +141,8 @@ int main(int argc, char** argv)
     auto callback = Callback(pointcloudA, pointcloudB);
 
     lsqcpp::GaussNewton<float, 6, Eigen::Dynamic, Objective, lsqcpp::ArmijoBacktracking, lsqcpp::DenseCholeskySolver> optimizer;
-    optimizer.setMinimumGradientLength(1e-3);
-    optimizer.setMinimumStepLength(1e-3);
+    optimizer.setMinimumGradientLength(1e-3F);
+    optimizer.setMinimumStepLength(1e-3F);
     optimizer.setObjective({pointcloudA, pointcloudB});
     optimizer.setCallback(callback);
     optimizer.setMaximumIterations(10);

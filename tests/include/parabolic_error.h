@@ -6,20 +6,20 @@ struct ParabolicError
 {
     constexpr static bool ComputesJacobian = true;
 
-    template<typename Scalar, int Inputs, int Outputs>
-    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                    Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                    Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
+    template<typename I, typename O, typename J>
+    void operator()(const Eigen::MatrixBase<I> &xval,
+                    Eigen::MatrixBase<O> &fval,
+                    Eigen::MatrixBase<J> &jacobian) const
     {
         assert(xval.size() % 2 == 0);
 
         // calculate the error vector
-        fval.resize(xval.size() / 2);
+        fval.derived().resize(xval.size() / 2);
         for(lsqcpp::Index i = 0; i < fval.size(); ++i)
             fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
 
         // calculate the jacobian explicitly
-        jacobian.setZero(fval.size(), xval.size());
+        jacobian.derived().setZero(fval.size(), xval.size());
         for(lsqcpp::Index i = 0; i < jacobian.rows(); ++i)
         {
             jacobian(i, i*2) = 2* xval(i*2);
@@ -32,13 +32,16 @@ struct ParabolicErrorNoJacobian
 {
     constexpr static bool ComputesJacobian = false;
 
-    template<typename Scalar, int Inputs, int Outputs>
-    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                    Eigen::Matrix<Scalar, Outputs, 1> &fval) const
+    template<typename I, typename O>
+    void operator()(const Eigen::MatrixBase<I> &xval,
+                    Eigen::MatrixBase<O> &fval) const
     {
-        Eigen::Matrix<Scalar, Outputs, Inputs> jac;
-        ParabolicError error;
-        error(xval, fval, jac);
+        assert(xval.size() % 2 == 0);
+
+        // calculate the error vector
+        fval.derived().resize(xval.size() / 2);
+        for(lsqcpp::Index i = 0; i < fval.size(); ++i)
+            fval(i) = xval(i*2) * xval(i*2) + xval(i*2+1) * xval(i*2+1);
     }
 };
 
@@ -46,10 +49,10 @@ struct ParabolicErrorInverseJacobian
 {
     constexpr static bool ComputesJacobian = true;
 
-    template<typename Scalar, int Inputs, int Outputs>
-    void operator()(const Eigen::Matrix<Scalar, Inputs, 1> &xval,
-                    Eigen::Matrix<Scalar, Outputs, 1> &fval,
-                    Eigen::Matrix<Scalar, Outputs, Inputs> &jacobian) const
+    template<typename I, typename O, typename J>
+    void operator()(const Eigen::MatrixBase<I> &xval,
+                    Eigen::MatrixBase<O> &fval,
+                    Eigen::MatrixBase<J> &jacobian) const
     {
         ParabolicError error;
         error(xval, fval, jacobian);
