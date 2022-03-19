@@ -4,7 +4,7 @@
 /// Created On: 22 Jul 2019
 /// License:    MIT
 
-#include <lsqcpp/lsqcpp.h>
+#include <lsqcpp/lsqcpp.hpp>
 #include <fstream>
 #include <vector>
 

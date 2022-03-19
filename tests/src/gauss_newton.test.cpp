@@ -5,7 +5,7 @@
 /// License:    MIT
 
 
-#include <lsqcpp/lsqcpp.h>
+#include <lsqcpp/lsqcpp.hpp>
 #include "eigen_require.h"
 #include "parabolic_error.h"
 

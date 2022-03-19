@@ -35,7 +35,7 @@ include_directories(
     ${EIGEN3_INCLUDE_DIR}
 )
 
-install(FILES "include/lsqcpp/lsqcpp.h"
+install(FILES "include/lsqcpp/lsqcpp.hpp"
     DESTINATION include)
 
 if(${BUILD_TESTS})

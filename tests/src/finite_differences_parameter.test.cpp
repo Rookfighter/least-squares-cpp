@@ -4,7 +4,7 @@
 /// Created On: 11 Nov 2020
 /// License:    MIT
 
-#include <lsqcpp/lsqcpp.h>
+#include <lsqcpp/lsqcpp.hpp>
 #include "eigen_require.h"
 
 using namespace lsqcpp;

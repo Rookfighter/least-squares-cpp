@@ -1,11 +1,11 @@
-/// lsqcpp/lsqcpp.h
+/// lsqcpp/lsqcpp.hpp
 ///
 /// Author:     Fabian Meyer
 /// Created On: 22 Jul 2019
 /// License:    MIT
 
-#ifndef LSQCPP_LSQCPP_H_
-#define LSQCPP_LSQCPP_H_
+#ifndef LSQCPP_LSQCPP_HPP_
+#define LSQCPP_LSQCPP_HPP_
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
