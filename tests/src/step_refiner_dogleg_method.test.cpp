@@ -113,10 +113,10 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             Parameter param;
             Refiner refiner(param);
             StepVector expected(4);
-            expected << static_cast<Scalar>(-0.316228),
-                        static_cast<Scalar>(-0.632456),
-                        static_cast<Scalar>(-0.316228),
-                        static_cast<Scalar>(-0.632456);
+            expected << static_cast<Scalar>(0.316228),
+                        static_cast<Scalar>(0.632456),
+                        static_cast<Scalar>(0.316228),
+                        static_cast<Scalar>(0.632456);
 
             refiner(xval, fval, jacobian, gradient, objective, step);
 
@@ -148,10 +148,10 @@ TEMPLATE_TEST_CASE("dogleg method step refiner ", "[step refiner]", float, doubl
             Parameter param;
             Refiner refiner(param);
             StepVector expected(4);
-            expected << static_cast<Scalar>(-0.316228),
-                        static_cast<Scalar>(-0.632456),
-                        static_cast<Scalar>(-0.316228),
-                        static_cast<Scalar>(-0.632456);
+            expected << static_cast<Scalar>(0.316228),
+                        static_cast<Scalar>(0.632456),
+                        static_cast<Scalar>(0.316228),
+                        static_cast<Scalar>(0.632456);
 
 
             refiner(xval, fval, jacobian, gradient, objective, step);

@@ -106,31 +106,31 @@ TEMPLATE_TEST_CASE("gauss newton", "[algorithm]", float, double)
 
         SECTION("dogleg method")
         {
-            // GaussNewtonX<Scalar, ParabolicError, DoglegMethod> optimizer;
+            GaussNewtonX<Scalar, ParabolicError, DoglegMethod> optimizer;
 
-            // optimizer.setRefinementParameters({static_cast<Scalar>(1),
-            //                           static_cast<Scalar>(2),
-            //                           static_cast<Scalar>(1e-9),
-            //                           static_cast<Scalar>(0.25),
-            //                           100});
-            // optimizer.setMinimumStepLength(static_cast<Scalar>(1e-4));
-            // optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-4));
-            // optimizer.setMaximumIterations(100);
+            optimizer.setRefinementParameters({static_cast<Scalar>(1),
+                                               static_cast<Scalar>(2),
+                                               static_cast<Scalar>(1e-9),
+                                               static_cast<Scalar>(0.25),
+                                               100});
+            optimizer.setMinimumStepLength(static_cast<Scalar>(1e-10));
+            optimizer.setMinimumGradientLength(static_cast<Scalar>(1e-10));
+            optimizer.setMaximumIterations(100);
 
-            // Vector initGuess(4);
-            // initGuess << 2, 1, 3, 4;
+            Vector initGuess(4);
+            initGuess << 2, 1, 3, 4;
 
-            // Scalar errorExp = 0;
-            // Vector fvalExp = Vector::Zero(2);
-            // Vector xvalExp = Vector::Zero(4);
+            Scalar errorExp = 0;
+            Vector fvalExp = Vector::Zero(2);
+            Vector xvalExp = Vector::Zero(4);
 
-            // auto result = optimizer.minimize(initGuess);
+            auto result = optimizer.minimize(initGuess);
 
-            // REQUIRE(result.converged);
-            // REQUIRE_MATRIX_APPROX(xvalExp, result.xval, eps);
-            // REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
-            // REQUIRE(Approx(errorExp).margin(eps) == result.error);
-            // REQUIRE(Approx(errorExp).margin(eps) == result.error);
+            REQUIRE(result.converged);
+            REQUIRE_MATRIX_APPROX(xvalExp, result.xval, eps);
+            REQUIRE_MATRIX_APPROX(fvalExp, result.fval, eps);
+            REQUIRE(Approx(errorExp).margin(eps) == result.error);
+            REQUIRE(Approx(errorExp).margin(eps) == result.error);
         }
     }
 

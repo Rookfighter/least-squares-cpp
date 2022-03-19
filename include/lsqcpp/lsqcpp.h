@@ -1013,7 +1013,7 @@ namespace lsqcpp
             // compute the cauchy step
             const auto gradientLenSq = gradient.squaredNorm();
             const Scalar curvature = gradient.dot(hessian * gradient);
-            const StepVector cauchyStep = -(gradientLenSq / curvature) * gradient;
+            const StepVector cauchyStep = (gradientLenSq / curvature) * gradient;
             const auto cauchyStepLenSq = cauchyStep.squaredNorm();
 
             // compute step diff
