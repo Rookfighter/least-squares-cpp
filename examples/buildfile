@@ -1,0 +1,15 @@
+import libs = least-squares-cpp%lib{lsqcpp}
+
+examples = custom_termination_criterion \
+    gauss_newton_armijo_backtracking \
+    gauss_newton_dogleg_method \
+    gauss_newton_wolfe_backtracking \
+    gradient_descent_barzilai_borwein \
+    levenberg_marquardt \
+    provide_explicit_jacobian \
+    pointcloud_registration
+
+for e: $examples
+{
+    ./: exe{$e}: cxx{$e} $libs
+}

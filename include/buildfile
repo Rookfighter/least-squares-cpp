@@ -1,0 +1,11 @@
+intf_libs =
+impl_libs =
+import intf_libs += Eigen%lib{Eigen}
+
+lib{lsqcpp}: lsqcpp/hxx{*} $intf_libs
+
+lib{lsqcpp}:
+{
+    cxx.export.poptions = "-I$out_base" "-I$src_base"
+    cxx.export.libs = $intf_libs
+}
