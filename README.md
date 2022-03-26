@@ -33,8 +33,8 @@ the CMake build system by typing
 
 ```bash
 cd path/to/repo
-mkdir build
-cd build
+mkdir out
+cd out
 cmake ..
 make install
 ```

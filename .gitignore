@@ -10,17 +10,12 @@ Debug/
 Release/
 lib/
 logs/
+bin/
+out/
 doc/html
 doc/latex
-
 .bdep/
-
-# Local default options files.
-#
 .build2/local/
-
-# Compiler/linker output.
-#
 *.d
 *.t
 *.i
