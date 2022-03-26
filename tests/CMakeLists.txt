@@ -24,6 +24,7 @@ set(TEST_SRC
     "src/dense_svd_solver.test.cpp"
 
     "src/gauss_newton.test.cpp"
+    "src/gradient_descent.test.cpp"
     "src/levenberg_marquardt.test.cpp"
 )
 
