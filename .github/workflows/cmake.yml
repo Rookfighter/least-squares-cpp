@@ -11,44 +11,23 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: Ubuntu 20.04 gcc Debug
-            os: ubuntu-20.04
+          - name: Ubuntu gcc Debug
+            os: ubuntu-latest
             build_type: Debug
             compiler_cc: /usr/bin/gcc
             compiler_cxx: /usr/bin/g++
-          - name: Ubuntu 20.04 gcc Release
-            os: ubuntu-20.04
+          - name: Ubuntu gcc Release
+            os: ubuntu-latest
             build_type: Release
             compiler_cc: /usr/bin/gcc
             compiler_cxx: /usr/bin/g++
-          - name: Ubuntu 20.04 clang Debug
-            os: ubuntu-20.04
+          - name: Ubuntu clang Debug
+            os: ubuntu-latest
             build_type: Debug
             compiler_cc: /usr/bin/clang
             compiler_cxx: /usr/bin/clang++
-          - name: Ubuntu 20.04 clang Release
-            os: ubuntu-20.04
-            build_type: Release
-            compiler_cc: /usr/bin/clang
-            compiler_cxx: /usr/bin/clang++
-
-          - name: Ubuntu 18.04 gcc Debug
-            os: ubuntu-18.04
-            build_type: Debug
-            compiler_cc: /usr/bin/gcc
-            compiler_cxx: /usr/bin/g++
-          - name: Ubuntu 18.04 gcc Release
-            os: ubuntu-18.04
-            build_type: Release
-            compiler_cc: /usr/bin/gcc
-            compiler_cxx: /usr/bin/g++
-          - name: Ubuntu 18.04 clang Debug
-            os: ubuntu-18.04
-            build_type: Debug
-            compiler_cc: /usr/bin/clang
-            compiler_cxx: /usr/bin/clang++
-          - name: Ubuntu 18.04 clang Release
-            os: ubuntu-18.04
+          - name: Ubuntu clang Release
+            os: ubuntu-latest
             build_type: Release
             compiler_cc: /usr/bin/clang
             compiler_cxx: /usr/bin/clang++
@@ -78,17 +57,11 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: macOS 11 clang Debug
-            os: macos-11
+          - name: macOS clang Debug
+            os: macos-latest
             build_type: Debug
-          - name: macOS 11 clang Release
-            os: macos-11
-            build_type: Release
-          - name: macOS 10.15 clang Debug
-            os: macos-10.15
-            build_type: Debug
-          - name: macOS 10.15 clang Release
-            os: macos-10.15
+          - name: macOS clang Release
+            os: macos-latest
             build_type: Release
     steps:
     - uses: actions/checkout@v2
