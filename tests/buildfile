@@ -1,6 +1,7 @@
 import libs = least-squares-cpp%lib{lsqcpp}
 import libs += catch2%lib{catch2}
 
-exe{unittests} : cxx{**} hxx{**} $libs
-
 cxx.poptions = "-I$out_base/include" "-I$src_base/include"
+
+exe{unittests}: cxx{**} hxx{**} $libs
+exe{unittests}: test = true

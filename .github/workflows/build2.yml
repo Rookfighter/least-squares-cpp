@@ -1,0 +1,48 @@
+name: build2
+
+on: [push]
+
+jobs:
+
+  # Job for building on Ubuntu
+  Ubuntu:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - name: Ubuntu gcc Debug
+            os: ubuntu-latest
+            build_type: Debug
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu gcc Release
+            os: ubuntu-latest
+            build_type: Release
+            compiler_cc: /usr/bin/gcc
+            compiler_cxx: /usr/bin/g++
+          - name: Ubuntu clang Debug
+            os: ubuntu-latest
+            build_type: Debug
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+          - name: Ubuntu clang Release
+            os: ubuntu-latest
+            build_type: Release
+            compiler_cc: /usr/bin/clang
+            compiler_cxx: /usr/bin/clang++
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install build2
+      run: mkdir -p /tmp/build2 && cd /tmp/build2 && curl -sSfO https://download.build2.org/0.14.0/build2-install-0.14.0.sh && sudo sh build2-install-0.14.0.sh
+
+    - name: Create build2 configuration
+      run: bdep init -C ../lsqcpp-default @default cc config.cxx=${{matrix.config.compiler_cxx}}
+
+    - name: Build
+      run: b
+
+    - name: Test
+      run: b test
