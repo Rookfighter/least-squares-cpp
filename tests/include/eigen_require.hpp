@@ -1,11 +1,11 @@
-/* eigen_require.h
+/* eigen_require.hpp
  *
  *  Created on: 27 Jun 2019
  *      Author: Fabian Meyer
  */
 
-#ifndef LSQCPP_EIGEN_REQUIRE_H_
-#define LSQCPP_EIGEN_REQUIRE_H_
+#ifndef LSQCPP_EIGEN_REQUIRE_HPP_
+#define LSQCPP_EIGEN_REQUIRE_HPP_
 
 #include <Eigen/Geometry>
 #include <catch2/catch.hpp>

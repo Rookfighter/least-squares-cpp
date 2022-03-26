@@ -1,6 +1,6 @@
 
-#ifndef LSQCPP_PARABOLIC_ERROR_
-#define LSQCPP_PARABOLIC_ERROR_
+#ifndef LSQCPP_PARABOLIC_ERROR_HPP_
+#define LSQCPP_PARABOLIC_ERROR_HPP_
 
 struct ParabolicError
 {

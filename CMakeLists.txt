@@ -9,7 +9,7 @@ project(lsqcpp)
 option(BUILD_TESTS "Enables if tests should be built" OFF)
 option(BUILD_EXAMPLES "Enables if examples should be built" OFF)
 
-SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)

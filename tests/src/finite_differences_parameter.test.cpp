@@ -5,7 +5,7 @@
 /// License:    MIT
 
 #include <lsqcpp/lsqcpp.hpp>
-#include "eigen_require.h"
+#include "eigen_require.hpp"
 
 using namespace lsqcpp;
 
