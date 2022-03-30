@@ -2,6 +2,7 @@
 #
 #     Author: Fabian Meyer
 # Created On: 23 May 2018
+#    License: MIT
 
 cmake_minimum_required(VERSION 3.5)
 project(lsqcpp)
@@ -12,7 +13,7 @@ option(BUILD_EXAMPLES "Enables if examples should be built" OFF)
 SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (MSVC)
+if(MSVC)
     # warning level 4 and all warnings as errors
     add_compile_options(/W4 /WX /wd4127 /wd26495 /wd26451 /wd26812)
 else()
@@ -29,18 +30,10 @@ if(OPENMP_FOUND)
 endif(OPENMP_FOUND)
 
 add_subdirectory(dep)
-
-include_directories(
-    include
-    ${EIGEN3_INCLUDE_DIR}
-)
-
-install(FILES "include/lsqcpp/lsqcpp.hpp"
-    DESTINATION include)
+add_subdirectory(include)
 
 if(${BUILD_TESTS})
     # Compile tests
-    include_directories(${CATCH2_INCLUDE_DIR})
     add_subdirectory(tests)
 endif(${BUILD_TESTS})
 

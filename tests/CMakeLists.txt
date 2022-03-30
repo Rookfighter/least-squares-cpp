@@ -1,11 +1,8 @@
 # CMakeLists.txt
 #
-# Author:     Fabian Meyer
+#     Author: Fabian Meyer
 # Created On: 12 Jul 2019
-
-include_directories(
-    ${CMAKE_CURRENT_LIST_DIR}/include
-)
+#    License: MIT
 
 set(TEST_SRC
     "main.cpp"
@@ -29,3 +26,5 @@ set(TEST_SRC
 )
 
 add_executable(unittests ${TEST_SRC})
+target_include_directories(unittests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
+target_link_libraries(unittests lsqcpp::lsqcpp Catch2::Catch2)

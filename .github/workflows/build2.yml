@@ -34,12 +34,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Install build2
-      run: mkdir -p /tmp/build2 && cd /tmp/build2 && curl -sSfO https://download.build2.org/0.14.0/build2-install-0.14.0.sh && sudo sh build2-install-0.14.0.sh
-
-    - name: Create build2 configuration
-      run: bdep init -C ../lsqcpp-default @default cc config.cxx=${{matrix.config.compiler_cxx}}
+    - uses: Rookfighter/setup-build2@master
 
     - name: Build
       run: b

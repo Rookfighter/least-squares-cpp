@@ -1,7 +1,8 @@
 # least-squares-cpp
 
-![Cpp11](https://img.shields.io/badge/C%2B%2B-11-blue.svg)
+![Cpp14](https://img.shields.io/badge/C%2B%2B-14-blue.svg)
 ![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
+![build2](https://img.shields.io/badge/build2-on-yellow.svg)
 ![CMake](https://github.com/Rookfighter/least-squares-cpp/workflows/CMake/badge.svg)
 
 ```least-squares-cpp``` is a header-only C++ library for unconstrained non-linear
@@ -28,15 +29,30 @@ iterations without initial guess.
 
 ## Install
 
-Simply copy the header file into your project or install it using
-the CMake build system by typing
+Simply copy the single header file into your project and add it to your include path and you are
+good to go.
+
+`least-squares-cpp` now also supports the [build2](https://build2.org/) build system. You can simply add `least-squares-cpp`
+into the dependency list of your `manifest` file:
+
+```
+depends: lsqcpp ^0.3.0
+```
+
+Also add this repository to your `repositories.manifest`:
+
+```
+:
+role: prerequisite
+location: https://github.com/Rookfighter/least-squares-cpp.git
+```
+
+If `CMake` is your preferred tooling you can install the library with the following command:
 
 ```bash
 cd path/to/repo
-mkdir out
-cd out
-cmake ..
-make install
+cmake -B out/ -S .
+cmake --install out/
 ```
 
 The library requires ```Eigen3``` to be installed on your system.
@@ -47,8 +63,6 @@ apt-get install libeigen3-dev
 ```
 
 Make sure ```Eigen3``` can be found by your build system.
-
-You can use the CMake Find module in ```cmake/``` to find the installed header.
 
 ## Usage
 
