@@ -31,16 +31,56 @@ jobs:
             build_type: Release
             compiler_cc: /usr/bin/clang
             compiler_cxx: /usr/bin/clang++
-
     steps:
     - uses: actions/checkout@v2
     - uses: Rookfighter/setup-build2@master
-
     - name: Configure
       run: bdep init -C @default cc config.cxx=${{ matrix.config.compiler_cxx }}
-
     - name: Build
       run: b
-
+    - name: Test
+      run: b test
+      
+  MacOS:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - name: MacOS clang Debug
+            os: macos-latest
+            build_type: Debug
+          - name: MacOS clang Release
+            os: macos-latest
+            build_type: Release
+    steps:
+    - uses: actions/checkout@v2
+    - uses: Rookfighter/setup-build2@master
+    - name: Configure
+      run: bdep init -C @default cc config.cxx=${{ matrix.config.compiler_cxx }}
+    - name: Build
+      run: b
+    - name: Test
+      run: b test
+      
+  Windows:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+            - name: Windows vc++ Debug
+              os: windows-latest
+              build_type: Debug
+            - name: Windows vc++ Release
+              os: windows-latest
+              build_type: Release
+    steps:
+    - uses: actions/checkout@v2
+    - uses: Rookfighter/setup-build2@master
+    - name: Configure
+      run: bdep init -C @default cc config.cxx=${{ matrix.config.compiler_cxx }}
+    - name: Build
+      run: b
     - name: Test
       run: b test
