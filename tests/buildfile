@@ -1,4 +1,4 @@
-import libs = least-squares-cpp%lib{lsqcpp}
+import libs = lsqcpp%lib{lsqcpp}
 import libs += catch2%lib{catch2}
 
 cxx.poptions = "-I$out_base/include" "-I$src_base/include"
