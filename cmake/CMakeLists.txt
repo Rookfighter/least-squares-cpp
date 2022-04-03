@@ -4,5 +4,5 @@
 # Created On: 03 Apr 2022
 #    License: MIT
 
-install(FILES Findlsqcpp.cmake
-        DESTINATION lib/lsqcpp)
+configure_file(lsqcpp-config.in.cmake lsqcpp-config.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lsqcpp-config.cmake" DESTINATION lib/lsqcpp)

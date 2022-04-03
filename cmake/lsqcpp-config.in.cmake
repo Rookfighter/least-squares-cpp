@@ -1,7 +1,7 @@
-# Findlsqcpp.cmake
+# lsqcpp-config.cmake
 #
 #     Author: Fabian Meyer
-# Created On: 05 Oct 2018
+# Created On: 04 Apr 2022
 #
 # Defines
 #   lsqcpp::lsqcpp
@@ -9,11 +9,8 @@
 #   lsqcpp_FOUND
 
 find_path(lsqcpp_INCLUDE_DIR
-    lsqcpp/lsqcpp.hpp
-    HINTS
-    ${lsqcpp_ROOT}
-    ENV lsqcpp_ROOT
-)
+          lsqcpp/lsqcpp.hpp
+          HINTS "@CMAKE_INSTALL_PREFIX@/include")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(lsqcpp DEFAULT_MSG lsqcpp_INCLUDE_DIR)
