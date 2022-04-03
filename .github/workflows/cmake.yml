@@ -53,12 +53,6 @@ jobs:
     - name: Install
       run: sudo cmake --install ${{github.workspace}}/out
 
-    - name: Configure Test CMake
-      run: cmake -S ${{github.workspace}}/cmake/tests -B ${{github.workspace}}/cmake/tests/out
-
-    - name: Build Test CMake
-      run: cmake --build ${{github.workspace}}/cmake/tests/out
-
   # Job for building on macOS
   macOS:
     name: ${{matrix.config.name}}
