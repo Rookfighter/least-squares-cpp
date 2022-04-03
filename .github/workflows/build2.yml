@@ -79,7 +79,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: Rookfighter/setup-build2@master
     - name: Configure
-      run: bdep init -C @msvc cc config.cxx=cl.exe
+      run: bdep init -C ../least-squares-cpp-msvc @msvc
     - name: Build
       run: b
     - name: Test
