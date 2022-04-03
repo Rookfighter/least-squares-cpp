@@ -9,5 +9,4 @@ target_include_directories(lsqcpp INTERFACE "${CMAKE_CURRENT_LIST_DIR}")
 target_link_libraries(lsqcpp INTERFACE Eigen3::Eigen3)
 add_library(lsqcpp::lsqcpp ALIAS lsqcpp)
 
-install(DIRECTORY lsqcpp
-        TYPE INCLUDE)
+install(DIRECTORY lsqcpp TYPE INCLUDE)
