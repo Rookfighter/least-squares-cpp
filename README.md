@@ -29,10 +29,10 @@ iterations without initial guess.
 
 ## Install
 
-Simply copy the single header file into your project and add it to your include path and you are
+Simply copy the single header file into your project and add it to your include path, then you are
 good to go.
 
-`least-squares-cpp` now also supports the [build2](https://build2.org/) build system. You can simply add `least-squares-cpp`
+`least-squares-cpp` now also supports the [build2](https://build2.org/) build system. You can simply add `lsqcpp`
 into the dependency list of your `manifest` file:
 
 ```
@@ -53,6 +53,14 @@ If `CMake` is your preferred tooling you can install the library with the follow
 cd path/to/repo
 cmake -B out/ -S .
 cmake --install out/
+```
+
+You can then simply use the library in your `CMake` projects by finding the package:
+
+```cmake
+find_package(lsqcpp REQUIRED)
+add_executable(myproject main.cpp)
+target_link_libraries(myproject lsqcpp::lsqcpp)
 ```
 
 The library requires ```Eigen3``` to be installed on your system.
