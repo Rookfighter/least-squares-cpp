@@ -1,4 +1,4 @@
-cxx.std = c++14
+cxx.std = 14
 using cxx
 
 hxx{*}: extension = hpp
