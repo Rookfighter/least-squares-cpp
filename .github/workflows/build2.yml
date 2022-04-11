@@ -33,7 +33,7 @@ jobs:
             compiler_cxx: clang++
     steps:
     - uses: actions/checkout@v2
-    - uses: Rookfighter/setup-build2@master
+    - uses: actions/setup-build2@master
     - name: Configure
       run: bdep init -C @${{ matrix.config.compiler_cc }} cc config.cxx=${{ matrix.config.compiler_cxx }}
     - name: Build
@@ -55,7 +55,7 @@ jobs:
             build_type: Release
     steps:
     - uses: actions/checkout@v2
-    - uses: Rookfighter/setup-build2@master
+    - uses: actions/setup-build2@master
     - name: Configure
       run: bdep init -C @clang
     - name: Build
@@ -77,7 +77,7 @@ jobs:
               build_type: Release
     steps:
     - uses: actions/checkout@v2
-    - uses: Rookfighter/setup-build2@master
+    - uses: actions/setup-build2@master
     - name: Configure
       run: bdep init -C ../least-squares-cpp-msvc @msvc
     - name: Build
