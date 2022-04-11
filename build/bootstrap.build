@@ -1,4 +1,4 @@
-project = lsqcpp
+project = least-squares-cpp
 
 using version
 using config

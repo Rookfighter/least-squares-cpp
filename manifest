@@ -1,15 +1,15 @@
 : 1
-name: lsqcpp
+name: least-squares-cpp
 version: 0.3.0
 summary: A single header-only library for least squares optimization.
 license: MIT ; MIT License
 description-file: README.md
 url: https://github.com/Rookfighter/least-squares-cpp
-email: user8324@posteo.net
+email: rookfighter@posteo.org
 
 requires: c++ >= 14
 
 depends: * build2 >= 0.14.0
 depends: * bpkg >= 0.14.0
-depends: Eigen ^3.3.7
+depends: Eigen ^3.4.0
 depends: catch2 ^2.13.6
