@@ -32,11 +32,11 @@ iterations without initial guess.
 Simply copy the single header file into your project and add it to your include path, then you are
 good to go.
 
-`least-squares-cpp` now also supports the [build2](https://build2.org/) build system. You can simply add `lsqcpp`
+`least-squares-cpp` now also supports the [build2](https://build2.org/) build system. You can simply add `least-squares-cpp`
 into the dependency list of your `manifest` file:
 
 ```
-depends: lsqcpp ^0.3.0
+depends: least-squares-cpp ^0.3.0
 ```
 
 Also add this repository to your `repositories.manifest`:
