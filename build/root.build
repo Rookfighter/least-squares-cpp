@@ -9,13 +9,3 @@ hxx{*}: cxx.importable = true
 
 # The test target for cross-testing (running tests under Wine, etc).
 test.target = $cxx.target
-
-switch $cxx.id
-{
-  case 'clang'
-  case 'gcc'
-  case 'mingw32'
-    config.woptions = -Wall -Wextra -Werror
-  case 'msvc'
-    config.woptions = /W4 /WX /wd4127 /wd26495 /wd26451 /wd26812
-}

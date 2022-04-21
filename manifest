@@ -2,7 +2,7 @@
 name: least-squares-cpp
 version: 0.3.0
 summary: A single header-only library for least squares optimization.
-license: MIT ; MIT License
+license: MIT
 description-file: README.md
 url: https://github.com/Rookfighter/least-squares-cpp
 email: rookfighter@posteo.org
