@@ -2,7 +2,7 @@
 
 ![Cpp14](https://img.shields.io/badge/C%2B%2B-14-blue.svg)
 ![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
-![build2](https://img.shields.io/badge/build2-on-yellow.svg)
+[![cppget](https://img.shields.io/website/https/cppget.org/least-squares-cpp.svg?down_message=offline&label=cppget.org&style=for-the-badge&up_color=blue&up_message=online)]("https://cppget.org/least-squares-cpp")
 ![CMake](https://github.com/Rookfighter/least-squares-cpp/workflows/CMake/badge.svg)
 
 ```least-squares-cpp``` is a header-only C++ library for unconstrained non-linear
@@ -39,12 +39,10 @@ into the dependency list of your `manifest` file:
 depends: least-squares-cpp ^0.3.0
 ```
 
-Also add this repository to your `repositories.manifest`:
+You can then simply import `least-squares-cpp` in your build files.
 
 ```
-:
-role: prerequisite
-location: https://github.com/Rookfighter/least-squares-cpp.git
+import libs = least-squares-cpp%lib{least-squares-cpp}
 ```
 
 If `CMake` is your preferred tooling you can install the library with the following command:
