@@ -1,4 +1,4 @@
-import libs = least-squares-cpp%lib{lsqcpp}
+import libs = least-squares-cpp%lib{least-squares-cpp}
 
 examples = custom_termination_criterion \
     gauss_newton_armijo_backtracking \
