@@ -2,8 +2,8 @@
 
 ![Cpp14](https://img.shields.io/badge/C%2B%2B-14-blue.svg)
 ![License](https://img.shields.io/packagist/l/doctrine/orm.svg)
-[![cppget](https://img.shields.io/website/https/cppget.org/least-squares-cpp.svg?down_message=offline&label=cppget.org&style=for-the-badge&up_color=blue&up_message=online)]("https://cppget.org/least-squares-cpp")
 ![CMake](https://github.com/Rookfighter/least-squares-cpp/workflows/CMake/badge.svg)
+[![cppget](https://img.shields.io/website/https/cppget.org/least-squares-cpp.svg?down_message=offline&label=cppget.org&up_color=blue&up_message=online)](https://cppget.org/least-squares-cpp)
 
 ```least-squares-cpp``` is a header-only C++ library for unconstrained non-linear
 least squares optimization using the ```Eigen3``` library.
