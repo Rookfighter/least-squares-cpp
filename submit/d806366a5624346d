@@ -1,0 +1,5 @@
+: 1
+name: least-squares-cpp
+version: 0.3.0+1
+summary: A single header-only library for least squares optimization.
+license: MIT
