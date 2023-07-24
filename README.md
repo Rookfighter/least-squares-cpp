@@ -56,6 +56,7 @@ cmake --install out/
 You can then simply use the library in your `CMake` projects by finding the package:
 
 ```cmake
+find_package(Eigen3 REQUIRED)
 find_package(lsqcpp REQUIRED)
 add_executable(myproject main.cpp)
 target_link_libraries(myproject lsqcpp::lsqcpp)
